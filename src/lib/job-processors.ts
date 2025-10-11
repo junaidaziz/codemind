@@ -279,10 +279,6 @@ async function cleanupChunksProcessor(
       ...(data.projectId ? { projectId: data.projectId } : {}),
     };
 
-    if (data.projectId) {
-      whereClause.projectId = data.projectId;
-    }
-
     progress(40);
 
     // Count chunks to be deleted
@@ -405,12 +401,13 @@ async function generateEmbeddingsProcessor(
         const contents = chunks.map(chunk => chunk.content);
         const embeddings = await embedTexts(contents);
 
-        // Update chunks with embeddings
+        // Update chunks with embeddings using raw SQL
         for (let j = 0; j < chunks.length; j++) {
-          await prisma.codeChunk.update({
-            where: { id: chunks[j].id },
-            data: { embedding: `[${embeddings[j].join(',')}]` },
-          });
+          await prisma.$executeRaw`
+            UPDATE "CodeChunk" 
+            SET embedding = ${`[${embeddings[j].join(',')}]`}::vector 
+            WHERE id = ${chunks[j].id}
+          `;
         }
 
         embeddingsGenerated += embeddings.length;
