@@ -177,7 +177,7 @@ Add typed metrics + charts for user activity.
 **Type Notes:**  
 - No implicit `any` in chart data arrays.  
 
-**Status:** [ ]
+**Status:** ✅ **COMPLETED**
 
 ---
 
@@ -196,6 +196,94 @@ Provide typed developer and API docs.
 **Status:** [ ]
 
 ---
+
+# 🧠 CodeMind – Step 8 (AI Agent & LangChain Integration)
+
+---
+
+### 🤖 Task 8.1 – LangChain.js Integration
+**Goal:**  
+Introduce LangChain to manage retrieval + reasoning workflows.
+
+**Details:**  
+- Install `langchain`, `@langchain/openai`, and `@langchain/community`.  
+- Replace manual embed/retrieve logic with `RunnableSequence` or `RetrievalChain`.  
+- Use your existing pgvector store as a `VectorStoreRetriever`.  
+- Implement a typed `generateAnswer()` function that accepts `{ query, projectId }`.  
+- Keep **Zod validation** for all chain inputs/outputs.
+
+**Status:** [ ]
+
+---
+
+### 🔍 Task 8.2 – Contextual Memory
+**Goal:**  
+Add long-term and session memory for chat.
+
+**Details:**  
+- Store chat context in Prisma.  
+- Use LangChain’s `BufferMemory` or `UpsertMemory` to recall recent code context.  
+- Limit token usage with trimming logic.  
+
+**Status:** [ ]
+
+---
+
+### 🧰 Task 8.3 – Tooling / Plugins
+**Goal:**  
+Enable agent to use tools (GitHub API, NPM search, doc lookup).
+
+**Details:**  
+- Implement custom LangChain Tools (`Tool` classes) that:  
+  - Read GitHub files  
+  - Call external APIs  
+  - Summarize docs  
+- Add a type-safe registry of tools per project.  
+
+**Status:** [ ]
+
+---
+
+### 🧑‍💻 Task 8.4 – Developer Agent Mode
+**Goal:**  
+Create a “Code Assistant” agent capable of taking repo-level actions.
+
+**Details:**  
+- Use LangChain’s `AgentExecutor` with your retriever + tools.  
+- Allow commands like:
+  - “Summarize this project”
+  - “Explain this function”
+  - “Generate tests for file X”
+- Stream replies via your `/api/chat` endpoint.
+
+**Status:** [ ]
+
+---
+
+### 🧠 Task 8.5 – Memory Persistence & Analytics
+**Goal:**  
+Track agent performance and memory efficiency.
+
+**Details:**  
+- Log every chain step and token usage.  
+- Store summaries in `AgentMemory` table.  
+- Visualize memory size vs accuracy in dashboard.
+
+**Status:** [ ]
+
+---
+
+### 🧩 Task 8.6 – Framework Evaluation (Optional)
+**Goal:**  
+Compare LangChain.js vs. Vercel AI SDK vs. LlamaIndex.js.
+
+**Details:**  
+- Benchmark response latency and cost.  
+- Use typed experiment runner to test different RAG setups.  
+- Decide which framework to keep for production.
+
+**Status:** [ ]
+
 
 ## 💡 Usage
 In Copilot Chat:
