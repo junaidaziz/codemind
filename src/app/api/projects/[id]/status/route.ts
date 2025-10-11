@@ -7,8 +7,8 @@ import {
 import { z } from 'zod';
 
 // Params validation schema
-const GetProjectStatusParamsSchema = z.object({
-  id: z.string().uuid("Invalid project ID format"),
+const ProjectStatusParamsSchema = z.object({
+  id: z.string().min(1, "Project ID is required"),
 });
 
 export async function GET(
@@ -19,7 +19,7 @@ export async function GET(
     const params = await context.params;
     
     // Validate params
-    const { id } = GetProjectStatusParamsSchema.parse(params);
+    const { id } = ProjectStatusParamsSchema.parse(params);
 
     const project = await prisma.project.findUnique({
       where: { id },

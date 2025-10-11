@@ -12,7 +12,7 @@ import { z } from 'zod';
 
 // Params validation schema
 const IndexProjectParamsSchema = z.object({
-  id: z.string().uuid("Invalid project ID format"),
+  id: z.string().min(1, "Project ID is required"),
 });
 
 export async function POST(

@@ -8,7 +8,7 @@ export type { Project, ChatSession, Message, CodeChunk, User } from '@prisma/cli
 export const CreateProjectSchema = z.object({
   name: z.string().min(1, 'Project name is required').max(100, 'Project name is too long'),
   githubUrl: z.string().url('Must be a valid GitHub URL'),
-  userId: z.string().uuid().optional(),
+  userId: z.string().optional(),
 });
 
 export const UpdateProjectSchema = z.object({
@@ -32,9 +32,9 @@ export type ProjectResponse = z.infer<typeof ProjectResponseSchema>;
 
 // Chat-related schemas and types
 export const CreateChatMessageSchema = z.object({
-  projectId: z.string().uuid('Invalid project ID'),
+  projectId: z.string().min(1, 'Project ID is required'),
   message: z.string().min(1, 'Message cannot be empty').max(5000, 'Message is too long'),
-  userId: z.string().uuid().optional(),
+  userId: z.string().optional(),
 });
 
 export const ChatSessionResponseSchema = z.object({
@@ -69,7 +69,7 @@ export interface CodeChunkWithSimilarity extends CodeChunk {
 }
 
 export const IndexProjectRequestSchema = z.object({
-  projectId: z.string().uuid(),
+  projectId: z.string().min(1, 'Project ID is required'),
   force: z.boolean().optional().default(false),
 });
 
@@ -79,7 +79,7 @@ export type IndexProjectRequest = z.infer<typeof IndexProjectRequestSchema>;
 export const ProjectFiltersSchema = z.object({
   status: z.enum(['idle', 'indexing', 'ready', 'error']).optional(),
   search: z.string().optional(),
-  userId: z.string().uuid().optional(),
+  userId: z.string().optional(),
 });
 
 export type ProjectFilters = z.infer<typeof ProjectFiltersSchema>;

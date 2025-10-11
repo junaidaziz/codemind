@@ -106,26 +106,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     return () => subscription.unsubscribe();
-  }, [supabase]);
+  }, [supabase, fetchUserRole]);
 
   const signUp = useCallback(async (email: string, password: string, fullName?: string) => {
-    // Validate input with default name if not provided
-    const signUpData: SignUpRequest = { 
-      email, 
-      password, 
-      name: fullName || email.split('@')[0] 
-    };
-    
-    const validatedData = SignUpRequestSchema.parse(signUpData);
-    
-    const { error } = await supabase.auth.signUp({
-      email: validatedData.email,
-      password: validatedData.password,
-      options: {
-        data: { name: validatedData.name },
-      },
-    });
-    return { error };
+    try {
+      // Validate input with default name if not provided
+      const signUpData: SignUpRequest = { 
+        email, 
+        password, 
+        name: fullName || email.split('@')[0] 
+      };
+      
+      const validatedData = SignUpRequestSchema.parse(signUpData);
+      
+      const { data, error } = await supabase.auth.signUp({
+        email: validatedData.email,
+        password: validatedData.password,
+        options: {
+          data: { name: validatedData.name },
+          emailRedirectTo: typeof window !== 'undefined' 
+            ? `${window.location.origin}/auth/callback` 
+            : undefined,
+        },
+      });
+
+      // Check if user already exists but is not confirmed
+      if (error && error.message === 'User already registered') {
+        return { 
+          error: { 
+            ...error, 
+            message: 'An account with this email already exists. Please check your email for verification or try signing in.' 
+          } 
+        };
+      }
+
+      // Check if signup was successful but user needs to confirm email
+      if (data.user && !data.user.email_confirmed_at) {
+        // User created successfully, needs email confirmation
+        return { error: null };
+      }
+
+      return { error };
+    } catch {
+      return { 
+        error: { 
+          message: 'Invalid signup data provided', 
+          name: 'ValidationError' 
+        } as AuthError 
+      };
+    }
   }, [supabase]);
 
   const signIn = useCallback(async (email: string, password: string) => {

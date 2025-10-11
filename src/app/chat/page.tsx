@@ -56,10 +56,15 @@ function ChatPageContent() {
     try {
       const response = await fetch('/api/projects');
       if (response.ok) {
-        const projectsData = await response.json();
-        setProjects(projectsData);
-        if (projectsData.length > 0) {
-          setSelectedProjectId(projectsData[0].id);
+        const apiResponse = await response.json();
+        if (apiResponse.success) {
+          const projectsData = apiResponse.data;
+          setProjects(projectsData);
+          if (projectsData.length > 0) {
+            setSelectedProjectId(projectsData[0].id);
+          }
+        } else {
+          console.error('Failed to fetch projects:', apiResponse.error);
         }
       }
     } catch (error) {

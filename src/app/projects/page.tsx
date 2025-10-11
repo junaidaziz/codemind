@@ -17,6 +17,12 @@ function ProjectsPageContent() {
   const [loading, setLoading] = useState(true);
   const [reindexingProjects, setReindexingProjects] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createProjectData, setCreateProjectData] = useState({
+    name: '',
+    githubUrl: ''
+  });
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     fetchProjects();
@@ -27,9 +33,13 @@ function ProjectsPageContent() {
       setLoading(true);
       const response = await fetch('/api/projects');
       if (response.ok) {
-        const data = await response.json();
-        setProjects(data);
-        setError(null);
+        const apiResponse = await response.json();
+        if (apiResponse.success) {
+          setProjects(apiResponse.data);
+          setError(null);
+        } else {
+          setError(apiResponse.error || 'Failed to fetch projects');
+        }
       } else {
         setError('Failed to fetch projects');
       }
@@ -90,6 +100,40 @@ function ProjectsPageContent() {
     }
   };
 
+  const handleCreateProject = async () => {
+    if (!createProjectData.name.trim() || !createProjectData.githubUrl.trim()) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      setIsCreating(true);
+      const response = await fetch('/api/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(createProjectData),
+      });
+
+      const apiResponse = await response.json();
+
+      if (response.ok && apiResponse.success) {
+        await fetchProjects(); // Refresh the list
+        setShowCreateModal(false);
+        setCreateProjectData({ name: '', githubUrl: '' });
+        setError(null);
+      } else {
+        setError(apiResponse.error || 'Failed to create project');
+      }
+    } catch (err) {
+      setError('Error creating project');
+      console.error('Error creating project:', err);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const baseClasses = "px-2 py-1 rounded-full text-xs font-medium";
     switch (status) {
@@ -127,12 +171,20 @@ function ProjectsPageContent() {
                 Manage your indexed projects and monitor their status.
               </p>
             </div>
-            <Link
-              href="/"
-              className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-            >
-              ← Back to Home
-            </Link>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                + Create Project
+              </button>
+              <Link
+                href="/"
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                ← Back to Home
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -155,12 +207,20 @@ function ProjectsPageContent() {
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 You haven&apos;t added any projects yet. Create your first project to get started!
               </p>
-              <button
-                onClick={fetchProjects}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                Refresh
-              </button>
+              <div className="flex items-center justify-center gap-3">
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  + Create Project
+                </button>
+                <button
+                  onClick={fetchProjects}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  Refresh
+                </button>
+              </div>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -267,6 +327,76 @@ function ProjectsPageContent() {
           </div>
         )}
       </div>
+
+      {/* Create Project Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Create New Project</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="project-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Project Name *
+                </label>
+                <input
+                  id="project-name"
+                  type="text"
+                  value={createProjectData.name}
+                  onChange={(e) => setCreateProjectData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="My Awesome Project"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  maxLength={100}
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="github-url" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  GitHub URL *
+                </label>
+                <input
+                  id="github-url"
+                  type="url"
+                  value={createProjectData.githubUrl}
+                  onChange={(e) => setCreateProjectData(prev => ({ ...prev, githubUrl: e.target.value }))}
+                  placeholder="https://github.com/username/repository"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Enter the GitHub repository URL to index your code
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setCreateProjectData({ name: '', githubUrl: '' });
+                  setError(null);
+                }}
+                disabled={isCreating}
+                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateProject}
+                disabled={isCreating || !createProjectData.name.trim() || !createProjectData.githubUrl.trim()}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isCreating ? (
+                  <InlineSpinner size="sm" color="white">
+                    Creating...
+                  </InlineSpinner>
+                ) : (
+                  'Create Project'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

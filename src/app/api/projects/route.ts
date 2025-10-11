@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { 
   CreateProjectSchema,
@@ -45,12 +45,36 @@ export async function GET(): Promise<NextResponse<ApiResponse<ProjectResponse[]>
   }
 }
 
-export async function POST(req: Request): Promise<NextResponse<ApiResponse<ProjectResponse>>> {
+export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse<ProjectResponse>>> {
   try {
     const body: unknown = await req.json();
     const data: CreateProjectRequest = CreateProjectSchema.parse(body);
     
-    const userId = data.userId || "static-user-id";
+    // For now, use a default user or create one if needed
+    // TODO: Implement proper authentication once session handling is fixed
+    let userId = data.userId;
+    
+    if (!userId) {
+      // Try to find an existing user or create a default one
+      let defaultUser = await prisma.user.findFirst({
+        where: { email: { not: null } },
+        select: { id: true }
+      });
+
+      if (!defaultUser) {
+        // Create a default user for development
+        defaultUser = await prisma.user.create({
+          data: {
+            email: 'default@codemind.dev',
+            name: 'Default User',
+            role: 'user'
+          },
+          select: { id: true }
+        });
+      }
+      
+      userId = defaultUser.id;
+    }
 
     // Create a project
     const project = await prisma.project.create({

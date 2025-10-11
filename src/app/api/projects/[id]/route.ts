@@ -8,7 +8,7 @@ import { z } from 'zod';
 
 // Params validation schema
 const GetProjectParamsSchema = z.object({
-  id: z.string().uuid("Invalid project ID format"),
+  id: z.string().min(1, "Project ID is required"),
 });
 
 export async function GET(

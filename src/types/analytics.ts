@@ -23,14 +23,19 @@ export enum MetricType {
 
 // Analytics query schema
 export const AnalyticsQuerySchema = z.object({
-  metric: z.nativeEnum(MetricType),
-  period: z.nativeEnum(TimePeriod).default(TimePeriod.DAY),
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
-  projectId: z.string().uuid().optional(),
-  userId: z.string().uuid().optional(),
-  limit: z.string().transform(val => parseInt(val, 10)).pipe(z.number().int().min(1).max(1000)).optional().default(100),
-  groupBy: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  projectId: z.string().optional(),
+  userId: z.string().optional(),
+  granularity: z.enum(['hour', 'day', 'month']).default('day'),
+  metrics: z.array(z.enum([
+    'total_queries',
+    'unique_users', 
+    'avg_response_time',
+    'total_tokens',
+    'avg_context_relevance',
+    'success_rate'
+  ])).default(['total_queries', 'unique_users'])
 });
 
 // User activity metrics

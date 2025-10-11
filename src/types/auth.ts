@@ -22,7 +22,7 @@ export const ResetPasswordRequestSchema = z.object({
 });
 
 export const UpdateUserRequestSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().min(1, 'User ID is required'),
   email: z.string().email().nullable(),
   name: z.string().nullable(),
   image: z.string().url().nullable().optional(),
