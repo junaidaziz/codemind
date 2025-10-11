@@ -36,7 +36,11 @@ const DashboardError = ({ error, resetError }: { error: Error; resetError: () =>
           Try Again
         </button>
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => {
+            if (typeof window !== 'undefined') {
+              window.location.reload();
+            }
+          }}
           className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors"
         >
           Reload Page

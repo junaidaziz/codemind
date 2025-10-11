@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom';
 import 'jest-environment-jsdom';
+import { TextEncoder, TextDecoder } from 'util';
 
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
@@ -91,6 +92,10 @@ jest.mock('recharts', () => ({
 
 // Global test utilities
 global.fetch = jest.fn();
+
+// Polyfills for Node.js environment
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
 
 // MSW setup removed to avoid Node.js compatibility issues
 // Individual tests can set up their own API mocking as needed

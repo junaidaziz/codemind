@@ -1,25 +1,32 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
-import { embedTexts } from "@/lib/embeddings";
-import { retrieveRelevantChunks } from "@/lib/db-utils";
-import prisma from "@/lib/db";
 import { 
   CreateChatMessageSchema,
   createApiError
 } from "../../../types";
-import { ZodError } from 'zod';
-import { env } from '../../../types/env';
-import { logger, createError, withRequestTiming, withDatabaseTiming } from '../../lib/logger';
+import { z, ZodError } from 'zod';
+import { logger, createError, withRequestTiming } from '../../lib/logger';
+import { generateAnswerStream, GenerateAnswerInput } from '../../lib/langchain-rag';
+import { createEnhancedRAGChain, AgentCommand } from '../../lib/langchain-agent';
+import prisma from '../../lib/db';
 
-const openai = new OpenAI({
-  apiKey: env.OPENAI_API_KEY
+// Enhanced chat request schema supporting developer agent commands
+const EnhancedChatRequestSchema = CreateChatMessageSchema.extend({
+  command: z.enum(['summarize_project', 'explain_function', 'generate_tests', 'analyze_code', 'chat']).optional(),
+  context: z.object({
+    filePath: z.string().optional(),
+    functionName: z.string().optional(),
+    codeSnippet: z.string().optional(),
+  }).optional(),
+  sessionId: z.string().optional(),
+  useAgent: z.boolean().default(false), // Flag to use developer agent
 });
 
 export async function POST(req: Request) {
   return withRequestTiming('POST', '/api/chat', async () => {
     try {
       const body: unknown = await req.json();
-      const { projectId, message, userId } = CreateChatMessageSchema.parse(body);
+      const requestData = EnhancedChatRequestSchema.parse(body);
+      const { projectId, message, userId, command, context, sessionId, useAgent } = requestData;
 
       // Use provided userId or fallback to static for backwards compatibility
       const finalUserId = userId || "static-user-id";
@@ -28,121 +35,121 @@ export async function POST(req: Request) {
         projectId,
         userId: finalUserId,
         messageLength: message.length,
+        command: command || 'chat',
+        useAgent,
       });
 
       // Verify project exists
-      const project = await withDatabaseTiming('findProject', () =>
-        prisma.project.findUnique({
-          where: { id: projectId },
-          select: { id: true, name: true }
-        })
-      );
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        select: { id: true, name: true }
+      });
 
       if (!project) {
         logger.warn('Project not found', { projectId, userId: finalUserId });
         throw createError.notFound("Project not found", { projectId });
       }
 
-    // Create chat session
-    const session = await prisma.chatSession.create({
-      data: {
-        projectId,
-        userId: finalUserId,
-        title: message.substring(0, 50) + (message.length > 50 ? "..." : "")
-      }
-    });
+      // Create a readable stream for the response
+      const encoder = new TextEncoder();
+      let finalSessionId = sessionId || "";
 
-    // Save user message
-    await prisma.message.create({
-      data: {
-        sessionId: session.id,
-        role: "user",
-        content: message
-      }
-    });
+      const readableStream = new ReadableStream({
+        async start(controller) {
+          try {
+            if (useAgent && command) {
+              // Use Developer Agent for specialized commands
+              const enhancedChain = await createEnhancedRAGChain(
+                projectId,
+                finalUserId,
+                sessionId
+              );
 
-    // Generate embedding for the user message
-    const [queryEmbedding] = await embedTexts([message]);
+              const agentCommand: AgentCommand = {
+                command,
+                projectId,
+                userId: finalUserId,
+                sessionId,
+                context,
+                message,
+              };
 
-    // Retrieve relevant code chunks
-    const relevantChunks = await retrieveRelevantChunks(projectId, queryEmbedding, { limit: 8 });
+              // Stream agent response
+              for await (const chunk of enhancedChain.streamCommand(agentCommand)) {
+                controller.enqueue(
+                  encoder.encode(`data: ${JSON.stringify({ content: chunk })}\n\n`)
+                );
+              }
 
-    // Build context from relevant chunks
-    const context = relevantChunks
-      .map(chunk => 
-        `File: ${chunk.path} (lines ${chunk.startLine}-${chunk.endLine})\n` +
-        `Language: ${chunk.language}\n` +
-        `Code:\n${chunk.content}\n`
-      )
-      .join("\n---\n");
+              controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+              controller.close();
 
-    // Prepare messages for OpenAI
-    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-      {
-        role: "system",
-        content: `You are an AI assistant helping with code analysis and questions about the "${project.name}" project. 
-        
-Use the following code context to answer questions accurately:
+            } else {
+              // Use traditional RAG chain
+              const ragInput: GenerateAnswerInput = {
+                query: message,
+                projectId,
+                userId: finalUserId,
+              };
 
-${context}
-
-When referencing code, mention the file path and line numbers. Provide helpful explanations and suggestions based on the codebase.`
-      },
-      {
-        role: "user",
-        content: message
-      }
-    ];
-
-    // Create streaming response from OpenAI
-    const stream = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages,
-      stream: true,
-      temperature: 0.7,
-      max_tokens: 1000
-    });
-
-    // Create a readable stream for the response
-    const encoder = new TextEncoder();
-    let assistantMessage = "";
-
-    const readableStream = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const chunk of stream) {
-            const content = chunk.choices[0]?.delta?.content || "";
-            if (content) {
-              assistantMessage += content;
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`));
+              await generateAnswerStream(
+                ragInput,
+                // onChunk - stream content to client
+                (chunk: string) => {
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify({ content: chunk })}\n\n`)
+                  );
+                },
+                // onComplete - handle final result
+                (result) => {
+                  finalSessionId = result.sessionId;
+                  logger.info('LangChain streaming completed', {
+                    projectId,
+                    userId: finalUserId,
+                    sessionId: finalSessionId,
+                    answerLength: result.answer.length,
+                    sourceCount: result.sources.length,
+                    tokenUsage: result.tokenUsage,
+                  });
+                  
+                  // Send sources information
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify({ 
+                      sources: result.sources,
+                      tokenUsage: result.tokenUsage 
+                    })}\n\n`)
+                  );
+                  
+                  controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+                  controller.close();
+                },
+                // onError - handle errors
+                (error: Error) => {
+                  logger.error('LangChain streaming error', {
+                    projectId,
+                    userId: finalUserId,
+                  }, error);
+                  controller.error(error);
+                }
+              );
             }
+          } catch (error) {
+            logger.error("Streaming initialization error", {
+              projectId,
+              userId: finalUserId,
+            }, error as Error);
+            controller.error(error);
           }
-          
-          // Save assistant message to database
-          await prisma.message.create({
-            data: {
-              sessionId: session.id,
-              role: "assistant",
-              content: assistantMessage
-            }
-          });
-
-          controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
-          controller.close();
-        } catch (error) {
-          console.error("Streaming error:", error);
-          controller.error(error);
         }
-      }
-    });
+      });
 
-    return new Response(readableStream, {
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
-      },
-    });
+      return new Response(readableStream, {
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "no-cache",  
+          "Connection": "keep-alive",
+        },
+      });
 
     } catch (error) {
       logger.error("Chat API error", {}, error as Error);

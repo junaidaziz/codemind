@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from './supabase';
 
 export async function getAuthenticatedUser(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
@@ -11,10 +11,7 @@ export async function getAuthenticatedUser(req: NextRequest) {
   const token = authHeader.substring(7);
   
   try {
-    const supabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_ANON_KEY!
-    );
+    const supabase = createServerClient();
 
     const { data: { user }, error } = await supabase.auth.getUser(token);
     

@@ -25,7 +25,7 @@ export const UpdateUserRequestSchema = z.object({
   id: z.string().uuid(),
   email: z.string().email().nullable(),
   name: z.string().nullable(),
-  image: z.string().url().nullable(),
+  image: z.string().url().nullable().optional(),
   role: UserRoleSchema.optional(),
 });
 

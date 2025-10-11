@@ -70,7 +70,7 @@ export function AppHeader() {
                 </Link>
                 <button
                   onClick={handleSignOut}
-                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors text-sm"
+                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors text-sm cursor-pointer"
                 >
                   Sign Out
                 </button>
