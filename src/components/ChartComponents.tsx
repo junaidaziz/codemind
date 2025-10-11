@@ -267,9 +267,13 @@ export const PieChartComponent: React.FC<PieChartComponentProps> = ({
   showLabels = true,
   showLegend = true,
 }) => {
-  const renderCustomLabel = ({ name, percentage }: PieChartData) => {
-    return showLabels ? `${name} ${percentage}%` : '';
-  };
+  // Transform data for Recharts compatibility
+  const chartData = data.map(item => ({
+    name: item.name,
+    value: item.value,
+    percentage: item.percentage,
+    color: item.color,
+  }));
 
   return (
     <div className="w-full">
@@ -277,11 +281,11 @@ export const PieChartComponent: React.FC<PieChartComponentProps> = ({
       <ResponsiveContainer width="100%" height={height}>
         <PieChart>
           <Pie
-            data={data}
+            data={chartData}
             cx="50%"
             cy="50%"
             labelLine={false}
-            label={renderCustomLabel}
+            label={showLabels}
             outerRadius={80}
             fill="#8884d8"
             dataKey="value"

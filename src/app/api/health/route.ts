@@ -60,30 +60,4 @@ export async function GET() {
   }
 }
 
-// Helper functions for service health checks
-async function checkDatabase(): Promise<boolean> {
-  try {
-    // Add database connection check
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function checkOpenAI(): Promise<boolean> {
-  try {
-    // Add OpenAI API health check
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function checkRedis(): Promise<boolean> {
-  try {
-    // Add Redis connection check
-    return true;
-  } catch {
-    return false;
-  }
-}
+// TODO: Add helper functions for service health checks when needed

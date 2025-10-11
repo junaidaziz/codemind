@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from 'zod';
 import { 
   AnalyticsQuerySchema,
-  MetricType,
-  TimePeriod,
   AnalyticsResponse,
-  DashboardResponse,
 } from "../../../types/analytics";
 import { analyticsService } from "../../../lib/analytics";
 import { createApiError } from "../../../types";

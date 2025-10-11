@@ -1,80 +1,77 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"] // enables "extensions" in datasource
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
+  extensions = [uuid_ossp(map: "uuid-ossp", schema: "extensions")]
 }
 
-/// --------------------------------------------------------------------
-/// Models
-/// --------------------------------------------------------------------
-
 model User {
-  id         String   @id @default(cuid())
-  email      String?  @unique
-  name       String?
-  image      String?
-  role       String   @default("user") // user | admin
-  projects   Project[]
-  sessions   ChatSession[]
-  createdAt  DateTime @default(now())
+  id        String        @id @default(cuid())
+  email     String?       @unique
+  name      String?
+  createdAt DateTime      @default(now())
+  image     String?
+  role      String        @default("user")
+  sessions  ChatSession[]
+  projects  Project[]
 }
 
 model Project {
   id            String        @id @default(cuid())
-  ownerId       String
-  owner         User           @relation(fields: [ownerId], references: [id])
   name          String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  defaultBranch String        @default("main")
   githubUrl     String
-  defaultBranch String         @default("main")
-  visibility    String         @default("public") // public | private
-  status        String         @default("idle")   // idle | indexing | ready | error
   lastIndexedAt DateTime?
-  files         CodeChunk[]
+  ownerId       String
+  status        String        @default("idle")
+  visibility    String        @default("public")
   sessions      ChatSession[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  files         CodeChunk[]
+  owner         User          @relation(fields: [ownerId], references: [id])
 }
 
 model ChatSession {
-  id         String       @id @default(cuid())
-  projectId  String
-  project    Project       @relation(fields: [projectId], references: [id])
-  userId     String
-  user       User          @relation(fields: [userId], references: [id])
-  title      String         @default("New Chat")
-  createdAt  DateTime       @default(now())
-  messages   Message[]
+  id        String    @id @default(cuid())
+  projectId String
+  userId    String
+  title     String    @default("New Chat")
+  createdAt DateTime  @default(now())
+  project   Project   @relation(fields: [projectId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+  messages  Message[]
 }
 
 model Message {
-  id          String        @id @default(cuid())
-  sessionId   String
-  session     ChatSession   @relation(fields: [sessionId], references: [id])
-  role        String        // user | assistant | system
-  content     String
-  tokenCount  Int?
-  latencyMs   Int?
-  createdAt   DateTime      @default(now())
+  id         String      @id @default(cuid())
+  sessionId  String
+  role       String
+  content    String
+  tokenCount Int?
+  latencyMs  Int?
+  createdAt  DateTime    @default(now())
+  session    ChatSession @relation(fields: [sessionId], references: [id])
 }
 
 /// Each row = code chunk with its embedding
 model CodeChunk {
-  id          String   @id @default(cuid())
-  projectId   String
-  project     Project  @relation(fields: [projectId], references: [id])
-  path        String
-  sha         String
-  language    String
-  startLine   Int
-  endLine     Int
-  content     String   @db.Text
-  tokenCount  Int
-  embedding   Unsupported("vector(1536)") // pgvector column
-  updatedAt   DateTime @updatedAt
+  id         String                @id @default(cuid())
+  projectId  String
+  path       String
+  sha        String
+  language   String
+  startLine  Int
+  endLine    Int
+  content    String
+  tokenCount Int
+  embedding  Unsupported("vector")
+  updatedAt  DateTime              @updatedAt
+  project    Project               @relation(fields: [projectId], references: [id])
 
   @@index([projectId])
   @@index([projectId, path])

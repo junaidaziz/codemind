@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from './supabase';
 import { UserRole, type SessionUser } from '../../types';
-import prisma from './db';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 // Auth result types
 export interface AuthResult {
@@ -54,9 +56,8 @@ export async function authenticateRequest(
       where: { id: session.user.id },
       select: {
         id: true,
-        email: true,
         name: true,
-        image: true,
+        email: true,
         role: true,
       },
     });
@@ -70,15 +71,26 @@ export async function authenticateRequest(
       };
     }
 
-    // Create typed session user - simplify to avoid complex type conflicts
-    const sessionUser = {
+    // Extract role from database user - ensure it's a valid UserRole
+    const userRole: UserRole = (dbUser.role === 'admin' ? 'admin' : 'user');
+
+    // Create typed session user with proper type structure
+    const sessionUser: SessionUser = {
       ...session.user,
+      id: session.user.id,
       email: session.user.email || '',
-      role: dbUser.role as UserRole,
-    } as SessionUser;
+      user_metadata: {
+        ...session.user.user_metadata,
+        name: dbUser.name || undefined,
+      },
+      app_metadata: {
+        ...session.user.app_metadata,
+        role: userRole,
+      },
+    };
 
     // Check role-based authorization
-    if (options.requiredRole && dbUser.role !== options.requiredRole) {
+    if (options.requiredRole && userRole !== options.requiredRole) {
       return {
         success: false,
         error: `Access denied. Required role: ${options.requiredRole}`,

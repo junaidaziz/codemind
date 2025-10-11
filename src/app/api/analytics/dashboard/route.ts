@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { 
   DashboardResponse,
   ChartDataPoint,
@@ -12,7 +12,7 @@ import { createApiError } from "../../../../types";
 import { logger, withRequestTiming, createPerformanceTimer, endPerformanceTimer } from '../../../lib/logger';
 
 // GET /api/analytics/dashboard - Get dashboard overview data
-export async function GET(_request: NextRequest): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   return withRequestTiming('GET', '/api/analytics/dashboard', async () => {
     const totalTimer = createPerformanceTimer('dashboard_data_fetch');
     
@@ -35,7 +35,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
         analyticsService.getAnalyticsData(MetricType.USER_ACTIVITY, TimePeriod.DAY),
         analyticsService.getProjectUsageMetrics(),
         analyticsService.getAnalyticsData(MetricType.API_REQUESTS, TimePeriod.DAY),
-        analyticsService.getAnalyticsData(MetricType.RESPONSE_TIME, TimePeriod.HOUR),
+        analyticsService.getAnalyticsData(MetricType.SYSTEM_PERFORMANCE, TimePeriod.HOUR),
       ]);
       endPerformanceTimer(chartsTimer);
 

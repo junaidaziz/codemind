@@ -1,4 +1,4 @@
-import { logger, measurePerformance } from './logger';
+import { logger } from './logger';
 
 // Enhanced type definitions for code chunking
 export interface CodeChunk {

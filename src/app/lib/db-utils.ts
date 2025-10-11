@@ -1,5 +1,5 @@
-import { PrismaClient, Prisma } from "@prisma/client";
-import { logger, withDatabaseTiming, createError } from './logger';
+import { PrismaClient } from "@prisma/client";
+import { logger, withDatabaseTiming } from './logger';
 
 const prisma = new PrismaClient();
 
