@@ -1,17 +1,23 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"] // enables "extensions" in datasource
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
 }
+
+/// --------------------------------------------------------------------
+/// Models
+/// --------------------------------------------------------------------
 
 model User {
   id         String   @id @default(cuid())
   email      String?  @unique
   name       String?
   image      String?
+  role       String   @default("user") // user | admin
   projects   Project[]
   sessions   ChatSession[]
   createdAt  DateTime @default(now())
@@ -57,21 +63,20 @@ model Message {
 
 /// Each row = code chunk with its embedding
 model CodeChunk {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   projectId   String
-  project     Project   @relation(fields: [projectId], references: [id])
+  project     Project  @relation(fields: [projectId], references: [id])
   path        String
   sha         String
   language    String
   startLine   Int
   endLine     Int
-  content     String     @db.Text
+  content     String   @db.Text
   tokenCount  Int
-  embedding   Unsupported("vector") // pgvector(dim = 1536)
-  updatedAt   DateTime   @updatedAt
+  embedding   Unsupported("vector(1536)") // pgvector column
+  updatedAt   DateTime @updatedAt
 
   @@index([projectId])
   @@index([projectId, path])
-  // prisma doesn't support vector indexing, so skip:
-  // @@index([projectId, embedding])
+  @@index([projectId, embedding])
 }
