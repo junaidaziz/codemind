@@ -61,7 +61,7 @@ export default async function Home() {
             </p>
           ) : (
             <div className="space-y-4">
-              {projects.slice(0, 5).map((project) => (
+              {projects.slice(0, 5).map((project: typeof projects[0]) => (
                 <div
                   key={project.id}
                   className="flex items-center justify-between p-4 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
