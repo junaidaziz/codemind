@@ -53,8 +53,7 @@ jobs:
         continue-on-error: true
 
       - name: Run TypeScript type check
-        run: pnpm build --dry-run || npx tsc --noEmit
-        continue-on-error: true
+        run: npx tsc --noEmit
 
       - name: Security audit
         run: pnpm audit --audit-level high

@@ -142,12 +142,11 @@ jobs:
         if: env.NO_FAILURES != 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_PROJECT: ${{ secrets.VERCEL_PROJECT }}
+          VERCEL_PROJECT: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TEAM: ${{ secrets.VERCEL_TEAM_ID }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_OWNER: ${{ github.repository_owner }}
-          GITHUB_REPO: ${{ github.event.repository.name }}
+          GITHUB_REPO: ${{ github.repository }}
         run: |
           echo "🤖 Running AI analysis with our enhanced script..."
           pnpm run analyze-vercel
