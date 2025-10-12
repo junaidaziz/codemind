@@ -8,7 +8,7 @@ const GetMemoryTrendsSchema = z.object({
   timeRange: z.enum(['7d', '30d', '90d']).default('30d'),
 });
 
-export async function GET(req: Request) {
+export async function GET(req: Request): Promise<Response> {
   return withRequestTiming('GET', '/api/analytics/memory/trends', async () => {
     try {
       const url = new URL(req.url);

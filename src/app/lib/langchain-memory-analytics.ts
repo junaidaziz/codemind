@@ -160,9 +160,9 @@ export class AgentMemoryTracker {
 
       // Calculate metrics
       const totalInteractions = memoryRecords.length;
-      const averageMemorySize = memoryRecords.reduce((sum: number, record) => sum + record.memorySize, 0) / totalInteractions;
-      const averageTokenUsage = memoryRecords.reduce((sum: number, record) => sum + record.tokenUsage, 0) / totalInteractions;
-      const averageExecutionTime = memoryRecords.reduce((sum: number, record) => sum + record.executionTimeMs, 0) / totalInteractions;
+      const averageMemorySize = memoryRecords.reduce((sum: number, record: typeof memoryRecords[0]) => sum + record.memorySize, 0) / totalInteractions;
+      const averageTokenUsage = memoryRecords.reduce((sum: number, record: typeof memoryRecords[0]) => sum + record.tokenUsage, 0) / totalInteractions;
+      const averageExecutionTime = memoryRecords.reduce((sum: number, record: typeof memoryRecords[0]) => sum + record.executionTimeMs, 0) / totalInteractions;
 
       // Calculate relevance and quality averages (only for records that have these metrics)
       const recordsWithRelevance = memoryRecords.filter(r => r.contextRelevance !== null);

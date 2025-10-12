@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createServerClient } from './supabase';
 
-export async function getAuthenticatedUser(req: NextRequest) {
+export async function getAuthenticatedUser(req: NextRequest): Promise<{ id: string; email: string | null } | null> {
   const authHeader = req.headers.get('authorization');
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -19,7 +19,10 @@ export async function getAuthenticatedUser(req: NextRequest) {
       return null;
     }
 
-    return user;
+    return {
+      id: user.id,
+      email: user.email || null
+    };
   } catch (error) {
     console.error('Auth error:', error);
     return null;

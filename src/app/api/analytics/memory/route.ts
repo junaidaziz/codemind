@@ -9,7 +9,7 @@ const GetMemoryAnalyticsSchema = z.object({
   timeRange: z.enum(['7d', '30d', '90d']).default('7d'),
 });
 
-export async function GET(req: Request) {
+export async function GET(req: Request): Promise<Response> {
   return withRequestTiming('GET', '/api/analytics/memory', async () => {
     try {
       const url = new URL(req.url);

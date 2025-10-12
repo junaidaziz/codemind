@@ -11,7 +11,7 @@ import {
 import { z } from 'zod';
 
 // GET /api/feedback - Get feedback stored in message metadata (temporary until migration)
-export async function GET(req: NextRequest) {
+export async function GET(req: NextRequest): Promise<Response> {
   try {
     const url = new URL(req.url);
     const projectId = url.searchParams.get('projectId');
@@ -112,7 +112,7 @@ export async function GET(req: NextRequest) {
 }
 
 // POST /api/feedback - Submit new feedback (temporary storage until migration)
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<Response> {
   try {
     const body = await req.json();
     const feedbackData = SubmitFeedbackSchema.parse(body);
