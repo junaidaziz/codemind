@@ -129,7 +129,10 @@ export default function SignupPage() {
                   </h3>
                   <p className="text-blue-800 dark:text-blue-200 text-sm leading-relaxed">
                     We&apos;ve sent a verification email to <strong>{email}</strong>.
-                    Please check your inbox and click the verification link to activate your account.
+                    Please check your inbox (including spam/junk folder) and click the verification link to activate your account.
+                  </p>
+                  <p className="text-blue-600 dark:text-blue-400 text-xs mt-2">
+                    📧 The email will come from your Supabase project domain and will redirect to <strong>codemind-delta.vercel.app</strong>
                   </p>
                 </div>
               </div>
@@ -140,8 +143,9 @@ export default function SignupPage() {
                 <div className="text-yellow-600 dark:text-yellow-400 text-xl mr-3">⏰</div>
                 <div className="text-left">
                   <p className="text-yellow-800 dark:text-yellow-200 text-sm">
-                    <strong>Email taking too long?</strong> Check your spam/junk folder or wait a few minutes for delivery.
-                    You can try signing up again if needed.
+                    <strong>Email taking too long?</strong> Check your spam/junk folder, wait a few minutes for delivery, 
+                    or use the &ldquo;Resend&rdquo; button below. Note: After resetting your database, you may need to wait 
+                    a few minutes before the system allows sending new confirmation emails.
                   </p>
                 </div>
               </div>
@@ -154,6 +158,40 @@ export default function SignupPage() {
               >
                 Go to Sign In
               </Link>
+              <button
+                onClick={async () => {
+                  setLoading(true);
+                  setError(null);
+                  try {
+                    const response = await fetch('/api/auth/resend-confirmation', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ email }),
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                      setError(`✅ ${data.message}`);
+                      setTimeout(() => setError(null), 8000);
+                    } else {
+                      setError(`❌ ${data.error}`);
+                      setTimeout(() => setError(null), 8000);
+                    }
+                  } catch {
+                    setError('❌ Failed to resend confirmation email. Please try again.');
+                    setTimeout(() => setError(null), 8000);
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                disabled={loading}
+                className="w-full flex justify-center py-2 px-4 border border-green-300 dark:border-green-600 rounded-md shadow-sm text-sm font-medium text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:opacity-50"
+              >
+                {loading ? <Spinner size="sm" /> : 'Resend Confirmation Email'}
+              </button>
               <button
                 onClick={() => {
                   setSuccess(false);

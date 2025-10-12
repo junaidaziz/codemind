@@ -12,6 +12,29 @@ import {
   SignUpRequestSchema,
   ResetPasswordRequestSchema
 } from '../../types';
+import { env } from '../../types/env';
+
+// Helper function to get the correct app URL
+function getAppUrl(): string {
+  // For production, use the environment variable or Vercel URL
+  if (typeof window !== 'undefined') {
+    // Client-side: use window.location.origin for current domain
+    return window.location.origin;
+  }
+  
+  // Server-side: prefer env variables
+  if (env.NEXT_PUBLIC_APP_URL) {
+    return env.NEXT_PUBLIC_APP_URL;
+  }
+  
+  // Fallback to Vercel URL if available
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  
+  // Development fallback
+  return 'http://localhost:3000';
+}
 
 interface AuthContextType {
   user: User | null;
@@ -22,6 +45,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
+  resendConfirmationEmail: (email: string) => Promise<{ error: AuthError | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -124,9 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password: validatedData.password,
         options: {
           data: { name: validatedData.name },
-          emailRedirectTo: typeof window !== 'undefined' 
-            ? `${window.location.origin}/auth/callback` 
-            : undefined,
+          emailRedirectTo: `${getAppUrl()}/auth/callback`,
         },
       });
 
@@ -170,11 +192,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const resetData: ResetPasswordRequest = { email };
     const validatedData = ResetPasswordRequestSchema.parse(resetData);
     
-    // Get the origin safely for SSR compatibility
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
-    
     const { error } = await supabase.auth.resetPasswordForEmail(validatedData.email, {
-      redirectTo: `${origin}/auth/reset-password`,
+      redirectTo: `${getAppUrl()}/auth/reset-password`,
+    });
+    return { error };
+  }, [supabase]);
+
+  const resendConfirmationEmail = useCallback(async (email: string) => {
+    // Validate input
+    const resetData: ResetPasswordRequest = { email };
+    const validatedData = ResetPasswordRequestSchema.parse(resetData);
+    
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: validatedData.email,
+      options: {
+        emailRedirectTo: `${getAppUrl()}/auth/callback`,
+      },
     });
     return { error };
   }, [supabase]);
@@ -188,6 +222,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signOut,
     resetPassword,
+    resendConfirmationEmail,
   };
 
   return (

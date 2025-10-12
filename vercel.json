@@ -8,13 +8,15 @@
   "outputDirectory": ".next",
   "env": {
     "NODE_ENV": "production",
-    "NEXT_TELEMETRY_DISABLED": "1"
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "NEXT_PUBLIC_APP_URL": "https://codemind-delta.vercel.app"
   },
   "build": {
     "env": {
       "NODE_ENV": "production",
       "NEXT_TELEMETRY_DISABLED": "1",
-      "SKIP_ENV_VALIDATION": "true"
+      "SKIP_ENV_VALIDATION": "true",
+      "NEXT_PUBLIC_APP_URL": "https://codemind-delta.vercel.app"
     }
   },
   "functions": {
