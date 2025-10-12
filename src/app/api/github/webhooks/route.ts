@@ -105,8 +105,8 @@ export async function GET(req: NextRequest) {
       logs: formattedLogs,
       stats: {
         totalEvents: formattedLogs.length,
-        successfulEvents: formattedLogs.filter(log => log.success).length,
-        failedEvents: formattedLogs.filter(log => !log.success).length,
+        successfulEvents: formattedLogs.filter((log: { success: boolean }) => log.success).length,
+        failedEvents: formattedLogs.filter((log: { success: boolean }) => !log.success).length,
       }
     }));
 
