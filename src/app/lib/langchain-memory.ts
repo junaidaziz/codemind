@@ -62,7 +62,8 @@ export class CodeMindChatMemory extends BaseMemory {
   /**
    * Load conversation history from the database
    */
-  async loadMemoryVariables(values: InputValues): Promise<MemoryVariables> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async loadMemoryVariables(_values: InputValues): Promise<MemoryVariables> {
     logger.debug('Loading memory variables', {
       sessionId: this.config.sessionId,
     });

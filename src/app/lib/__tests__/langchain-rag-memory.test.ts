@@ -40,7 +40,7 @@ describe('RAG Chain with Memory Integration', () => {
 
       try {
         await generateAnswer(input);
-      } catch (error) {
+      } catch {
         // Expected to fail due to mocked dependencies, but we're testing the session creation logic
       }
 
@@ -72,7 +72,7 @@ describe('RAG Chain with Memory Integration', () => {
 
       try {
         await generateAnswer(input);
-      } catch (error) {
+      } catch {
         // Expected to fail due to mocked dependencies
       }
 
@@ -137,7 +137,7 @@ describe('RAG Chain with Memory Integration', () => {
 
       try {
         await generateAnswer(firstQuery);
-      } catch (error) {
+      } catch {
         // Expected due to mocked dependencies
       }
 
@@ -167,7 +167,7 @@ describe('RAG Chain with Memory Integration', () => {
 
       try {
         await generateAnswer(followUpQuery);
-      } catch (error) {
+      } catch {
         // Expected due to mocked dependencies
       }
 

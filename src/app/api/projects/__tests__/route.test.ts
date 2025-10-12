@@ -1,4 +1,5 @@
 import { GET, POST } from '../route';
+import { NextRequest } from 'next/server';
 
 // Mock Prisma
 const mockProject = {
@@ -99,7 +100,7 @@ describe('/api/projects', () => {
         id: 'new-project-id',
       });
 
-      const request = new Request('http://localhost:3000/api/projects', {
+      const request = new NextRequest('http://localhost:3000/api/projects', {
         method: 'POST',
         body: JSON.stringify(validProjectData),
         headers: {
@@ -121,7 +122,7 @@ describe('/api/projects', () => {
         // Missing name field
       };
 
-      const request = new Request('http://localhost:3000/api/projects', {
+      const request = new NextRequest('http://localhost:3000/api/projects', {
         method: 'POST',
         body: JSON.stringify(invalidData),
         headers: {
@@ -138,7 +139,7 @@ describe('/api/projects', () => {
     });
 
     it('handles malformed JSON', async () => {
-      const request = new Request('http://localhost:3000/api/projects', {
+      const request = new NextRequest('http://localhost:3000/api/projects', {
         method: 'POST',
         body: 'invalid json',
         headers: {
@@ -159,7 +160,7 @@ describe('/api/projects', () => {
         ...validProjectData,
       });
 
-      const request = new Request('http://localhost:3000/api/projects', {
+      const request = new NextRequest('http://localhost:3000/api/projects', {
         method: 'POST',
         body: JSON.stringify(validProjectData),
         headers: {
@@ -181,7 +182,7 @@ describe('/api/projects', () => {
     it('handles database creation errors', async () => {
       mockPrisma.project.create.mockRejectedValue(new Error('Database error'));
 
-      const request = new Request('http://localhost:3000/api/projects', {
+      const request = new NextRequest('http://localhost:3000/api/projects', {
         method: 'POST',
         body: JSON.stringify(validProjectData),
         headers: {

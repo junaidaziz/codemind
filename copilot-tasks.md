@@ -5,12 +5,16 @@ This document defines structured tasks for GitHub Copilot Chat to implement.
 ---
 
 ## ✅ Completed
+
+## Mark tasks as done by replacing `- [ ]` with `- [x]`.
 - [x] Step 1 – Next.js Setup
 - [x] Step 2 – Database Schema
 - [x] Step 3 – Core APIs
 - [x] Step 4 – Indexing & Embeddings Pipeline
-
----
+- [x] Step 5 – Chat Interface & Agent
+- [x] Step 6 – Analytics Dashboard
+- [x] Step 7 – Testing & CI/CD
+- [x] Step 8 – Monitoring & Logging
 
 ## 🔄 Active Tasks
 

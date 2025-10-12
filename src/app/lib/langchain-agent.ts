@@ -1,8 +1,7 @@
 import { Tool } from '@langchain/core/tools';
 import { ChatOpenAI } from '@langchain/openai';
 import { AgentExecutor, createToolCallingAgent } from 'langchain/agents';
-import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts';
-import { AIMessage, HumanMessage, SystemMessage, BaseMessage } from '@langchain/core/messages';
+import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { z } from 'zod';
 import { logger } from './logger';
 import { CodeMindVectorStore } from './langchain-vectorstore';
@@ -12,7 +11,6 @@ import { createGitHubTools } from './langchain-tools-github';
 import { createNPMTools } from './langchain-tools-npm';
 import { createDocumentationTools } from './langchain-tools-docs';
 import { toolAnalytics } from './langchain-tools-analytics';
-import { agentMemoryTracker } from './langchain-memory-analytics';
 import { env } from '../../types/env';
 import prisma from './db';
 

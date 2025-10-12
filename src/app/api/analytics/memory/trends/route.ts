@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from 'zod';
 import { logger, withRequestTiming } from '../../../../lib/logger';
-import { agentMemoryTracker } from '../../../../lib/langchain-memory-analytics';
 
 const GetMemoryTrendsSchema = z.object({
   projectId: z.string().optional(),
