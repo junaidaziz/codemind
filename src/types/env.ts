@@ -14,9 +14,9 @@ const EnvSchema = z.object({
   // OpenAI
   OPENAI_API_KEY: z.string().min(1, 'OPENAI_API_KEY is required'),
   
-  // GitHub OAuth
-  GITHUB_CLIENT_ID: z.string().min(1, 'GitHub Client ID is required for OAuth authentication'),
-  GITHUB_CLIENT_SECRET: z.string().min(1, 'GitHub Client Secret is required for OAuth authentication'),
+  // GitHub OAuth (optional - required only when GitHub OAuth is enabled)
+  GITHUB_CLIENT_ID: z.string().min(1, 'GitHub Client ID is required for OAuth authentication').optional(),
+  GITHUB_CLIENT_SECRET: z.string().min(1, 'GitHub Client Secret is required for OAuth authentication').optional(),
   
   // Next.js
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -55,27 +55,31 @@ function validateEnv(): Env {
   if (process.env.SKIP_ENV_VALIDATION === 'true') {
     return {
       DATABASE_URL: 'postgresql://localhost:5432/codemind',
-      SUPABASE_URL: 'https://placeholder.supabase.co',
-      SUPABASE_ANON_KEY: 'placeholder-key',
-      NEXT_PUBLIC_SUPABASE_URL: 'https://placeholder.supabase.co',
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'placeholder-key',
-      OPENAI_API_KEY: 'sk-placeholder-key',
+      SUPABASE_URL: process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+      SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key',
+      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'https://placeholder.supabase.co',
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || 'placeholder-key',
+      OPENAI_API_KEY: process.env.OPENAI_API_KEY || 'sk-placeholder-key',
+      GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
+      GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
       NODE_ENV: (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'development',
-      NEXT_PUBLIC_APP_URL: undefined,
-      SENTRY_DSN: undefined,
+      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+      SENTRY_DSN: process.env.SENTRY_DSN,
       VERCEL_URL: process.env.VERCEL_URL,
     } as Env;
   }
 
   const processEnv = {
     ...process.env,
-    // Provide fallbacks for development
+    // Provide fallbacks for development - but never use placeholder for Supabase if real values exist
     DATABASE_URL: process.env.DATABASE_URL || 'postgresql://localhost:5432/codemind',
-    SUPABASE_URL: process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key',
-    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'https://placeholder.supabase.co',
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || 'placeholder-key',
+    SUPABASE_URL: process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL,
+    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY || 'sk-placeholder-key',
+    GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
+    GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
     NODE_ENV: process.env.NODE_ENV || 'development',
   };
 
@@ -89,18 +93,20 @@ function validateEnv(): Env {
           console.warn(`  - ${issue.path.join('.')}: ${issue.message}`);
         });
       }
-      // Return a safe default for development
+      // Return a safe default for development - use real Supabase values if available
       return {
-        DATABASE_URL: 'postgresql://localhost:5432/codemind',
-        SUPABASE_URL: 'https://placeholder.supabase.co',
-        SUPABASE_ANON_KEY: 'placeholder-key',
-        NEXT_PUBLIC_SUPABASE_URL: 'https://placeholder.supabase.co',
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: 'placeholder-key',
-        OPENAI_API_KEY: 'sk-placeholder-key',
+        DATABASE_URL: process.env.DATABASE_URL || 'postgresql://localhost:5432/codemind',
+        SUPABASE_URL: process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+        SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key',
+        NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'https://placeholder.supabase.co',
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || 'placeholder-key',
+        OPENAI_API_KEY: process.env.OPENAI_API_KEY || 'sk-placeholder-key',
+        GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
+        GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
         NODE_ENV: 'development',
-        NEXT_PUBLIC_APP_URL: undefined,
-        SENTRY_DSN: undefined,
-        VERCEL_URL: undefined,
+        NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+        SENTRY_DSN: process.env.SENTRY_DSN,
+        VERCEL_URL: process.env.VERCEL_URL,
       } as Env;
     }
     

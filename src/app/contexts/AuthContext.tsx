@@ -63,7 +63,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Function to fetch user role from database
   const fetchUserRole = useCallback(async (userId: string) => {
     try {
-      const response = await fetch(`/api/auth/user?id=${userId}`);
+      // Add timeout to prevent long loading times
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      
+      const response = await fetch(`/api/auth/user?id=${userId}`, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
       
       if (response.ok) {
         const data = await response.json();
@@ -106,26 +114,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserRole('user');
       
     } catch (error) {
-      console.error('Error fetching user role:', error);
-      // Network or other error - use default role
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.warn('User role fetch timed out, using default role');
+      } else {
+        console.error('Error fetching user role:', error);
+      }
+      // Network, timeout, or other error - use default role
       setUserRole('user');
     }
   }, [supabase]);
 
   useEffect(() => {
-    // Get initial session
+    // Get initial session with timeout
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        await fetchUserRole(session.user.id);
-      } else {
+      try {
+        // Add timeout for initial session check
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Session check timeout')), 3000)
+        );
+        
+        const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]);
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          // Don't wait for user role - fetch it in background
+          fetchUserRole(session.user.id);
+        } else {
+          setUserRole(null);
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.warn('Session check timed out or failed:', error);
+        setSession(null);
+        setUser(null);
         setUserRole(null);
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
 
     getInitialSession();
@@ -137,7 +164,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          await fetchUserRole(session.user.id);
+          // Don't await - fetch user role in background
+          fetchUserRole(session.user.id);
         } else {
           setUserRole(null);
         }
@@ -227,6 +255,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase]);
 
   const signInWithGitHub = useCallback(async () => {
+    // Check if GitHub OAuth is configured
+    if (!env.GITHUB_CLIENT_ID || !env.GITHUB_CLIENT_SECRET) {
+      return { error: { message: 'GitHub OAuth is not configured' } as AuthError };
+    }
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
