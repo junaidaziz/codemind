@@ -1,9 +1,6 @@
 import Link from "next/link";
 import prisma from "./lib/db";
 
-// TEST: Intentional TypeScript error to test our GitHub build failure detection
-const testBuildFailure: number = "this will cause TypeScript to fail";
-
 export default async function Home() {
   const projects = await prisma.project.findMany({
     select: {
