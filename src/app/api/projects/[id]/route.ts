@@ -5,6 +5,7 @@ import {
   createApiSuccess
 } from "../../../../types";
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 
 // Params validation schema
 const GetProjectParamsSchema = z.object({
@@ -95,7 +96,7 @@ export async function DELETE(
     }
 
     // Use transaction to ensure all deletions succeed or fail together
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Delete messages first (they reference chat sessions)
       await tx.message.deleteMany({
         where: {
