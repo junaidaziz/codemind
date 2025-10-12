@@ -135,6 +135,18 @@ export async function POST(
   } catch (error) {
     console.error("Error indexing project:", error);
     
+    // Reset project status to error state when indexing fails
+    try {
+      const params = await context.params;
+      const { id } = IndexProjectParamsSchema.parse(params);
+      await prisma.project.update({
+        where: { id },
+        data: { status: "error" }
+      });
+    } catch (statusUpdateError) {
+      console.error("Failed to update project status to error:", statusUpdateError);
+    }
+    
     if (error instanceof z.ZodError) {
       const details = error.issues.reduce((acc, issue) => {
         const path = issue.path.join('.');

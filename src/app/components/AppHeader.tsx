@@ -36,7 +36,7 @@ export function AppHeader() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-8">
-            <Link href="/" className="flex items-center">
+            <Link href="/" className="flex items-center header-logo cursor-pointer">
               <span className="text-2xl mr-2">🧠</span>
               <span className="text-xl font-bold">CodeMind</span>
             </Link>

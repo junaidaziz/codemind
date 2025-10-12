@@ -62,14 +62,20 @@ function ProjectsPageContent() {
       if (response.ok) {
         // Refresh the projects list to get updated status
         await fetchProjects();
+        setError(null); // Clear any previous errors on success
       } else {
         const errorData = await response.json();
         setError(`Failed to reindex project: ${errorData.error || 'Unknown error'}`);
+        // Refresh the projects list to get the updated error status
+        await fetchProjects();
       }
     } catch (err) {
       setError('Error reindexing project');
       console.error('Error reindexing project:', err);
+      // Refresh the projects list even on network errors
+      await fetchProjects();
     } finally {
+      // Always remove from reindexing set, regardless of success or failure
       setReindexingProjects(prev => {
         const newSet = new Set(prev);
         newSet.delete(projectId);

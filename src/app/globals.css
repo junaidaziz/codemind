@@ -44,6 +44,13 @@ summary,
   cursor: pointer;
 }
 
+/* Explicit cursor pointer for header logo and navigation links */
+header a,
+nav a,
+.header-logo {
+  cursor: pointer !important;
+}
+
 /* Ensure disabled elements don't show pointer cursor */
 button:disabled,
 input:disabled,
