@@ -52,15 +52,37 @@ export async function authenticateRequest(
     }
 
     // Get user from our database to include role
-    const dbUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-      },
-    });
+    let dbUser;
+    try {
+      dbUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+        },
+      });
+    } catch (dbError: unknown) {
+      // Handle missing role column after database reset
+      const error = dbError as { code?: string; message?: string };
+      if (error.code === 'P2022' && error.message?.includes('does not exist')) {
+        dbUser = await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        });
+        // Add default role if user exists
+        if (dbUser) {
+          dbUser = { ...dbUser, role: 'user' };
+        }
+      } else {
+        throw dbError;
+      }
+    }
 
     if (!dbUser) {
       return {

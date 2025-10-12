@@ -69,15 +69,32 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse<P
       });
 
       if (!defaultUser) {
-        // Create a default user for development
-        defaultUser = await prisma.user.create({
-          data: {
-            email: 'default@codemind.dev',
-            name: 'Default User',
-            role: 'user'
-          },
-          select: { id: true }
-        });
+        // Create a default user for development - handle missing role column
+        try {
+          defaultUser = await prisma.user.create({
+            data: {
+              email: 'default@codemind.dev',
+              name: 'Default User',
+              role: 'user'
+            },
+            select: { id: true }
+          });
+        } catch (dbError: unknown) {
+          // Handle missing role column after database reset
+          const error = dbError as { code?: string; message?: string };
+          if (error.code === 'P2022' && error.message?.includes('does not exist')) {
+            console.warn('Database schema mismatch during user creation, creating without role column');
+            defaultUser = await prisma.user.create({
+              data: {
+                email: 'default@codemind.dev',
+                name: 'Default User',
+              },
+              select: { id: true }
+            });
+          } else {
+            throw dbError;
+          }
+        }
       }
       
       userId = defaultUser.id;
