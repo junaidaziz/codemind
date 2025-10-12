@@ -4,9 +4,17 @@ import prisma from "./lib/db";
 // Force dynamic rendering to avoid database calls during build
 export const dynamic = 'force-dynamic';
 
+type ProjectData = {
+  id: string;
+  name: string;
+  status: string;
+  lastIndexedAt: Date | null;
+  createdAt: Date;
+};
+
 export default async function Home() {
-  let projects = [];
-  let error = null;
+  let projects: ProjectData[] = [];
+  let error: string | null = null;
 
   try {
     projects = await prisma.project.findMany({
@@ -76,7 +84,7 @@ export default async function Home() {
             </p>
           ) : (
             <div className="space-y-4">
-              {projects.slice(0, 5).map((project: typeof projects[0]) => (
+              {projects.slice(0, 5).map((project: ProjectData) => (
                 <div
                   key={project.id}
                   className="flex items-center justify-between p-4 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
