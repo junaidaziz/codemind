@@ -160,20 +160,20 @@ export class AgentMemoryTracker {
 
       // Calculate metrics
       const totalInteractions = memoryRecords.length;
-      const averageMemorySize = memoryRecords.reduce((sum, record) => sum + record.memorySize, 0) / totalInteractions;
-      const averageTokenUsage = memoryRecords.reduce((sum, record) => sum + record.tokenUsage, 0) / totalInteractions;
-      const averageExecutionTime = memoryRecords.reduce((sum, record) => sum + record.executionTimeMs, 0) / totalInteractions;
+      const averageMemorySize = memoryRecords.reduce((sum: number, record) => sum + record.memorySize, 0) / totalInteractions;
+      const averageTokenUsage = memoryRecords.reduce((sum: number, record) => sum + record.tokenUsage, 0) / totalInteractions;
+      const averageExecutionTime = memoryRecords.reduce((sum: number, record) => sum + record.executionTimeMs, 0) / totalInteractions;
 
       // Calculate relevance and quality averages (only for records that have these metrics)
       const recordsWithRelevance = memoryRecords.filter(r => r.contextRelevance !== null);
       const recordsWithQuality = memoryRecords.filter(r => r.responseQuality !== null);
       
       const averageContextRelevance = recordsWithRelevance.length > 0
-        ? recordsWithRelevance.reduce((sum, record) => sum + (record.contextRelevance || 0), 0) / recordsWithRelevance.length
+        ? recordsWithRelevance.reduce((sum: number, record) => sum + (record.contextRelevance || 0), 0) / recordsWithRelevance.length
         : 0;
       
       const averageResponseQuality = recordsWithQuality.length > 0
-        ? recordsWithQuality.reduce((sum, record) => sum + (record.responseQuality || 0), 0) / recordsWithQuality.length
+        ? recordsWithQuality.reduce((sum: number, record) => sum + (record.responseQuality || 0), 0) / recordsWithQuality.length
         : 0;
 
       // Calculate memory efficiency (response quality / memory size ratio)
@@ -301,8 +301,8 @@ export class AgentMemoryTracker {
 
       // Calculate daily efficiency scores
       const daily = Array.from(dailyMap.entries()).map(([date, data]) => {
-        const avgMemorySize = data.memorySize.reduce((sum, size) => sum + size, 0) / data.memorySize.length;
-        const avgResponseQuality = data.responseQuality.reduce((sum, quality) => sum + quality, 0) / data.responseQuality.length;
+        const avgMemorySize = data.memorySize.reduce((sum: number, size) => sum + size, 0) / data.memorySize.length;
+        const avgResponseQuality = data.responseQuality.reduce((sum: number, quality) => sum + quality, 0) / data.responseQuality.length;
         const memoryEfficiency = avgMemorySize > 0 ? (avgResponseQuality / avgMemorySize) * 1000 : 0;
 
         return {
@@ -322,8 +322,8 @@ export class AgentMemoryTracker {
         const firstHalf = daily.slice(0, Math.floor(daily.length / 2));
         const secondHalf = daily.slice(Math.floor(daily.length / 2));
 
-        const firstHalfAvg = firstHalf.reduce((sum, day) => sum + day.memoryEfficiency, 0) / firstHalf.length;
-        const secondHalfAvg = secondHalf.reduce((sum, day) => sum + day.memoryEfficiency, 0) / secondHalf.length;
+        const firstHalfAvg = firstHalf.reduce((sum: number, day) => sum + day.memoryEfficiency, 0) / firstHalf.length;
+        const secondHalfAvg = secondHalf.reduce((sum: number, day) => sum + day.memoryEfficiency, 0) / secondHalf.length;
 
         if (firstHalfAvg > 0) {
           trendPercentage = ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100;
@@ -409,7 +409,7 @@ export class AgentMemoryTracker {
         ? ((lastRecord.memorySize - firstRecord.memorySize) / firstRecord.memorySize) * 100 
         : 0;
 
-      const averageExecutionTime = records.reduce((sum, r) => sum + r.executionTimeMs, 0) / records.length;
+      const averageExecutionTime = records.reduce((sum: number, r) => sum + r.executionTimeMs, 0) / records.length;
 
       // Find most used command
       const commandCounts = new Map<string, number>();
@@ -427,8 +427,8 @@ export class AgentMemoryTracker {
         const firstHalf = recordsWithQuality.slice(0, Math.floor(recordsWithQuality.length / 2));
         const secondHalf = recordsWithQuality.slice(Math.floor(recordsWithQuality.length / 2));
 
-        const firstEfficiency = firstHalf.reduce((sum, r) => sum + ((r.responseQuality || 0) / r.memorySize), 0) / firstHalf.length;
-        const secondEfficiency = secondHalf.reduce((sum, r) => sum + ((r.responseQuality || 0) / r.memorySize), 0) / secondHalf.length;
+        const firstEfficiency = firstHalf.reduce((sum: number, r) => sum + ((r.responseQuality || 0) / r.memorySize), 0) / firstHalf.length;
+        const secondEfficiency = secondHalf.reduce((sum: number, r) => sum + ((r.responseQuality || 0) / r.memorySize), 0) / secondHalf.length;
 
         const change = ((secondEfficiency - firstEfficiency) / firstEfficiency) * 100;
         
