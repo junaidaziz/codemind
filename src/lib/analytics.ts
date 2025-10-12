@@ -229,7 +229,7 @@ class AnalyticsService {
         },
       });
 
-      return projects.map(project => {
+      return projects.map((project: typeof projects[0]) => {
         const sessions = project.sessions;
         const uniqueUsers = new Set(sessions.map((s: { userId: string }) => s.userId)).size;
         const totalQueries = sessions.reduce((sum: number, s: { messages: { length: number } }) => sum + s.messages.length, 0);
@@ -312,7 +312,7 @@ class AnalyticsService {
     });
 
     return this.aggregateByPeriod(
-      sessions.map(s => ({ timestamp: s.createdAt, value: 1 })),
+      sessions.map((s: typeof sessions[0]) => ({ timestamp: s.createdAt, value: 1 })),
       period
     );
   }
@@ -335,7 +335,7 @@ class AnalyticsService {
     });
 
     return this.aggregateByPeriod(
-      sessions.map(s => ({ timestamp: s.createdAt, value: 1 })),
+      sessions.map((s: typeof sessions[0]) => ({ timestamp: s.createdAt, value: 1 })),
       period
     );
   }
@@ -361,7 +361,7 @@ class AnalyticsService {
     });
 
     return this.aggregateByPeriod(
-      sessions.map(s => ({ 
+      sessions.map((s: typeof sessions[0]) => ({ 
         timestamp: s.createdAt, 
         value: s.messages.length,
         label: `${s.messages.length} messages`,
