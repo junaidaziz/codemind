@@ -4,7 +4,7 @@
   "framework": "nextjs",
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
-  "installCommand": "npm ci",
+  "installCommand": "npm ci --legacy-peer-deps",
   "outputDirectory": ".next",
   "env": {
     "NODE_ENV": "production",
