@@ -26,7 +26,14 @@ export async function GET(): Promise<NextResponse<ApiResponse<ProjectResponse[]>
       }
     });
 
-    const formattedProjects: ProjectResponse[] = projects.map(project => ({
+    const formattedProjects: ProjectResponse[] = projects.map((project: {
+      id: string;
+      name: string;
+      status: string;
+      lastIndexedAt: Date | null;
+      createdAt: Date;
+      updatedAt: Date;
+    }) => ({
       id: project.id,
       name: project.name,
       status: project.status,
