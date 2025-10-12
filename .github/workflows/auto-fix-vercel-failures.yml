@@ -1,0 +1,246 @@
+name: Auto Fix Vercel Build Failures
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, develop ]
+  repository_dispatch:
+    types: [vercel-build-failed]
+
+jobs:
+  analyze-vercel-failure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Fetch latest Vercel deployment logs
+        run: |
+          echo "🔍 Fetching latest failed Vercel deployment..."
+          
+          # Get the latest failed deployment
+          DEPLOYMENT_RESPONSE=$(curl -s -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            "https://api.vercel.com/v6/deployments?projectId=${{ secrets.VERCEL_PROJECT_ID }}&state=ERROR&limit=1")
+          
+          echo "Deployment response: $DEPLOYMENT_RESPONSE"
+          
+          # Extract deployment ID
+          DEPLOYMENT_ID=$(echo "$DEPLOYMENT_RESPONSE" | jq -r '.deployments[0].uid // empty')
+          
+          if [ -z "$DEPLOYMENT_ID" ] || [ "$DEPLOYMENT_ID" = "null" ]; then
+            echo "✅ No failed deployments found!"
+            echo "NO_FAILURES=true" >> $GITHUB_ENV
+            exit 0
+          fi
+          
+          echo "❌ Found failed deployment: $DEPLOYMENT_ID"
+          echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
+          
+          # Fetch detailed build logs
+          echo "📄 Fetching build logs..."
+          curl -s -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            "https://api.vercel.com/v2/deployments/$DEPLOYMENT_ID/events?teamId=${{ secrets.VERCEL_TEAM_ID }}" \
+            > vercel_logs.json
+          
+          # Check if logs were fetched successfully
+          if [ ! -s vercel_logs.json ]; then
+            echo "❌ Failed to fetch build logs"
+            exit 1
+          fi
+          
+          echo "📄 Build logs fetched successfully"
+
+      - name: Analyze logs with our TypeScript script
+        if: env.NO_FAILURES != 'true'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT: ${{ secrets.VERCEL_PROJECT }}
+          VERCEL_TEAM: ${{ secrets.VERCEL_TEAM_ID }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_OWNER: ${{ github.repository_owner }}
+          GITHUB_REPO: ${{ github.event.repository.name }}
+        run: |
+          echo "🤖 Running AI analysis with our enhanced script..."
+          npm run analyze-vercel
+
+      - name: Check for AI analysis results
+        if: env.NO_FAILURES != 'true'
+        run: |
+          if [ -f "logs/vercel-fail.json" ]; then
+            echo "📋 Analysis completed - checking results..."
+            
+            # Extract analysis summary for commit message
+            SUMMARY=$(jq -r '.analysis.summary // "Build failure analysis completed"' logs/vercel-fail.json)
+            CAUSE=$(jq -r '.analysis.cause // "Unknown cause"' logs/vercel-fail.json)
+            FIX=$(jq -r '.analysis.fix // "See analysis for details"' logs/vercel-fail.json)
+            
+            echo "FAILURE_SUMMARY=$SUMMARY" >> $GITHUB_ENV
+            echo "FAILURE_CAUSE=$CAUSE" >> $GITHUB_ENV
+            echo "FAILURE_FIX=$FIX" >> $GITHUB_ENV
+            
+            # Create a comprehensive analysis markdown file
+            cat > ai_analysis.md << EOF
+          # 🔍 Vercel Build Failure Analysis
+          
+          **Generated on:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+          **Deployment ID:** $DEPLOYMENT_ID
+          **Repository:** ${{ github.repository }}
+          **Branch:** ${{ github.ref_name }}
+          **Commit:** ${{ github.sha }}
+          
+          ## ❌ Build Failure Summary
+          $SUMMARY
+          
+          ## 🔍 Root Cause Analysis
+          $CAUSE
+          
+          ## 🛠️ Suggested Fix
+          $FIX
+          
+          ## 📊 Full Analysis
+          \`\`\`json
+          $(cat logs/vercel-fail.json | jq '.')
+          \`\`\`
+          
+          ---
+          *This analysis was generated automatically by our AI-powered build failure analyzer.*
+          EOF
+            
+            echo "✅ Analysis report created"
+          else
+            echo "❌ No analysis file found"
+            exit 1
+          fi
+
+      - name: Commit AI analysis results
+        if: env.NO_FAILURES != 'true'
+        run: |
+          # Configure git
+          git config user.name "codemind-bot[bot]"
+          git config user.email "codemind-bot[bot]@users.noreply.github.com"
+          
+          # Add files
+          git add ai_analysis.md logs/vercel-fail.json
+          
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          
+          # Create commit with detailed message
+          git commit -m "🤖 AI Analysis: $FAILURE_SUMMARY
+
+          🔍 Cause: $FAILURE_CAUSE
+          🛠️ Fix: $FAILURE_FIX
+          
+          Generated from failed deployment: $DEPLOYMENT_ID
+          
+          This automated analysis was generated by our AI-powered
+          Vercel build failure analyzer to help diagnose and fix
+          deployment issues quickly.
+          
+          Files updated:
+          - ai_analysis.md (human-readable analysis)
+          - logs/vercel-fail.json (complete analysis data)"
+          
+          echo "✅ Analysis committed successfully"
+
+      - name: Push analysis results
+        if: env.NO_FAILURES != 'true'
+        run: |
+          git push origin ${{ github.ref_name }}
+          echo "✅ Analysis pushed to repository"
+
+      - name: Create GitHub Issue for repeated failures
+        if: env.NO_FAILURES != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Check if this is a repeated failure that should create an issue
+            const fs = require('fs');
+            
+            if (!fs.existsSync('logs/vercel-fail.json')) {
+              console.log('No analysis file found, skipping issue creation');
+              return;
+            }
+            
+            const analysis = JSON.parse(fs.readFileSync('logs/vercel-fail.json', 'utf8'));
+            
+            // Only create issue if failure count >= 3 for the same commit
+            if (analysis.failureTracking && analysis.failureTracking.failureCount >= 3) {
+              const title = `🚨 Repeated Build Failure: ${analysis.analysis.summary}`;
+              const body = `
+              ## 🚨 Repeated Build Failure Alert
+              
+              This commit has failed **${analysis.failureTracking.failureCount} times** in a row.
+              
+              **Commit SHA:** \`${analysis.failureTracking.commitSha}\`
+              **First Failure:** ${analysis.failureTracking.firstFailure}
+              **Latest Failure:** ${analysis.failureTracking.lastFailure}
+              
+              ## ❌ Build Failure Summary
+              ${analysis.analysis.summary}
+              
+              ## 🔍 Root Cause Analysis  
+              ${analysis.analysis.cause}
+              
+              ## 🛠️ Suggested Fix
+              ${analysis.analysis.fix}
+              
+              ## 📋 Action Required
+              - [ ] Review the suggested fix above
+              - [ ] Test the fix locally before deploying
+              - [ ] Update relevant documentation if needed
+              - [ ] Close this issue once resolved
+              
+              ---
+              
+              **Deployment ID:** \`${analysis.deployment.uid}\`
+              **Auto-generated by:** Vercel Build Failure Analyzer
+              `;
+              
+              // Create the issue
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['bug', 'deployment', 'automated', 'high-priority']
+              });
+              
+              console.log('✅ GitHub issue created for repeated failure');
+            } else {
+              console.log('📊 Failure count not high enough for issue creation');
+            }
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "🎉 Vercel Build Failure Analysis Workflow Complete!"
+          echo ""
+          if [ "$NO_FAILURES" = "true" ]; then
+            echo "✅ Status: No failed deployments found"
+          else
+            echo "📊 Status: Analysis completed for deployment $DEPLOYMENT_ID"
+            echo "📁 Files created:"
+            echo "  - ai_analysis.md (human-readable report)"
+            echo "  - logs/vercel-fail.json (complete analysis data)"
+          fi
+          echo ""
+          echo "🔗 View full analysis: https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/ai_analysis.md"

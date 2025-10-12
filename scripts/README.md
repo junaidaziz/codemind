@@ -173,6 +173,20 @@ When the same commit SHA fails 3 times, the script can automatically:
 3. **Include build logs and AI analysis**
 4. **Track failure patterns** across deployments
 
+## 🤖 GitHub Actions Integration
+
+For fully automated analysis, we've created a GitHub Actions workflow that:
+
+- ✅ **Automatically triggers** on every push and deployment failure
+- ✅ **Runs the analyzer script** in CI/CD environment  
+- ✅ **Commits analysis results** back to the repository
+- ✅ **Creates GitHub Issues** for repeated failures
+- ✅ **Provides comprehensive reports** in markdown format
+
+**Setup:** See [`.github/workflows/README.md`](../.github/workflows/README.md) for complete setup instructions.
+
+**Workflow file:** [`.github/workflows/auto-fix-vercel-failures.yml`](../.github/workflows/auto-fix-vercel-failures.yml)
+
 ### Setup GitHub Integration:
 
 ```bash
