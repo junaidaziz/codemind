@@ -1,19 +1,30 @@
 import Link from "next/link";
 import prisma from "./lib/db";
 
+// Force dynamic rendering to avoid database calls during build
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
-  const projects = await prisma.project.findMany({
-    select: {
-      id: true,
-      name: true,
-      status: true,
-      lastIndexedAt: true,
-      createdAt: true
-    },
-    orderBy: {
-      createdAt: 'desc'
-    }
-  });
+  let projects = [];
+  let error = null;
+
+  try {
+    projects = await prisma.project.findMany({
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        lastIndexedAt: true,
+        createdAt: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+  } catch (e) {
+    console.error('Database connection error:', e);
+    error = 'Unable to connect to database';
+  }
 
   return (
     <main className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
@@ -55,7 +66,11 @@ export default async function Home() {
 
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
           <h2 className="text-2xl font-bold mb-4">Recent Projects</h2>
-          {projects.length === 0 ? (
+          {error ? (
+            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-red-800 dark:text-red-200">⚠️ {error}</p>
+            </div>
+          ) : projects.length === 0 ? (
             <p className="text-gray-600 dark:text-gray-400">
               No projects found. Add some projects to get started!
             </p>
