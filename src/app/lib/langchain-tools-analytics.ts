@@ -151,7 +151,7 @@ export class ToolAnalyticsTracker {
 
       const executionTimes = events.map((e: typeof events[0]) => e.executionTimeMs);
       const averageExecutionTime = executionTimes.length > 0 
-        ? executionTimes.reduce((sum, time) => sum + time, 0) / executionTimes.length 
+        ? executionTimes.reduce((sum: number, time: number) => sum + time, 0) / executionTimes.length 
         : 0;
       
       const sortedTimes = [...executionTimes].sort((a, b) => a - b);
@@ -159,7 +159,7 @@ export class ToolAnalyticsTracker {
         ? sortedTimes[Math.floor(sortedTimes.length / 2)]
         : 0;
 
-      const totalExecutionTime = executionTimes.reduce((sum, time) => sum + time, 0);
+      const totalExecutionTime = executionTimes.reduce((sum: number, time: number) => sum + time, 0);
 
       // Calculate hourly breakdown
       const hourlyMap = new Map<number, { executions: number; successful: number; totalTime: number }>();
@@ -265,9 +265,9 @@ export class ToolAnalyticsTracker {
       );
 
       // Calculate overall summary
-      const totalExecutions = toolAnalytics.reduce((sum, analytics) => 
+      const totalExecutions = toolAnalytics.reduce((sum: number, analytics: ToolUsageAnalytics) => 
         sum + analytics.metrics.totalExecutions, 0);
-      const totalSuccessful = toolAnalytics.reduce((sum, analytics) => 
+      const totalSuccessful = toolAnalytics.reduce((sum: number, analytics: ToolUsageAnalytics) => 
         sum + analytics.metrics.successfulExecutions, 0);
       const overallSuccessRate = totalExecutions > 0 ? totalSuccessful / totalExecutions : 0;
 
