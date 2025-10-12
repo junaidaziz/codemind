@@ -180,7 +180,7 @@ export class AgentMemoryTracker {
       const memoryEfficiency = averageMemorySize > 0 ? averageResponseQuality / averageMemorySize * 1000 : 0;
 
       // Generate memory growth data
-      const memoryGrowth = memoryRecords.map(record => ({
+      const memoryGrowth = memoryRecords.map((record: typeof memoryRecords[0]) => ({
         timestamp: record.createdAt,
         memorySize: record.memorySize,
         tokenUsage: record.tokenUsage,
@@ -421,7 +421,7 @@ export class AgentMemoryTracker {
 
       // Calculate efficiency trend
       let efficiencyTrend: 'improving' | 'declining' | 'stable' = 'stable';
-      const recordsWithQuality = records.filter(r => r.responseQuality !== null);
+      const recordsWithQuality = records.filter((r: typeof records[0]) => r.responseQuality !== null);
       
       if (recordsWithQuality.length >= 2) {
         const firstHalf = recordsWithQuality.slice(0, Math.floor(recordsWithQuality.length / 2));

@@ -70,7 +70,7 @@ async function indexProjectProcessor(
           for (const file of batch) {
             try {
               const chunkingResult = chunkCodeFile(file.content, file.path);
-              allChunks.push(...chunkingResult.chunks.map(chunk => ({
+              allChunks.push(...chunkingResult.chunks.map((chunk: { path: string; language?: string; startLine: number; endLine: number; content: string; tokenCount?: number }) => ({
                 path: chunk.path,
                 language: chunk.language || 'text',
                 startLine: chunk.startLine,
@@ -89,7 +89,7 @@ async function indexProjectProcessor(
 
           if (allChunks.length > 0) {
             // Generate embeddings
-            const contents = allChunks.map(chunk => chunk.content);
+            const contents = allChunks.map((chunk: { content: string }) => chunk.content);
             const embeddings = await embedTexts(contents);
             
             // Assign embeddings to chunks
@@ -398,7 +398,7 @@ async function generateEmbeddingsProcessor(
 
       if (chunks.length > 0) {
         // Generate embeddings
-        const contents = chunks.map(chunk => chunk.content);
+        const contents = chunks.map((chunk: { content: string }) => chunk.content);
         const embeddings = await embedTexts(contents);
 
         // Update chunks with embeddings using raw SQL

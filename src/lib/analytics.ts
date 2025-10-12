@@ -231,10 +231,10 @@ class AnalyticsService {
 
       return projects.map(project => {
         const sessions = project.sessions;
-        const uniqueUsers = new Set(sessions.map(s => s.userId)).size;
-        const totalQueries = sessions.reduce((sum, s) => sum + s.messages.length, 0);
+        const uniqueUsers = new Set(sessions.map((s: { userId: string }) => s.userId)).size;
+        const totalQueries = sessions.reduce((sum: number, s: { messages: { length: number } }) => sum + s.messages.length, 0);
         const lastActivity = sessions.length > 0 
-          ? new Date(Math.max(...sessions.map(s => s.createdAt.getTime())))
+          ? new Date(Math.max(...sessions.map((s: { createdAt: { getTime: () => number } }) => s.createdAt.getTime())))
           : project.updatedAt;
 
         return {
@@ -247,7 +247,7 @@ class AnalyticsService {
           lastActivity,
           indexingStatus: project.status as 'pending' | 'running' | 'completed' | 'failed',
           chunksCount: project.files.length,
-          tokensCount: project.files.reduce((sum, chunk) => sum + chunk.tokenCount, 0),
+          tokensCount: project.files.reduce((sum: number, chunk: { tokenCount: number }) => sum + chunk.tokenCount, 0),
         };
       });
     });
@@ -524,8 +524,8 @@ class AnalyticsService {
       return { total: 0, average: 0, max: 0, min: 0, change: 0, trend: 'stable' };
     }
 
-    const values = data.map(d => d.value);
-    const total = values.reduce((sum, val) => sum + val, 0);
+    const values = data.map((d: { value: number }) => d.value);
+    const total = values.reduce((sum: number, val: number) => sum + val, 0);
     const average = total / values.length;
     const max = Math.max(...values);
     const min = Math.min(...values);
@@ -535,8 +535,8 @@ class AnalyticsService {
     const firstHalf = values.slice(0, midpoint);
     const secondHalf = values.slice(midpoint);
     
-    const firstAvg = firstHalf.reduce((sum, val) => sum + val, 0) / firstHalf.length;
-    const secondAvg = secondHalf.reduce((sum, val) => sum + val, 0) / secondHalf.length;
+    const firstAvg = firstHalf.reduce((sum: number, val: number) => sum + val, 0) / firstHalf.length;
+    const secondAvg = secondHalf.reduce((sum: number, val: number) => sum + val, 0) / secondHalf.length;
     
     const change = firstAvg > 0 ? ((secondAvg - firstAvg) / firstAvg) * 100 : 0;
     const trend = Math.abs(change) < 5 ? 'stable' : change > 0 ? 'up' : 'down';

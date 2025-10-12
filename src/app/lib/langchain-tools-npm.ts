@@ -211,7 +211,7 @@ export class NPMSearchTool extends Tool {
       const searchResult = await this.client.searchPackages(validatedInput);
 
       // Format results for better readability
-      const formattedResults = searchResult.results.map(result => ({
+      const formattedResults = searchResult.results.map((result: typeof searchResult.results[0]) => ({
         name: result.package.name,
         version: result.package.version,
         description: result.package.description,
@@ -326,7 +326,7 @@ export class NPMPackageCompareTool extends Tool {
         packages: z.array(z.string().min(1)).min(2).max(5), // Compare 2-5 packages
       }).parse(parsedInput);
 
-      const packagePromises = compareInput.packages.map(packageName =>
+      const packagePromises = compareInput.packages.map((packageName: string) =>
         this.client.getPackageDetails({ packageName }).catch(error => ({
           name: packageName,
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -341,7 +341,7 @@ export class NPMPackageCompareTool extends Tool {
 
       // Create comparison matrix
       const comparison = {
-        successful: successful.map(pkg => ({
+        successful: successful.map((pkg: typeof successful[0]) => ({
           name: pkg.name,
           version: pkg.version,
           description: pkg.description,
@@ -353,7 +353,7 @@ export class NPMPackageCompareTool extends Tool {
           repository: pkg.repository?.url,
           keywords: pkg.keywords?.slice(0, 5),
         })),
-        failed: failed.map(f => ({
+        failed: failed.map((f: typeof failed[0]) => ({
           name: 'name' in f ? f.name : 'unknown',
           error: 'error' in f ? f.error : 'unknown error',
         })),

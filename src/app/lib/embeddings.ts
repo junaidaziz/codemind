@@ -10,5 +10,5 @@ export async function embedTexts(texts: string[]): Promise<number[][]> {
     model: "text-embedding-3-small",
     input: texts
   });
-  return res.data.map(r => r.embedding);
+  return res.data.map((r: { embedding: number[] }) => r.embedding);
 }

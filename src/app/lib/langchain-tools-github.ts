@@ -299,7 +299,7 @@ export class GitHubDirectoryBrowserTool extends Tool {
           files: files.length,
           directories: directories.length,
         },
-        items: directoryItems.map(item => ({
+        items: directoryItems.map((item: typeof directoryItems[0]) => ({
           name: item.name,
           path: item.path,
           type: item.type,
@@ -366,7 +366,7 @@ export class GitHubFileSearchTool extends Tool {
         success: true,
         query: searchInput.query,
         totalMatches: matchingFiles.length,
-        files: matchingFiles.map(file => ({
+        files: matchingFiles.map((file: typeof matchingFiles[0]) => ({
           name: file.name,
           path: file.path,
           size: file.size,

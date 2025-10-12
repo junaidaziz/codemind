@@ -218,7 +218,7 @@ export class DocumentationSearchTool extends Tool {
         query: validatedInput.query,
         source: validatedInput.source,
         totalResults: results.length,
-        results: results.map(result => ({
+        results: results.map((result: typeof results[0]) => ({
           title: result.title,
           url: result.url,
           description: result.description,
