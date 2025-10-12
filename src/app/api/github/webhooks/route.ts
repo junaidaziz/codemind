@@ -84,7 +84,12 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    const formattedLogs = webhookLogs.map(log => ({
+    const formattedLogs = webhookLogs.map((log: {
+      id: string;
+      content: string;
+      createdAt: Date;
+      sessionId: string;
+    }) => ({
       id: log.id,
       eventType: log.sessionId.includes('error') ? 'error' : 'webhook',
       eventAction: 'processed',
