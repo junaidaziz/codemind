@@ -1,12 +1,64 @@
 import { z } from 'zod';
-import type { Prisma } from '@prisma/client';
 
-// Database Model Types (extracted from Prisma)
-export type Project = Prisma.ProjectGetPayload<Record<string, never>>;
-export type ChatSession = Prisma.ChatSessionGetPayload<Record<string, never>>;
-export type Message = Prisma.MessageGetPayload<Record<string, never>>;
-export type CodeChunk = Prisma.CodeChunkGetPayload<Record<string, never>>;
-export type User = Prisma.UserGetPayload<Record<string, never>>;
+// Database Model Types (define manually based on Prisma schema)
+export interface Project {
+  id: string;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+  defaultBranch: string;
+  githubUrl: string;
+  lastIndexedAt: Date | null;
+  ownerId: string;
+  status: string;
+  visibility: string;
+}
+
+export interface ChatSession {
+  id: string;
+  projectId: string;
+  userId: string;
+  title: string;
+  summary: string | null;
+  totalTokens: number;
+  messageCount: number;
+  createdAt: Date;
+  lastActiveAt: Date;
+}
+
+export interface Message {
+  id: string;
+  sessionId: string;
+  role: string;
+  content: string;
+  tokenCount: number | null;
+  contextTokens: number | null;
+  memoryIncluded: boolean;
+  latencyMs: number | null;
+  createdAt: Date;
+}
+
+export interface CodeChunk {
+  id: string;
+  projectId: string;
+  path: string;
+  sha: string;
+  language: string;
+  startLine: number;
+  endLine: number;
+  content: string;
+  tokenCount: number;
+  updatedAt: Date;
+}
+
+export interface User {
+  id: string;
+  email: string | null;
+  name: string | null;
+  createdAt: Date;
+  image: string | null;
+  role: string;
+}
 
 // Project-related schemas and types
 export const CreateProjectSchema = z.object({
