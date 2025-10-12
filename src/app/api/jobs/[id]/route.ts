@@ -4,7 +4,7 @@ import { createApiError } from "../../../../types";
 import { logger, withRequestTiming } from '../../../lib/logger';
 
 // Helper function to serialize job for response
-function serializeJob(job: Job) {
+function serializeJob(job: Job): object {
   return {
     id: job.id,
     type: job.data.type,

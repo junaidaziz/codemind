@@ -21,7 +21,7 @@ const EnhancedChatRequestSchema = CreateChatMessageSchema.extend({
   useAgent: z.boolean().default(false), // Flag to use developer agent
 });
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<Response> {
   return withRequestTiming('POST', '/api/chat', async () => {
     try {
       const body: unknown = await req.json();

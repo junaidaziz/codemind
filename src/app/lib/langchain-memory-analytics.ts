@@ -165,8 +165,8 @@ export class AgentMemoryTracker {
       const averageExecutionTime = memoryRecords.reduce((sum: number, record: typeof memoryRecords[0]) => sum + record.executionTimeMs, 0) / totalInteractions;
 
       // Calculate relevance and quality averages (only for records that have these metrics)
-      const recordsWithRelevance = memoryRecords.filter(r => r.contextRelevance !== null);
-      const recordsWithQuality = memoryRecords.filter(r => r.responseQuality !== null);
+      const recordsWithRelevance = memoryRecords.filter((r: typeof memoryRecords[0]) => r.contextRelevance !== null);
+      const recordsWithQuality = memoryRecords.filter((r: typeof memoryRecords[0]) => r.responseQuality !== null);
       
       const averageContextRelevance = recordsWithRelevance.length > 0
         ? recordsWithRelevance.reduce((sum: number, record) => sum + (record.contextRelevance || 0), 0) / recordsWithRelevance.length
