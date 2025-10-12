@@ -1,4 +1,4 @@
-name: Auto Fix Vercel Build Failures
+name: Auto Fix Build & Deployment Failures
 
 on:
   workflow_dispatch:
@@ -6,10 +6,21 @@ on:
     branches: [ main, develop ]
   repository_dispatch:
     types: [vercel-build-failed]
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types:
+      - completed
+    branches: [ main, develop ]
 
 jobs:
-  analyze-vercel-failure:
+  analyze-build-failure:
     runs-on: ubuntu-latest
+    # Run if: CI/CD workflow failed, or repository dispatch event, or manual trigger
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'repository_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure') ||
+      (github.event_name == 'push')
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -28,7 +39,70 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Fetch latest Vercel deployment logs
+      - name: Determine failure type and source
+        id: failure-detection
+        run: |
+          echo "🔍 Determining failure type..."
+          
+          # Determine what triggered this workflow
+          if [ "${{ github.event_name }}" == "workflow_run" ]; then
+            echo "📋 Build failure detected from CI/CD pipeline"
+            echo "failure_type=build" >> $GITHUB_OUTPUT
+            echo "failure_source=github" >> $GITHUB_OUTPUT
+            
+            echo "FAILURE_TYPE=build" >> $GITHUB_ENV
+            echo "WORKFLOW_RUN_ID=${{ github.event.workflow_run.id }}" >> $GITHUB_ENV
+            echo "FAILURE_SOURCE=github" >> $GITHUB_ENV
+            
+            # Create logs directory
+            mkdir -p logs
+            
+            # Fetch failed workflow logs using GitHub API
+            echo "📄 Fetching GitHub workflow logs..."
+            curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/jobs" \
+              > logs/github_jobs.json
+            
+            # Extract failed job logs
+            FAILED_JOB_ID=$(jq -r '.jobs[] | select(.conclusion == "failure") | .id' logs/github_jobs.json | head -1)
+            
+            if [ -n "$FAILED_JOB_ID" ] && [ "$FAILED_JOB_ID" != "null" ]; then
+              echo "📥 Downloading logs for failed job: $FAILED_JOB_ID"
+              curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                "https://api.github.com/repos/${{ github.repository }}/actions/jobs/$FAILED_JOB_ID/logs" \
+                > logs/github_build_logs.txt
+              
+              echo "JOB_ID=$FAILED_JOB_ID" >> $GITHUB_ENV
+              echo "has_logs=true" >> $GITHUB_OUTPUT
+            else
+              echo "⚠️ Could not find failed job ID"
+              echo "has_logs=false" >> $GITHUB_OUTPUT
+            fi
+            
+          elif [ "${{ github.event_name }}" == "repository_dispatch" ]; then
+            echo "📋 Vercel deployment failure detected from webhook"
+            echo "failure_type=deployment" >> $GITHUB_OUTPUT
+            echo "failure_source=vercel" >> $GITHUB_OUTPUT
+            
+            echo "FAILURE_TYPE=deployment" >> $GITHUB_ENV
+            echo "FAILURE_SOURCE=vercel" >> $GITHUB_ENV
+            
+          else
+            echo "📋 Manual trigger or push event - checking for recent failures"
+            echo "failure_type=check" >> $GITHUB_OUTPUT
+            echo "failure_source=manual" >> $GITHUB_OUTPUT
+            
+            echo "FAILURE_TYPE=check" >> $GITHUB_ENV
+            echo "FAILURE_SOURCE=manual" >> $GITHUB_ENV
+          fi
+          
+          echo "Failure type: $(echo $FAILURE_TYPE)"
+          echo "Failure source: $(echo $FAILURE_SOURCE)"
+
+      - name: Fetch Vercel deployment logs
+        if: steps.failure-detection.outputs.failure_source == 'vercel' || steps.failure-detection.outputs.failure_type == 'check'
         run: |
           echo "🔍 Fetching latest failed Vercel deployment..."
           
