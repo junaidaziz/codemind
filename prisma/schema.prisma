@@ -79,7 +79,7 @@ model Message {
 
 /// Each row = code chunk with its embedding
 model CodeChunk {
-  id         String                @id @default(cuid())
+  id         String   @id @default(cuid())
   projectId  String
   path       String
   sha        String
@@ -88,13 +88,12 @@ model CodeChunk {
   endLine    Int
   content    String
   tokenCount Int
-  embedding  Unsupported("vector")
-  updatedAt  DateTime              @updatedAt
-  project    Project               @relation(fields: [projectId], references: [id])
+  embedding  String?  // Temporary: JSON string until vector extension is enabled
+  updatedAt  DateTime @updatedAt
+  project    Project  @relation(fields: [projectId], references: [id])
 
   @@index([projectId])
   @@index([projectId, path])
-  @@index([projectId, embedding])
 }
 
 model ToolExecution {

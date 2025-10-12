@@ -8,25 +8,95 @@
 -- 1. Enable vector extension (required for embeddings)
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- 2. Add missing role column to User table
-DO $$ 
-BEGIN 
-    IF NOT EXISTS (
-        SELECT 1 
-        FROM information_schema.columns 
-        WHERE table_name = 'User' AND column_name = 'role'
-    ) THEN
-        ALTER TABLE "User" ADD COLUMN "role" TEXT NOT NULL DEFAULT 'user';
-        RAISE NOTICE 'Added role column to User table';
-    ELSE 
-        RAISE NOTICE 'Role column already exists';
-    END IF;
-END $$;
+# Quick Database Fix Commands
 
--- 3. Verify the fix worked
-SELECT column_name, data_type, is_nullable, column_default 
-FROM information_schema.columns 
-WHERE table_name = 'User' AND column_name = 'role';
+## 🚨 Recent Update: Vector Extension Issue Resolved
+
+The previous "CodeChunk does not exist" error has been fixed! The database schema has been updated to work without the PostgreSQL vector extension.
+
+## Current Status ✅
+
+- ✅ **Database schema updated**: `CodeChunk` table now uses string-based embeddings
+- ✅ **Fallback similarity search**: Works without vector extension
+- ✅ **Build successful**: All compilation errors resolved
+- ✅ **API routes resilient**: Handle database schema mismatches gracefully
+
+## If You Still Get Database Errors
+
+### 1. Push the updated schema
+
+```bash
+cd /path/to/codemind
+npx prisma db push
+```
+
+### 2. Manual SQL fixes (if needed)
+
+Connect to your database:
+```bash
+psql $DATABASE_URL
+```
+
+Add missing role column:
+```sql
+ALTER TABLE "User" 
+ADD COLUMN IF NOT EXISTS "role" TEXT DEFAULT 'user';
+
+UPDATE "User" 
+SET "role" = 'user' 
+WHERE "role" IS NULL;
+```
+
+### 3. Verify tables exist
+
+```sql
+-- Check if all tables exist
+\dt
+
+-- Should show: User, Project, ChatSession, Message, CodeChunk, etc.
+```
+
+## What Changed
+
+### Database Schema Updates
+- `CodeChunk.embedding`: Changed from `vector` type to `string` (JSON storage)
+- Removed vector-specific indexes temporarily
+- Added fallback similarity search logic
+
+### Code Updates  
+- `db-utils.ts`: Added try/catch fallback for vector operations
+- `prisma/schema.prisma`: Updated embedding field type
+- Enhanced error handling across all database operations
+
+## For Production Deployment
+
+When you're ready to use proper vector similarity search:
+
+1. **Enable vector extension in PostgreSQL**:
+   ```sql
+   CREATE EXTENSION IF NOT EXISTS vector;
+   ```
+
+2. **Update schema back to vector type**:
+   ```prisma
+   embedding  Unsupported("vector")
+   ```
+
+3. **Migrate existing JSON embeddings to vector format**
+
+## Testing the Fix
+
+1. **Start the dev server**: `npm run dev`
+2. **Try the chat feature**: Should work without CodeChunk errors
+3. **Check logs**: Look for "fallback mode" messages (normal for now)
+
+## Need Help?
+
+If you still see errors:
+1. Check the terminal output for specific error messages
+2. Verify `DATABASE_URL` is correct in `.env`
+3. Ensure database is accessible
+4. Try `npx prisma db push` again
 ```
 
 ## ✅ What This Does
