@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
 
     // Extract feedback from messages (stored as JSON in a hypothetical feedback field)
     // For now, return mock data structure
-    const feedbacks = messages.map(message => ({
+    const feedbacks = messages.map((message: typeof messages[0]) => ({
       id: `feedback_${message.id}`,
       messageId: message.id,
       sessionId: message.sessionId,
