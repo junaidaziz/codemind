@@ -2,9 +2,9 @@
   "version": 2,
   "name": "codemind",
   "framework": "nextjs",
-    "buildCommand": "pnpm run build",
-  "devCommand": "pnpm run dev",
-  "installCommand": "pnpm install --frozen-lockfile",
+    "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm ci --legacy-peer-deps --include=dev",
   "outputDirectory": ".next",
   "env": {
     "NODE_ENV": "production",
