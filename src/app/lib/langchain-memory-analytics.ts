@@ -409,7 +409,7 @@ export class AgentMemoryTracker {
         ? ((lastRecord.memorySize - firstRecord.memorySize) / firstRecord.memorySize) * 100 
         : 0;
 
-      const averageExecutionTime = records.reduce((sum: number, r) => sum + r.executionTimeMs, 0) / records.length;
+      const averageExecutionTime = records.reduce((sum: number, r: typeof records[0]) => sum + r.executionTimeMs, 0) / records.length;
 
       // Find most used command
       const commandCounts = new Map<string, number>();
