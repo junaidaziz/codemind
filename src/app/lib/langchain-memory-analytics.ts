@@ -169,11 +169,11 @@ export class AgentMemoryTracker {
       const recordsWithQuality = memoryRecords.filter((r: typeof memoryRecords[0]) => r.responseQuality !== null);
       
       const averageContextRelevance = recordsWithRelevance.length > 0
-        ? recordsWithRelevance.reduce((sum: number, record) => sum + (record.contextRelevance || 0), 0) / recordsWithRelevance.length
+        ? recordsWithRelevance.reduce((sum: number, record: typeof recordsWithRelevance[0]) => sum + (record.contextRelevance || 0), 0) / recordsWithRelevance.length
         : 0;
       
       const averageResponseQuality = recordsWithQuality.length > 0
-        ? recordsWithQuality.reduce((sum: number, record) => sum + (record.responseQuality || 0), 0) / recordsWithQuality.length
+        ? recordsWithQuality.reduce((sum: number, record: typeof recordsWithQuality[0]) => sum + (record.responseQuality || 0), 0) / recordsWithQuality.length
         : 0;
 
       // Calculate memory efficiency (response quality / memory size ratio)
