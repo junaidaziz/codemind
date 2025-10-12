@@ -198,7 +198,7 @@ export async function retrieveRelevantChunks(
 
     params.push(limit, offset);
 
-    const result = await prisma.$queryRawUnsafe<RelevantChunk[]>(sql, ...params);
+    const result = await prisma.$queryRawUnsafe(sql, ...params) as RelevantChunk[];
 
     logger.debug('Retrieved chunks', {
       projectId,
