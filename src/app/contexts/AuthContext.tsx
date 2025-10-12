@@ -63,16 +63,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchUserRole = useCallback(async (userId: string) => {
     try {
       const response = await fetch(`/api/auth/user?id=${userId}`);
+      
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data) {
           setUserRole(data.data.role as UserRole);
+          return;
         }
       }
+      
+      // Handle specific error responses
+      if (response.status === 401) {
+        // User session invalid after database reset - sign out
+        console.warn('User session invalid after database reset, signing out');
+        await supabase.auth.signOut();
+        setUser(null);
+        setSession(null);
+        setUserRole(null);
+        return;
+      }
+      
+      if (response.status === 503) {
+        // Database error - show warning but don't sign out
+        console.warn('Database connection error, using default role');
+        setUserRole('user');
+        return;
+      }
+      
+      if (response.status === 404) {
+        // User not found - likely database reset, sign out gracefully
+        console.warn('User not found in database, likely after reset. Signing out.');
+        await supabase.auth.signOut();
+        setUser(null);
+        setSession(null);
+        setUserRole(null);
+        return;
+      }
+      
+      // Other errors - log and use default role
+      console.error('Failed to fetch user role:', response.status, response.statusText);
+      setUserRole('user');
+      
     } catch (error) {
       console.error('Error fetching user role:', error);
+      // Network or other error - use default role
+      setUserRole('user');
     }
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     // Get initial session
@@ -109,7 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Create or update user in our database
         if (session?.user && event === 'SIGNED_IN') {
           try {
-            await fetch('/api/auth/user', {
+            const response = await fetch('/api/auth/user', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -122,8 +159,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 role: 'user', // Default role for new users
               }),
             });
+            
+            if (!response.ok) {
+              console.warn(`Failed to create/update user in database: ${response.status}`);
+              // Don't fail the auth process, just log the warning
+            }
           } catch (error) {
             console.error('Error creating/updating user:', error);
+            // Don't fail the auth process, database might be temporarily unavailable
           }
         }
       }

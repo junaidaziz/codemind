@@ -31,18 +31,57 @@ export async function GET(req: Request): Promise<NextResponse<ApiResponse<User>>
       );
     }
 
-    // Get user from database including role
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        image: true,
-        role: true,
-        createdAt: true,
-      },
-    });
+    // Get user from database - handle missing role column gracefully
+    let user;
+    try {
+      user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          image: true,
+          role: true,
+          createdAt: true,
+        },
+      });
+    } catch (dbError: unknown) {
+      // Handle missing role column after database reset
+      const error = dbError as { code?: string; message?: string };
+      if (error.code === 'P2022' && error.message?.includes('does not exist')) {
+        console.warn('Database schema mismatch detected, attempting query without role column');
+        try {
+          const userWithoutRole = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              image: true,
+              createdAt: true,
+            },
+          });
+          // Add default role if user exists
+          if (userWithoutRole) {
+            user = { ...userWithoutRole, role: 'user' } as User;
+          } else {
+            // User doesn't exist, likely database was reset
+            return NextResponse.json(
+              createApiError("User session invalid after database reset. Please sign out and sign in again.", "INVALID_SESSION"),
+              { status: 401 }
+            );
+          }
+        } catch (secondError) {
+          console.error('Failed to query user after schema mismatch:', secondError);
+          return NextResponse.json(
+            createApiError("Database connection error. Please try again or contact support.", "DATABASE_ERROR"),
+            { status: 503 }
+          );
+        }
+      } else {
+        throw dbError;
+      }
+    }
 
     if (!user) {
       return NextResponse.json(
@@ -81,23 +120,58 @@ export async function POST(req: Request): Promise<NextResponse<ApiResponse<User>
     const body: unknown = await req.json();
     const userData: UpdateUserRequest = UpdateUserRequestSchema.parse(body);
 
-    // Create or update user in our database
-    const user = await prisma.user.upsert({
-      where: { id: userData.id },
-      update: {
-        email: userData.email,
-        name: userData.name,
-        image: userData.image,
-        role: userData.role || 'user',
-      },
-      create: {
-        id: userData.id,
-        email: userData.email,
-        name: userData.name,
-        image: userData.image,
-        role: userData.role || 'user',
-      },
-    });
+    // Create or update user in our database - handle missing role column gracefully
+    let user;
+    try {
+      user = await prisma.user.upsert({
+        where: { id: userData.id },
+        update: {
+          email: userData.email,
+          name: userData.name,
+          image: userData.image,
+          role: userData.role || 'user',
+        },
+        create: {
+          id: userData.id,
+          email: userData.email,
+          name: userData.name,
+          image: userData.image,
+          role: userData.role || 'user',
+        },
+      });
+    } catch (dbError: unknown) {
+      // Handle missing role column after database reset
+      const error = dbError as { code?: string; message?: string };
+      if (error.code === 'P2022' && error.message?.includes('does not exist')) {
+        console.warn('Database schema mismatch during user upsert, attempting without role column');
+        try {
+          user = await prisma.user.upsert({
+            where: { id: userData.id },
+            update: {
+              email: userData.email,
+              name: userData.name,
+              image: userData.image,
+            },
+            create: {
+              id: userData.id,
+              email: userData.email,
+              name: userData.name,
+              image: userData.image,
+            },
+          });
+          // Add default role to response
+          user = { ...user, role: 'user' } as User;
+        } catch (secondError) {
+          console.error('Failed to upsert user after schema mismatch:', secondError);
+          return NextResponse.json(
+            createApiError("Database schema error. Please contact support to resolve this issue.", "DATABASE_ERROR"),
+            { status: 503 }
+          );
+        }
+      } else {
+        throw dbError;
+      }
+    }
 
     return NextResponse.json(
       createApiSuccess(user, 'User updated successfully')
