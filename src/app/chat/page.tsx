@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Spinner } from '../../components/ui';
 import { ProtectedRoute } from '../components/ProtectedRoute';
@@ -32,7 +32,65 @@ function ChatPageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string>('');
+  const [isRestoringSession, setIsRestoringSession] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Session persistence utilities
+  const getStorageKey = useCallback((projectId: string) => `codemind_chat_session_${projectId}`, []);
+  
+  const saveSessionToStorage = useCallback((projectId: string, sessionId: string, messages: Message[]) => {
+    try {
+      const sessionData = {
+        sessionId,
+        messages,
+        lastUpdated: Date.now(),
+        projectId
+      };
+      localStorage.setItem(getStorageKey(projectId), JSON.stringify(sessionData));
+    } catch (error) {
+      console.warn('Failed to save session to localStorage:', error);
+    }
+  }, [getStorageKey]);
+
+  const loadSessionFromStorage = useCallback((projectId: string) => {
+    try {
+      const stored = localStorage.getItem(getStorageKey(projectId));
+      if (stored) {
+        const sessionData = JSON.parse(stored);
+        // Only restore sessions from the last 24 hours
+        if (Date.now() - sessionData.lastUpdated < 24 * 60 * 60 * 1000) {
+          return sessionData;
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to load session from localStorage:', error);
+    }
+    return null;
+  }, [getStorageKey]);
+
+  const restoreSessionFromAPI = useCallback(async (sessionId: string) => {
+    try {
+      setIsRestoringSession(true);
+      const response = await fetch(`/api/chat/sessions/${sessionId}`);
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data.messages) {
+          const apiMessages: Message[] = result.data.messages.map((msg: { id: string; role: string; content: string; createdAt: string }) => ({
+            id: msg.id,
+            role: msg.role,
+            content: msg.content,
+            createdAt: msg.createdAt
+          }));
+          return apiMessages;
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to restore session from API:', error);
+    } finally {
+      setIsRestoringSession(false);
+    }
+    return null;
+  }, []);
 
   // Fetch projects on component mount
   useEffect(() => {
@@ -50,18 +108,38 @@ function ChatPageContent() {
     }
   }, [searchParams, projects]);
 
-  // Generate session ID when project changes
+  // Generate session ID when project changes and restore previous session
   useEffect(() => {
     if (selectedProjectId) {
-      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      setCurrentSessionId(sessionId);
+      // Try to restore previous session first
+      const storedSession = loadSessionFromStorage(selectedProjectId);
+      
+      if (storedSession && storedSession.sessionId && storedSession.messages) {
+        // Restore from localStorage
+        setCurrentSessionId(storedSession.sessionId);
+        setMessages(storedSession.messages);
+        console.log(`Restored chat session from localStorage for project ${selectedProjectId}`);
+      } else {
+        // Create new session
+        const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        setCurrentSessionId(sessionId);
+        setMessages([]);
+        console.log(`Created new chat session for project ${selectedProjectId}`);
+      }
     }
-  }, [selectedProjectId]);
+  }, [selectedProjectId, loadSessionFromStorage]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Save session to localStorage whenever messages change
+  useEffect(() => {
+    if (selectedProjectId && currentSessionId && messages.length > 0) {
+      saveSessionToStorage(selectedProjectId, currentSessionId, messages);
+    }
+  }, [selectedProjectId, currentSessionId, messages, saveSessionToStorage]);
 
   const fetchProjects = async () => {
     try {
@@ -283,8 +361,17 @@ function ChatPageContent() {
         <div className="max-w-4xl mx-auto space-y-4">
           {messages.length === 0 ? (
             <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-              <p className="text-lg mb-2">👋 Welcome to CodeMind!</p>
-              <p>Select a project and start asking questions about your code.</p>
+              {isRestoringSession ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <Spinner size="sm" />
+                  <p>Restoring chat history...</p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-lg mb-2">👋 Welcome to CodeMind!</p>
+                  <p>Select a project and start asking questions about your code.</p>
+                </>
+              )}
             </div>
           ) : (
             messages.map((message) => (
