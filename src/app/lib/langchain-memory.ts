@@ -90,8 +90,8 @@ export class CodeMindChatMemory extends BaseMemory {
       // Convert database messages to LangChain format
       const messages: BaseMessage[] = session.messages
         .reverse() // Restore chronological order
-        .filter(msg => this.config.includeSystemMessages || msg.role !== 'system')
-        .map(msg => {
+        .filter((msg: typeof session.messages[0]) => this.config.includeSystemMessages || msg.role !== 'system')
+        .map((msg: typeof session.messages[0]) => {
           switch (msg.role) {
             case 'user':
               return new HumanMessage(msg.content);
@@ -335,7 +335,7 @@ export class CodeMindChatMemory extends BaseMemory {
         // Mark summarized messages as not included in active memory
         prisma.message.updateMany({
           where: {
-            id: { in: messages.map(m => m.id) },
+            id: { in: messages.map((m: typeof messages[0]) => m.id) },
           },
           data: { memoryIncluded: false },
         }),
