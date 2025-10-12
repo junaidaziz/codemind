@@ -16,7 +16,35 @@ function AuthCallbackContent() {
       try {
         const supabase = createBrowserClient();
         
-        // Get the URL hash parameters
+        // Handle OAuth callback (e.g., GitHub OAuth)
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          setStatus('error');
+          setMessage('Authentication failed. Please try again.');
+          return;
+        }
+        
+        if (data.session) {
+          // Successful OAuth authentication
+          setStatus('success');
+          const provider = data.session.user.app_metadata?.provider;
+          
+          if (provider === 'github') {
+            setMessage('Successfully authenticated with GitHub! Redirecting to dashboard...');
+          } else {
+            setMessage('Email verified successfully! Redirecting to dashboard...');
+          }
+          
+          // Redirect to dashboard after successful authentication
+          setTimeout(() => {
+            router.push('/');
+          }, 2000);
+          return;
+        }
+        
+        // Legacy email confirmation flow
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const access_token = hashParams.get('access_token');
         const refresh_token = hashParams.get('refresh_token');
@@ -24,13 +52,13 @@ function AuthCallbackContent() {
 
         if (type === 'signup' && access_token && refresh_token) {
           // Set the session with the tokens
-          const { error } = await supabase.auth.setSession({
+          const { error: sessionError } = await supabase.auth.setSession({
             access_token,
             refresh_token,
           });
 
-          if (error) {
-            console.error('Error setting session:', error);
+          if (sessionError) {
+            console.error('Error setting session:', sessionError);
             setStatus('error');
             setMessage('Failed to verify email. Please try again.');
             return;
@@ -44,7 +72,7 @@ function AuthCallbackContent() {
             router.push('/');
           }, 2000);
         } else {
-          // Handle other auth flows or errors
+          // Handle auth errors
           const error = searchParams.get('error');
           const error_description = searchParams.get('error_description');
           

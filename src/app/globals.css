@@ -24,3 +24,65 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Cursor pointer styles for interactive elements */
+button:not(:disabled),
+a,
+[role="button"],
+[role="link"],
+[role="tab"],
+[role="menuitem"],
+.cursor-pointer,
+label[for],
+input[type="checkbox"],
+input[type="radio"],
+input[type="file"],
+select,
+summary,
+[tabindex]:not([tabindex="-1"]),
+.clickable {
+  cursor: pointer;
+}
+
+/* Ensure disabled elements don't show pointer cursor */
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* Override for text inputs and textareas */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="url"],
+input[type="tel"],
+input[type="number"],
+textarea {
+  cursor: text;
+}
+
+/* Special cursor for resize handles */
+textarea {
+  resize: vertical;
+}
+
+/* Hover effects for better visual feedback */
+button:not(:disabled):hover,
+a:hover,
+[role="button"]:hover,
+[role="link"]:hover {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Focus styles for better accessibility */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+[role="link"]:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}

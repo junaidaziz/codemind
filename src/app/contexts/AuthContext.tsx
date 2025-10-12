@@ -43,6 +43,7 @@ interface AuthContextType {
   userRole: UserRole | null;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: AuthError | null }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signInWithGitHub: () => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
   resendConfirmationEmail: (email: string) => Promise<{ error: AuthError | null }>;
@@ -225,6 +226,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   }, [supabase]);
 
+  const signInWithGitHub = useCallback(async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: `${getAppUrl()}/auth/callback`,
+        scopes: 'read:user user:email repo', // Request repo access for private repositories
+      },
+    });
+    return { error };
+  }, [supabase]);
+
   const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
     return { error };
@@ -263,6 +275,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     signUp,
     signIn,
+    signInWithGitHub,
     signOut,
     resetPassword,
     resendConfirmationEmail,

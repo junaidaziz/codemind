@@ -14,6 +14,10 @@ const EnvSchema = z.object({
   // OpenAI
   OPENAI_API_KEY: z.string().min(1, 'OPENAI_API_KEY is required'),
   
+  // GitHub OAuth
+  GITHUB_CLIENT_ID: z.string().min(1, 'GitHub Client ID is required for OAuth authentication'),
+  GITHUB_CLIENT_SECRET: z.string().min(1, 'GitHub Client Secret is required for OAuth authentication'),
+  
   // Next.js
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   NEXT_PUBLIC_APP_URL: z.string().url().optional(),
