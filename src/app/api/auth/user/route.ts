@@ -8,7 +8,16 @@ import {
   type ApiResponse 
 } from '../../../../types';
 import { ZodError } from 'zod';
-import type { User } from '@prisma/client';
+
+// Define the User type based on our Prisma schema
+type User = {
+  id: string;
+  email: string | null;
+  name: string | null;
+  image: string | null;
+  role: string;
+  createdAt: Date;
+};
 
 export async function GET(req: Request): Promise<NextResponse<ApiResponse<User>>> {
   try {
