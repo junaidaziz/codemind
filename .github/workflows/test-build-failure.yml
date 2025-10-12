@@ -1,0 +1,36 @@
+name: Test Build Failure Detection
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/test-build-failure.yml'
+
+jobs:
+  intentional-failure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '9'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Intentional TypeScript failure
+        run: |
+          echo "Creating intentional TypeScript error..."
+          echo 'const test: number = "this will fail";' > temp-error.ts
+          npx tsc temp-error.ts --noEmit
+          
+      - name: This should not run
+        run: echo "This step should not execute because previous step failed"
