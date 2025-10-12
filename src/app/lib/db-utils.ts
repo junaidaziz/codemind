@@ -292,7 +292,7 @@ export async function getProjectStats(projectId: string): Promise<{
       }),
     ]);
 
-    const languageBreakdown = languageStats.reduce((acc: Record<string, number>, stat) => {
+    const languageBreakdown = languageStats.reduce((acc: Record<string, number>, stat: { language: string; _count: { id: number } }) => {
       acc[stat.language] = stat._count.id;
       return acc;
     }, {} as Record<string, number>);
