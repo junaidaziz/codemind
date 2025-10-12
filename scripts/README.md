@@ -1,15 +1,27 @@
-# Auto-Analyze Failed Vercel Builds
+# Auto-Analyze Failed Vercel Builds - Enhanced
 
-A TypeScript script that automatically analyzes failed Vercel deployments using AI-powered root cause analysis.
+A comprehensive TypeScript script that automatically analyzes failed Vercel deployments using AI-powered root cause analysis with GitHub issue automation.
 
+## 🎯 Enhanced Features
+
+- ✅ **Fetches latest failed Vercel deployment** via Vercel API v2
+- ✅ **Retrieves detailed build logs** with enhanced event tracking
+- ✅ **Stores logs in `/logs/` directory** for organized debugging
+- ✅ **AI-powered analysis** using OpenAI **gpt-4o-mini** for cost-effective analysis
+- ✅ **Enhanced console output** with emoji-formatted summaries
+- ✅ **Failure tracking** to detect repeated issues
+- ✅ **GitHub Issues automation** for repeated failures (3+ similar issues)
 ## 🎯 Features
 
-- ✅ **Fetches latest failed Vercel deployment** via Vercel API
+- ✅ **Fetches latest failed Vercel deployment** via Vercel API v2
 - ✅ **Retrieves detailed build logs** with timestamps and events
-- ✅ **Stores logs locally** in `vercel-fail.json` for debugging
-- ✅ **AI-powered analysis** using OpenAI GPT-4 for root cause identification
-- ✅ **Human-readable summaries** with actionable fix suggestions
+- ✅ **Stores logs in `/logs/` directory** for organized debugging
+- ✅ **AI-powered analysis** using OpenAI GPT-4o-mini for cost-effective analysis
+- ✅ **Enhanced output format** with emojis and structured summaries
+- ✅ **GitHub Issues automation** for repeated failures (optional)
+- ✅ **Failure tracking** with commit SHA monitoring
 - ✅ **100% TypeScript** with strict typing (no `any` types)
+- ✅ **Comprehensive error handling** and validation
 - ✅ **Comprehensive error handling** and validation
 
 ## 🚀 Quick Start
@@ -26,6 +38,11 @@ VERCEL_TEAM=junaidaziz
 
 # OpenAI API Configuration
 OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxx
+
+# GitHub Integration (Optional - for automated issue creation)
+GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxx
+GITHUB_OWNER=junaidaziz
+GITHUB_REPO=codemind
 ```
 
 ### 2. Get Your API Tokens
@@ -57,43 +74,28 @@ npx ts-node scripts/analyze-vercel-build.ts
 
 🔍 Fetching latest deployments...
 ❌ Found failed deployment: dpl_abc123xyz (2025-10-12T10:30:45.000Z)
-📄 Fetching build logs...
+📄 Fetching build logs from v2 API...
 📄 Retrieved 2,847 characters of build logs
-💾 Saving build logs to vercel-fail.json...
-🤖 Analyzing build logs with OpenAI...
+💾 Saving build logs to logs/vercel-fail.json...
+🤖 Analyzing build logs with GPT-4o-mini...
 🤖 Analysis completed successfully
 
-================================================================================
-🔍 VERCEL BUILD FAILURE ANALYSIS
-================================================================================
+❌ Build failed: Module not found '@/lib/db'
+🔍 Cause: Missing tsconfig path alias resolution in Vercel build
+🛠️ Fix: Add 'baseUrl' + 'paths' config to tsconfig and redeploy
 
-📅 Deployment Details:
+� Deployment Details:
    • ID: dpl_abc123xyz
    • Project: codemind
+   • Commit: abc1234
    • Failed At: 10/12/2025, 10:30:45 AM
-   • URL: https://codemind-git-main-junaidaziz.vercel.app
 
-🎯 Analysis Results:
-   • Category: TypeScript Error
-   • Confidence: 95%
-
-❌ Root Cause:
-   TypeScript compilation failed due to implicit 'any' type on parameter 'msg'
-
-🔧 Suggested Fix:
-   1. Add explicit typing to the filter parameter:
-      .filter((msg: typeof session.messages[0]) => ...)
-   2. Run 'npx tsc --noEmit' to verify TypeScript compliance
-   3. Commit the changes and redeploy
-
-================================================================================
-✅ Analysis complete! Check vercel-fail.json for full details.
-================================================================================
+✅ Analysis complete! Full details saved to logs/vercel-fail.json
 ```
 
 ## 📁 Generated Files
 
-The script creates `vercel-fail.json` with complete analysis results:
+The script creates `logs/vercel-fail.json` with complete analysis results:
 
 ```json
 {
@@ -102,14 +104,24 @@ The script creates `vercel-fail.json` with complete analysis results:
     "name": "codemind",
     "state": "ERROR",
     "createdAt": 1697104245000,
-    "timestamp": "2025-10-12T10:30:45.000Z"
+    "timestamp": "2025-10-12T10:30:45.000Z",
+    "inspectorUrl": "https://vercel.com/...",
+    "gitSource": {
+      "sha": "abc1234567890",
+      "ref": "refs/heads/main"
+    }
   },
-  "buildLogs": "=== Build abc123 ===\n[timestamp] stderr: Type error...",
+  "buildLogs": "Build logs from v2 API with detailed events...",
   "analysis": {
-    "rootCause": "TypeScript compilation failed...",
-    "suggestedFix": "1. Add explicit typing...",
-    "confidence": 95,
-    "category": "TypeScript Error"
+    "summary": "Module not found '@/lib/db'",
+    "cause": "Missing tsconfig path alias resolution",
+    "fix": "Add 'baseUrl' + 'paths' config to tsconfig and redeploy"
+  },
+  "failureTracking": {
+    "commitSha": "abc1234567890",
+    "failureCount": 1,
+    "firstFailure": "2025-10-12T10:30:45.000Z",
+    "lastFailure": "2025-10-12T10:30:45.000Z"
   },
   "timestamp": "2025-10-12T10:35:20.123Z"
 }
@@ -145,7 +157,43 @@ curl -H "Authorization: Bearer $VERCEL_TOKEN" https://api.vercel.com/v9/projects
 ## 🛠 Technical Details
 
 - **Language**: TypeScript with strict typing (no `any` types)
-- **APIs**: Vercel API v6 for deployments, v1 for build events
-- **AI Model**: OpenAI GPT-4 Turbo for analysis
-- **Output**: JSON file + formatted console summary
+- **APIs**: Vercel API v2 for deployments and build events
+- **AI Model**: OpenAI GPT-4o-mini for cost-effective analysis
+- **Storage**: Organized `/logs/` directory structure
+- **Output**: Enhanced console format with emojis + JSON file
+- **GitHub Integration**: Automated issue creation for repeated failures
 - **Error Handling**: Comprehensive validation and fallbacks
+
+## 🔄 GitHub Automation (Optional)
+
+When the same commit SHA fails 3 times, the script can automatically:
+
+1. **Create a GitHub Issue** with failure analysis
+2. **Tag relevant team members** 
+3. **Include build logs and AI analysis**
+4. **Track failure patterns** across deployments
+
+### Setup GitHub Integration:
+
+```bash
+# Add to .env.local
+GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxx
+GITHUB_OWNER=junaidaziz
+GITHUB_REPO=codemind
+```
+
+### GitHub Token Setup:
+1. Go to [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)
+2. Create a token with `repo` and `issues` permissions
+3. Add the token to your `.env.local` file
+
+## 📊 API Usage & Costs
+
+### Vercel API Calls:
+- **Deployments**: `GET /v2/deployments` - List failed deployments
+- **Events**: `GET /v2/deployments/{id}/events` - Detailed build logs
+
+### OpenAI API Usage:
+- **Model**: `gpt-4o-mini` (cost-effective choice)
+- **Average Cost**: ~$0.001-0.003 per analysis
+- **Token Limit**: 1000 tokens for focused responses

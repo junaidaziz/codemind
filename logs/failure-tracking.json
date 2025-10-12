@@ -1,0 +1,9 @@
+{
+  "commitFailures": {},
+  "lastUpdated": "2025-10-12T10:00:00.000Z",
+  "totalFailures": 0,
+  "metadata": {
+    "version": "2.0",
+    "description": "Tracks repeated build failures by commit SHA for automated GitHub issue creation"
+  }
+}
