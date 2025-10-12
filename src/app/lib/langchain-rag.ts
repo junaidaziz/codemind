@@ -150,7 +150,7 @@ export async function generateAnswer(input: GenerateAnswerInput): Promise<Genera
     }
 
     // Create or use existing chat session
-    let finalSessionId = sessionId;
+    let finalSessionId: string = sessionId || '';
     if (!finalSessionId) {
       const session = await prisma.chatSession.create({
         data: {
@@ -280,7 +280,7 @@ export async function generateAnswerStream(
     }
 
     // Create or use existing chat session
-    let finalSessionId = sessionId;
+    let finalSessionId: string = sessionId || '';
     if (!finalSessionId) {
       const session = await prisma.chatSession.create({
         data: {
