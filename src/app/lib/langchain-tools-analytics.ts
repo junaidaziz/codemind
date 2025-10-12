@@ -177,7 +177,7 @@ export class ToolAnalyticsTracker {
         hourlyMap.set(hour, current);
       }
 
-      const hourlyBreakdown = Array.from(hourlyMap.entries()).map(([hour, data]) => ({
+      const hourlyBreakdown = Array.from(hourlyMap.entries()).map(([hour, data]: [number, { executions: number; successful: number; totalTime: number }]) => ({
         hour,
         executions: data.executions,
         successRate: data.executions > 0 ? data.successful / data.executions : 0,
@@ -193,7 +193,7 @@ export class ToolAnalyticsTracker {
         errorMap.set(error, (errorMap.get(error) || 0) + 1);
       }
 
-      const errorBreakdown = Array.from(errorMap.entries()).map(([error, count]) => ({
+      const errorBreakdown = Array.from(errorMap.entries()).map(([error, count]: [string, number]) => ({
         error,
         count,
         percentage: failedExecutions > 0 ? count / failedExecutions : 0,
@@ -259,7 +259,7 @@ export class ToolAnalyticsTracker {
 
       // Get analytics for each tool
       const toolAnalytics = await Promise.all(
-        distinctTools.map(({ toolName }) =>
+        distinctTools.map(({ toolName }: { toolName: string }) =>
           this.getToolAnalytics(toolName, { projectId, userId, startDate, endDate })
         )
       );

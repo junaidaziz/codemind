@@ -6,6 +6,7 @@ import {
   BarChartData,
   MetricType,
   TimePeriod,
+  ProjectUsageMetric,
 } from "../../../../types/analytics";
 import { analyticsService } from "../../../../lib/analytics";
 import { createApiError } from "../../../../types";
@@ -40,20 +41,20 @@ export async function GET(): Promise<NextResponse> {
       endPerformanceTimer(chartsTimer);
 
       // Transform data for charts
-      const userActivity: ChartDataPoint[] = userActivityData.data.map(d => ({
+      const userActivity: ChartDataPoint[] = userActivityData.data.map((d: { timestamp: Date; value: number; label?: string }) => ({
         timestamp: d.timestamp.toISOString(),
         value: d.value,
         label: d.label,
       }));
 
-      const projectUsage: PieChartData[] = projectUsageData.slice(0, 10).map((project, index) => ({
+      const projectUsage: PieChartData[] = projectUsageData.slice(0, 10).map((project: ProjectUsageMetric, index: number) => ({
         name: project.projectName,
         value: project.totalSessions,
-        percentage: Math.round((project.totalSessions / Math.max(1, projectUsageData.reduce((sum, p) => sum + p.totalSessions, 0))) * 100),
+        percentage: Math.round((project.totalSessions / Math.max(1, projectUsageData.reduce((sum: number, p: ProjectUsageMetric) => sum + p.totalSessions, 0))) * 100),
         color: `hsl(${(index * 36) % 360}, 70%, 50%)`, // Generate colors
       }));
 
-      const apiRequests: BarChartData[] = apiRequestsData.data.slice(-7).map((d, index, arr) => {
+      const apiRequests: BarChartData[] = apiRequestsData.data.slice(-7).map((d: { timestamp: Date; value: number }, index: number, arr: { timestamp: Date; value: number }[]) => {
         const prevValue = index > 0 ? arr[index - 1].value : d.value;
         const change = prevValue > 0 ? ((d.value - prevValue) / prevValue) * 100 : 0;
         
@@ -65,7 +66,7 @@ export async function GET(): Promise<NextResponse> {
         };
       });
 
-      const performance: ChartDataPoint[] = performanceData.data.slice(-24).map(d => ({
+      const performance: ChartDataPoint[] = performanceData.data.slice(-24).map((d: { timestamp: Date; value: number; label?: string }) => ({
         timestamp: d.timestamp.toISOString(),
         value: d.value,
         label: 'Response Time (ms)',
