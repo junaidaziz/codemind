@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { Spinner } from '../../components/ui';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { useAuth } from '../contexts/AuthContext';
@@ -319,13 +320,13 @@ function ChatPageContent() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-white dark:bg-gray-900">
-      {/* Header */}
+    <div className="flex flex-col h-[calc(100vh-4rem)] bg-white dark:bg-gray-900">
+      {/* Chat Page Header */}
       <div className="border-b border-gray-200 dark:border-gray-700 p-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <Link href="/" className="text-2xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
             🧠 CodeMind Chat
-          </h1>
+          </Link>
           
           <div className="flex items-center gap-4">
             {/* Feedback Summary */}

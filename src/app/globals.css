@@ -47,8 +47,17 @@ summary,
 /* Explicit cursor pointer for header logo and navigation links */
 header a,
 nav a,
-.header-logo {
+.header-logo,
+a[href="/"] {
   cursor: pointer !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+}
+
+/* Ensure header elements are always clickable */
+header .flex.items-center a {
+  cursor: pointer !important;
+  pointer-events: auto !important;
 }
 
 /* Ensure disabled elements don't show pointer cursor */
