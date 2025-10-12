@@ -427,8 +427,8 @@ export class AgentMemoryTracker {
         const firstHalf = recordsWithQuality.slice(0, Math.floor(recordsWithQuality.length / 2));
         const secondHalf = recordsWithQuality.slice(Math.floor(recordsWithQuality.length / 2));
 
-        const firstEfficiency = firstHalf.reduce((sum: number, r) => sum + ((r.responseQuality || 0) / r.memorySize), 0) / firstHalf.length;
-        const secondEfficiency = secondHalf.reduce((sum: number, r) => sum + ((r.responseQuality || 0) / r.memorySize), 0) / secondHalf.length;
+        const firstEfficiency = firstHalf.reduce((sum: number, r: typeof firstHalf[0]) => sum + ((r.responseQuality || 0) / r.memorySize), 0) / firstHalf.length;
+        const secondEfficiency = secondHalf.reduce((sum: number, r: typeof secondHalf[0]) => sum + ((r.responseQuality || 0) / r.memorySize), 0) / secondHalf.length;
 
         const change = ((secondEfficiency - firstEfficiency) / firstEfficiency) * 100;
         
