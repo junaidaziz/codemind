@@ -597,7 +597,7 @@ User query: ${message}`;
       }
 
       // Create or use existing chat session
-      let finalSessionId = sessionId;
+      let finalSessionId: string = sessionId || '';
       if (!finalSessionId) {
         const session = await prisma.chatSession.create({
           data: {
