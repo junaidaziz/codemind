@@ -29,7 +29,7 @@
       "memory": 1024
     }
   },
-  "regions": ["iad1", "sfo1", "cdg1"],
+  "regions": ["iad1"],
   "headers": [
     {
       "source": "/api/(.*)",
