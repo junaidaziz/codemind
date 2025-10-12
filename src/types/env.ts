@@ -47,6 +47,22 @@ export type Env = z.infer<typeof EnvSchema>;
 
 // Validation function with fallbacks for development
 function validateEnv(): Env {
+  // Skip validation during build if requested
+  if (process.env.SKIP_ENV_VALIDATION === 'true') {
+    return {
+      DATABASE_URL: 'postgresql://localhost:5432/codemind',
+      SUPABASE_URL: 'https://placeholder.supabase.co',
+      SUPABASE_ANON_KEY: 'placeholder-key',
+      NEXT_PUBLIC_SUPABASE_URL: 'https://placeholder.supabase.co',
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'placeholder-key',
+      OPENAI_API_KEY: 'sk-placeholder-key',
+      NODE_ENV: (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'development',
+      NEXT_PUBLIC_APP_URL: undefined,
+      SENTRY_DSN: undefined,
+      VERCEL_URL: process.env.VERCEL_URL,
+    } as Env;
+  }
+
   const processEnv = {
     ...process.env,
     // Provide fallbacks for development
