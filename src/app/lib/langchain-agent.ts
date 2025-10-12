@@ -261,9 +261,9 @@ export class EnhancedRAGChain {
     // Create the model
     const model = new ChatOpenAI({
       openAIApiKey: env.OPENAI_API_KEY,
-      modelName: 'gpt-4o',
+      modelName: 'gpt-4o-mini', // 🔧 Changed from expensive gpt-4o to save costs
       temperature: 0.7,
-      maxTokens: 2000,
+      maxTokens: 1000, // 🔧 Reduced from 2000 to control costs
     });
 
     // Create the prompt template

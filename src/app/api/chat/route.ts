@@ -110,6 +110,8 @@ export async function POST(req: Request): Promise<Response> {
                     answerLength: result.answer.length,
                     sourceCount: result.sources.length,
                     tokenUsage: result.tokenUsage,
+                    // 💰 Calculate estimated cost for monitoring
+                    estimatedCost: (result.tokenUsage.promptTokens * 0.15 + result.tokenUsage.completionTokens * 0.60) / 1000000,
                   });
                   
                   // Send sources information
@@ -165,6 +167,59 @@ export async function POST(req: Request): Promise<Response> {
         return NextResponse.json(
           createApiError("Invalid request data", "VALIDATION_ERROR", details),
           { status: 400 }
+        );
+      }
+
+      // Handle OpenAI quota and rate limit errors
+      const errorMessage = (error as Error)?.message || '';
+      const errorName = (error as Error)?.name || '';
+      
+      if (errorMessage.includes('exceeded your current quota') || 
+          errorMessage.includes('InsufficientQuotaError') ||
+          errorName === 'InsufficientQuotaError') {
+        return NextResponse.json(
+          createApiError(
+            "OpenAI API quota exceeded. Please check your OpenAI billing and usage limits.", 
+            "QUOTA_EXCEEDED",
+            {
+              provider: ["OpenAI"],
+              suggestion: ["Visit https://platform.openai.com/usage to check your quota and billing details."],
+              temporaryFix: ["Try again later or upgrade your OpenAI plan."]
+            }
+          ),
+          { status: 429 }
+        );
+      }
+
+      if (errorMessage.includes('rate limit') || 
+          errorMessage.includes('MODEL_RATE_LIMIT') ||
+          errorMessage.includes('429')) {
+        return NextResponse.json(
+          createApiError(
+            "OpenAI API rate limit reached. Please wait and try again.", 
+            "RATE_LIMIT_EXCEEDED",
+            {
+              provider: ["OpenAI"],
+              suggestion: ["Wait a moment before sending another message."],
+              retryAfter: ["30 seconds"]
+            }
+          ),
+          { status: 429 }
+        );
+      }
+
+      // Handle general OpenAI API errors
+      if (errorMessage.includes('openai') || errorMessage.includes('OpenAI')) {
+        return NextResponse.json(
+          createApiError(
+            "OpenAI API service error. Please try again later.", 
+            "EXTERNAL_SERVICE_ERROR",
+            {
+              provider: ["OpenAI"],
+              suggestion: ["This is likely a temporary issue with the OpenAI service."]
+            }
+          ),
+          { status: 503 }
         );
       }
       

@@ -116,7 +116,26 @@ function ChatPageContent() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        // Handle specific error responses
+        let errorMessage = 'Failed to send message';
+        
+        try {
+          const errorData = await response.json();
+          
+          if (errorData.error === 'QUOTA_EXCEEDED') {
+            errorMessage = '🚫 OpenAI quota exceeded. Please check your billing and usage limits at https://platform.openai.com/usage';
+          } else if (errorData.error === 'RATE_LIMIT_EXCEEDED') {
+            errorMessage = '⏳ Rate limit reached. Please wait 30 seconds before sending another message.';
+          } else if (errorData.error === 'EXTERNAL_SERVICE_ERROR') {
+            errorMessage = '⚠️ OpenAI service temporarily unavailable. Please try again in a few minutes.';
+          } else if (errorData.message) {
+            errorMessage = errorData.message;
+          }
+        } catch {
+          // Fallback to generic error
+        }
+        
+        throw new Error(errorMessage);
       }
 
       // Create assistant message placeholder
@@ -172,11 +191,13 @@ function ChatPageContent() {
       setIsLoading(false);
       setIsStreaming(false);
       
-      // Add error message
+      // Add error message with specific error details
+      const errorContent = error instanceof Error ? error.message : 'Sorry, I encountered an error processing your message. Please try again.';
+      
       const errorMessage: Message = {
         id: (Date.now() + 2).toString(),
         role: 'assistant',
-        content: 'Sorry, I encountered an error processing your message. Please try again.',
+        content: errorContent,
         createdAt: new Date().toISOString()
       };
       setMessages(prev => [...prev, errorMessage]);
