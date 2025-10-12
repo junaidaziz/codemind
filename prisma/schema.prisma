@@ -10,34 +10,38 @@ datasource db {
 }
 
 model User {
-  id             String          @id @default(cuid())
-  email          String?         @unique
-  name           String?
-  createdAt      DateTime        @default(now())
-  image          String?
-  role           String          @default("user")
-  sessions       ChatSession[]
-  projects       Project[]
-  toolExecutions ToolExecution[]
-  agentMemories  AgentMemory[]
+  id                String              @id @default(cuid())
+  email             String?             @unique
+  name              String?
+  createdAt         DateTime            @default(now())
+  image             String?
+  role              String              @default("user")
+  sessions          ChatSession[]
+  projects          Project[]
+  toolExecutions    ToolExecution[]
+  agentMemories     AgentMemory[]
+  agentFeedbacks    AgentFeedback[]
+  feedbackAnalytics FeedbackAnalytics[]
 }
 
 model Project {
-  id             String          @id @default(cuid())
-  name           String
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  defaultBranch  String          @default("main")
-  githubUrl      String
-  lastIndexedAt  DateTime?
-  ownerId        String
-  status         String          @default("idle")
-  visibility     String          @default("public")
-  sessions       ChatSession[]
-  files          CodeChunk[]
-  toolExecutions ToolExecution[]
-  agentMemories  AgentMemory[]
-  owner          User            @relation(fields: [ownerId], references: [id])
+  id                String              @id @default(cuid())
+  name              String
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  defaultBranch     String              @default("main")
+  githubUrl         String
+  lastIndexedAt     DateTime?
+  ownerId           String
+  status            String              @default("idle")
+  visibility        String              @default("public")
+  sessions          ChatSession[]
+  files             CodeChunk[]
+  toolExecutions    ToolExecution[]
+  agentMemories     AgentMemory[]
+  agentFeedbacks    AgentFeedback[]
+  feedbackAnalytics FeedbackAnalytics[]
+  owner             User                @relation(fields: [ownerId], references: [id])
 }
 
 model ChatSession {
@@ -58,16 +62,17 @@ model ChatSession {
 }
 
 model Message {
-  id             String      @id @default(cuid())
+  id             String         @id @default(cuid())
   sessionId      String
-  role           String      // user | assistant | system
+  role           String         // user | assistant | system  
   content        String
-  tokenCount     Int?        // Tokens in this specific message
-  contextTokens  Int?        // Tokens used for context when generating this message
-  memoryIncluded Boolean     @default(false) // Whether this message was included in memory context
+  tokenCount     Int?           // Tokens in this specific message
+  contextTokens  Int?           // Tokens used for context when generating this message
+  memoryIncluded Boolean        @default(false) // Whether this message was included in memory context
   latencyMs      Int?
-  createdAt      DateTime    @default(now())
-  session        ChatSession @relation(fields: [sessionId], references: [id])
+  createdAt      DateTime       @default(now())
+  session        ChatSession    @relation(fields: [sessionId], references: [id])
+  feedback       AgentFeedback?
 
   @@index([sessionId, createdAt])
 }
@@ -135,4 +140,67 @@ model AgentMemory {
   @@index([projectId, createdAt])
   @@index([userId, createdAt])
   @@index([command, createdAt])
+}
+
+model AgentFeedback {
+  id              String                @id @default(cuid())
+  sessionId       String
+  messageId       String                @unique // Links to specific message that was rated
+  userId          String
+  projectId       String
+  feedbackType    AgentFeedbackType
+  rating          Int                   // 1-5 scale
+  comment         String?               // Optional user comment
+  category        AgentFeedbackCategory // What aspect was rated
+  responseTime    Int?                  // How long user took to provide feedback (ms)
+  contextData     String?               // JSON with additional context (tools used, etc.)
+  createdAt       DateTime              @default(now())
+  user            User                  @relation(fields: [userId], references: [id])
+  project         Project               @relation(fields: [projectId], references: [id])
+  message         Message               @relation(fields: [messageId], references: [id])
+
+  @@index([sessionId])
+  @@index([userId, createdAt])
+  @@index([projectId, createdAt])
+  @@index([feedbackType, rating])
+  @@index([category, rating])
+}
+
+model FeedbackAnalytics {
+  id              String   @id @default(cuid())
+  projectId       String
+  userId          String?  // Null for aggregated project-level analytics
+  period          String   // day, week, month
+  periodStart     DateTime
+  periodEnd       DateTime
+  totalFeedbacks  Int      @default(0)
+  avgRating       Float?
+  ratingCounts    String   // JSON: {"1": 2, "2": 5, "3": 10, "4": 15, "5": 8}
+  categoryBreakdown String // JSON: {"accuracy": 4.2, "helpfulness": 4.5, ...}
+  topIssues       String?  // JSON array of most common issues
+  improvement     Float?   // Rating improvement vs previous period
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  project         Project  @relation(fields: [projectId], references: [id])
+  user            User?    @relation(fields: [userId], references: [id])
+
+  @@unique([projectId, userId, period, periodStart])
+  @@index([projectId, period, periodStart])
+  @@index([userId, period, periodStart])
+}
+
+enum AgentFeedbackType {
+  POSITIVE
+  NEGATIVE
+  NEUTRAL
+}
+
+enum AgentFeedbackCategory {
+  ACCURACY      // How accurate was the response
+  HELPFULNESS   // How helpful was the response
+  RELEVANCE     // How relevant was the response
+  COMPLETENESS  // Was the response complete
+  CLARITY       // How clear was the response
+  SPEED         // Response speed satisfaction
+  OVERALL       // Overall satisfaction
 }

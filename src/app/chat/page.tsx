@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { Spinner } from '../../components/ui';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { useAuth } from '../contexts/AuthContext';
+import { QuickFeedback } from '../../components/AgentFeedback';
+import { FeedbackSummary } from '../../components/FeedbackAnalytics';
 
 interface Project {
   id: string;
@@ -29,6 +31,7 @@ function ChatPageContent() {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Fetch projects on component mount
@@ -46,6 +49,14 @@ function ChatPageContent() {
       }
     }
   }, [searchParams, projects]);
+
+  // Generate session ID when project changes
+  useEffect(() => {
+    if (selectedProjectId) {
+      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      setCurrentSessionId(sessionId);
+    }
+  }, [selectedProjectId]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -217,24 +228,31 @@ function ChatPageContent() {
             🧠 CodeMind Chat
           </h1>
           
-          {/* Project Selector */}
-          <div className="flex items-center gap-2">
-            <label htmlFor="project-select" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Project:
-            </label>
-            <select
-              id="project-select"
-              value={selectedProjectId}
-              onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Select a project...</option>
-              {projects.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.name} ({project.status})
-                </option>
-              ))}
-            </select>
+          <div className="flex items-center gap-4">
+            {/* Feedback Summary */}
+            {selectedProjectId && (
+              <FeedbackSummary projectId={selectedProjectId} />
+            )}
+            
+            {/* Project Selector */}
+            <div className="flex items-center gap-2">
+              <label htmlFor="project-select" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Project:
+              </label>
+              <select
+                id="project-select"
+                value={selectedProjectId}
+                onChange={(e) => setSelectedProjectId(e.target.value)}
+                className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select a project...</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name} ({project.status})
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -268,6 +286,20 @@ function ChatPageContent() {
                       <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                       <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                       <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                  )}
+                  
+                  {/* Feedback for assistant messages */}
+                  {message.role === 'assistant' && message.content && !isStreaming && selectedProjectId && currentSessionId && (
+                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                      <QuickFeedback
+                        messageId={message.id}
+                        sessionId={currentSessionId}
+                        projectId={selectedProjectId}
+                        onFeedback={(rating, type) => {
+                          console.log('Feedback submitted:', { messageId: message.id, rating, type });
+                        }}
+                      />
                     </div>
                   )}
                 </div>
