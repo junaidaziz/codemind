@@ -1,7 +1,5 @@
 import Link from "next/link";
 import prisma from "./lib/db";
-// Intentional TypeScript error for testing
-const testError: number = "this will cause a TypeScript error";
 
 export default async function Home() {
   const projects = await prisma.project.findMany({
