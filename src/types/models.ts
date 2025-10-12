@@ -1,8 +1,12 @@
 import { z } from 'zod';
-import type { Project, ChatSession, Message, CodeChunk, User } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 
-// Database Model Types (re-export from Prisma for consistency)
-export type { Project, ChatSession, Message, CodeChunk, User } from '@prisma/client';
+// Database Model Types (extracted from Prisma)
+export type Project = Prisma.ProjectGetPayload<Record<string, never>>;
+export type ChatSession = Prisma.ChatSessionGetPayload<Record<string, never>>;
+export type Message = Prisma.MessageGetPayload<Record<string, never>>;
+export type CodeChunk = Prisma.CodeChunkGetPayload<Record<string, never>>;
+export type User = Prisma.UserGetPayload<Record<string, never>>;
 
 // Project-related schemas and types
 export const CreateProjectSchema = z.object({
