@@ -197,7 +197,7 @@ export class AgentMemoryTracker {
         commandMap.set(record.command, current);
       }
 
-      const commandBreakdown = Array.from(commandMap.entries()).map(([command, data]) => ({
+      const commandBreakdown = Array.from(commandMap.entries()).map(([command, data]: [string, { count: number; totalTime: number; totalMemory: number }]) => ({
         command,
         count: data.count,
         avgExecutionTime: data.totalTime / data.count,
