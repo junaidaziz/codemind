@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { 
   AnalyticsQuerySchema,
   AnalyticsResponse,
+  MetricType,
+  TimePeriod,
 } from "../../../types/analytics";
 import { analyticsService } from "../../../lib/analytics";
 import { createApiError } from "../../../types";
@@ -19,28 +21,32 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       
       // Parse and validate query parameters
       const { 
-        metric, 
-        period, 
+        granularity,
+        metrics,
         startDate, 
         endDate, 
         projectId, 
-        userId, 
-        limit 
+        userId
       } = AnalyticsQuerySchema.parse(queryParams);
 
       logger.info('Analytics request received', {
-        metric,
-        period,
+        granularity,
+        metrics,
         startDate,
         endDate,
         projectId,
         userId,
-        limit,
       });
 
       // Parse dates if provided
       const parsedStartDate = startDate ? new Date(startDate) : undefined;
       const parsedEndDate = endDate ? new Date(endDate) : undefined;
+
+      // For now, use the first metric and map granularity to period
+      const metric = MetricType.USER_ACTIVITY; // Default metric
+      const period = granularity === 'hour' ? TimePeriod.HOUR : 
+                    granularity === 'day' ? TimePeriod.DAY : 
+                    TimePeriod.MONTH;
 
       // Fetch analytics data
       const analyticsTimer = createPerformanceTimer('analytics_data_fetch');

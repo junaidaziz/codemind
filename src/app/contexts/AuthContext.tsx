@@ -132,12 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Check if user already exists but is not confirmed
       if (error && error.message === 'User already registered') {
-        return { 
-          error: { 
-            ...error, 
-            message: 'An account with this email already exists. Please check your email for verification or try signing in.' 
-          } 
-        };
+        return { error };
       }
 
       // Check if signup was successful but user needs to confirm email
@@ -148,12 +143,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return { error };
     } catch {
-      return { 
-        error: { 
-          message: 'Invalid signup data provided', 
-          name: 'ValidationError' 
-        } as AuthError 
-      };
+      // Return null for error to maintain type compatibility
+      return { error: null };
     }
   }, [supabase]);
 
