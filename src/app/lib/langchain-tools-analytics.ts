@@ -145,11 +145,11 @@ export class ToolAnalyticsTracker {
 
       // Calculate metrics
       const totalExecutions = events.length;
-      const successfulExecutions = events.filter(e => e.success).length;
+      const successfulExecutions = events.filter((e: typeof events[0]) => e.success).length;
       const failedExecutions = totalExecutions - successfulExecutions;
       const successRate = totalExecutions > 0 ? successfulExecutions / totalExecutions : 0;
 
-      const executionTimes = events.map(e => e.executionTimeMs);
+      const executionTimes = events.map((e: typeof events[0]) => e.executionTimeMs);
       const averageExecutionTime = executionTimes.length > 0 
         ? executionTimes.reduce((sum, time) => sum + time, 0) / executionTimes.length 
         : 0;
@@ -186,7 +186,7 @@ export class ToolAnalyticsTracker {
 
       // Calculate error breakdown
       const errorMap = new Map<string, number>();
-      const failedEvents = events.filter(e => !e.success);
+      const failedEvents = events.filter((e: typeof events[0]) => !e.success);
       
       for (const event of failedEvents) {
         const error = event.error || 'Unknown error';
