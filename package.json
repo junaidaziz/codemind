@@ -15,7 +15,7 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:all": "npm run test && npm run test:e2e",
-    "analyze-vercel": "ts-node scripts/analyze-vercel-build.ts",
+    "analyze-vercel": "node scripts/analyze-vercel-build.js",
     "agent:install": "cd services/agent-core && npm install --legacy-peer-deps",
     "agent:build": "cd services/agent-core && npm run build",
     "agent:dev": "cd services/agent-core && npm run dev",
