@@ -10,25 +10,25 @@ datasource db {
 }
 
 model User {
-  id                     String                  @id @default(cuid())
-  email                  String?                 @unique
-  name                   String?
-  createdAt              DateTime                @default(now())
-  image                  String?
-  role                   String                  @default("user")
-  sessions               ChatSession[]
-  projects               Project[]
-  toolExecutions         ToolExecution[]
-  agentMemories          AgentMemory[]
-  agentFeedbacks         AgentFeedback[]
-  feedbackAnalytics      FeedbackAnalytics[]
-  ownedOrganizations     Organization[]          @relation("OrganizationOwner")
+  id                      String               @id @default(cuid())
+  email                   String?              @unique
+  name                    String?
+  createdAt               DateTime             @default(now())
+  image                   String?
+  role                    String               @default("user")
+  agentFeedbacks          AgentFeedback[]
+  agentMemories           AgentMemory[]
+  autoFixMetrics          AutoFixMetrics[]     @relation("AutoFixMetricsUser")
+  autoFixApprovals        AutoFixSession[]     @relation("AutoFixApprover")
+  autoFixSessions         AutoFixSession[]
+  sessions                ChatSession[]
+  feedbackAnalytics       FeedbackAnalytics[]
+  ownedOrganizations      Organization[]       @relation("OrganizationOwner")
+  sentInvites             OrganizationInvite[] @relation("InviteSender")
+  invitedMemberships      OrganizationMember[] @relation("MembershipInviter")
   organizationMemberships OrganizationMember[]
-  sentInvites            OrganizationInvite[]    @relation("InviteSender")
-  invitedMemberships     OrganizationMember[]    @relation("MembershipInviter")
-  autoFixSessions        AutoFixSession[]
-  autoFixApprovals       AutoFixSession[]        @relation("AutoFixApprover")
-  autoFixMetrics         AutoFixMetrics[]        @relation("AutoFixMetricsUser")
+  projects                Project[]
+  toolExecutions          ToolExecution[]
 }
 
 model Project {
@@ -39,23 +39,25 @@ model Project {
   defaultBranch     String              @default("main")
   githubUrl         String
   lastIndexedAt     DateTime?
-  lastFullScanAt    DateTime?           // Track when full repository scan was last performed
   ownerId           String
-  organizationId    String?             // Optional: project can belong to organization or user
   status            String              @default("idle")
   visibility        String              @default("public")
-  sessions          ChatSession[]
-  files             CodeChunk[]
-  projectFiles      ProjectFile[]       @relation("ProjectFiles")
-  toolExecutions    ToolExecution[]
-  agentMemories     AgentMemory[]
+  lastFullScanAt    DateTime?
+  organizationId    String?
   agentFeedbacks    AgentFeedback[]
-  feedbackAnalytics FeedbackAnalytics[]
-  autoFixSessions   AutoFixSession[]
+  agentMemories     AgentMemory[]
   autoFixConfig     AutoFixConfig?
   autoFixMetrics    AutoFixMetrics[]
-  owner             User                @relation(fields: [ownerId], references: [id])
+  autoFixSessions   AutoFixSession[]
+  sessions          ChatSession[]
+  files             CodeChunk[]
+  feedbackAnalytics FeedbackAnalytics[]
+  issues            Issue[]
   organization      Organization?       @relation(fields: [organizationId], references: [id])
+  owner             User                @relation(fields: [ownerId], references: [id])
+  projectFiles      ProjectFile[]       @relation("ProjectFiles")
+  pullRequests      PullRequest[]
+  toolExecutions    ToolExecution[]
 
   @@index([organizationId])
 }
@@ -65,11 +67,11 @@ model ChatSession {
   projectId    String
   userId       String
   title        String    @default("New Chat")
-  summary      String?   // For long-term memory and conversation summarization
-  totalTokens  Int       @default(0) // Track total tokens used in this session
-  messageCount Int       @default(0) // Track number of messages for memory management
+  summary      String?
+  totalTokens  Int       @default(0)
+  messageCount Int       @default(0)
   createdAt    DateTime  @default(now())
-  lastActiveAt DateTime  @default(now()) // Track when session was last used
+  lastActiveAt DateTime  @default(now())
   project      Project   @relation(fields: [projectId], references: [id])
   user         User      @relation(fields: [userId], references: [id])
   messages     Message[]
@@ -80,35 +82,35 @@ model ChatSession {
 model Message {
   id             String         @id @default(cuid())
   sessionId      String
-  role           String         // user | assistant | system  
+  role           String
   content        String
-  tokenCount     Int?           // Tokens in this specific message
-  contextTokens  Int?           // Tokens used for context when generating this message
-  memoryIncluded Boolean        @default(false) // Whether this message was included in memory context
+  tokenCount     Int?
+  contextTokens  Int?
+  memoryIncluded Boolean        @default(false)
   latencyMs      Int?
   createdAt      DateTime       @default(now())
-  session        ChatSession    @relation(fields: [sessionId], references: [id])
   feedback       AgentFeedback?
+  session        ChatSession    @relation(fields: [sessionId], references: [id])
 
   @@index([sessionId, createdAt])
 }
 
 /// Each row = code chunk with its embedding
 model CodeChunk {
-  id          String       @id @default(cuid())
-  projectId   String
-  projectFileId String?    // Reference to the full file this chunk belongs to
-  path        String
-  sha         String
-  language    String
-  startLine   Int
-  endLine     Int
-  content     String
-  tokenCount  Int
-  embedding   String?      // Temporary: JSON string until vector extension is enabled
-  updatedAt   DateTime     @updatedAt
-  project     Project      @relation(fields: [projectId], references: [id])
-  projectFile ProjectFile? @relation("FileChunks", fields: [projectFileId], references: [id])
+  id            String       @id @default(cuid())
+  projectId     String
+  path          String
+  sha           String
+  language      String
+  startLine     Int
+  endLine       Int
+  content       String
+  tokenCount    Int
+  embedding     String?
+  updatedAt     DateTime     @updatedAt
+  projectFileId String?
+  projectFile   ProjectFile? @relation("FileChunks", fields: [projectFileId], references: [id])
+  project       Project      @relation(fields: [projectId], references: [id])
 
   @@index([projectId])
   @@index([projectId, path])
@@ -117,22 +119,22 @@ model CodeChunk {
 
 /// Full file metadata for repository synchronization
 model ProjectFile {
-  id           String   @id @default(cuid())
+  id           String      @id @default(cuid())
   projectId    String
-  relativePath String   // Path relative to repository root
-  absolutePath String?  // Full system path when cloned locally
-  fileType     String   // typescript, javascript, react_component, etc.
-  language     String   // programming language
-  extension    String   // file extension (.ts, .js, etc.)
-  size         Int      // file size in bytes
-  lines        Int      // number of lines
-  lastModified DateTime // file modification time
-  gitSha       String?  // Git SHA hash of file content
-  isIndexed    Boolean  @default(false) // whether file has been chunked and embedded
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  project      Project  @relation("ProjectFiles", fields: [projectId], references: [id])
+  relativePath String
+  absolutePath String?
+  fileType     String
+  language     String
+  extension    String
+  size         Int
+  lines        Int
+  lastModified DateTime
+  gitSha       String?
+  isIndexed    Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
   chunks       CodeChunk[] @relation("FileChunks")
+  project      Project     @relation("ProjectFiles", fields: [projectId], references: [id])
 
   @@unique([projectId, relativePath])
   @@index([projectId])
@@ -153,7 +155,7 @@ model ToolExecution {
   executionTimeMs Int
   error           String?
   timestamp       DateTime @default(now())
-  metadata        String?  // JSON string for additional data
+  metadata        String?
   project         Project  @relation(fields: [projectId], references: [id])
   user            User     @relation(fields: [userId], references: [id])
 
@@ -163,22 +165,22 @@ model ToolExecution {
 }
 
 model AgentMemory {
-  id                String   @id @default(cuid())
-  sessionId         String
-  projectId         String
-  userId            String
-  command           String   // The agent command executed
-  memorySnapshot    String   // JSON snapshot of conversation memory at this point
-  tokenUsage        Int      // Total tokens used up to this point
-  memorySize        Int      // Size of memory in tokens
-  contextRelevance  Float?   // Relevance score of retrieved context (0-1)
-  responseQuality   Float?   // Quality score of agent response (0-1) 
-  executionTimeMs   Int      // Time taken for this agent execution
-  toolsUsed         String   // JSON array of tools used
-  summary           String?  // Auto-generated summary of this interaction
-  createdAt         DateTime @default(now())
-  project           Project  @relation(fields: [projectId], references: [id])
-  user              User     @relation(fields: [userId], references: [id])
+  id               String   @id @default(cuid())
+  sessionId        String
+  projectId        String
+  userId           String
+  command          String
+  memorySnapshot   String
+  tokenUsage       Int
+  memorySize       Int
+  contextRelevance Float?
+  responseQuality  Float?
+  executionTimeMs  Int
+  toolsUsed        String
+  summary          String?
+  createdAt        DateTime @default(now())
+  project          Project  @relation(fields: [projectId], references: [id])
+  user             User     @relation(fields: [userId], references: [id])
 
   @@index([sessionId])
   @@index([projectId, createdAt])
@@ -187,21 +189,21 @@ model AgentMemory {
 }
 
 model AgentFeedback {
-  id              String                @id @default(cuid())
-  sessionId       String
-  messageId       String                @unique // Links to specific message that was rated
-  userId          String
-  projectId       String
-  feedbackType    AgentFeedbackType
-  rating          Int                   // 1-5 scale
-  comment         String?               // Optional user comment
-  category        AgentFeedbackCategory // What aspect was rated
-  responseTime    Int?                  // How long user took to provide feedback (ms)
-  contextData     String?               // JSON with additional context (tools used, etc.)
-  createdAt       DateTime              @default(now())
-  user            User                  @relation(fields: [userId], references: [id])
-  project         Project               @relation(fields: [projectId], references: [id])
-  message         Message               @relation(fields: [messageId], references: [id])
+  id           String                @id @default(cuid())
+  sessionId    String
+  messageId    String                @unique
+  userId       String
+  projectId    String
+  feedbackType AgentFeedbackType
+  rating       Int
+  comment      String?
+  category     AgentFeedbackCategory
+  responseTime Int?
+  contextData  String?
+  createdAt    DateTime              @default(now())
+  message      Message               @relation(fields: [messageId], references: [id])
+  project      Project               @relation(fields: [projectId], references: [id])
+  user         User                  @relation(fields: [userId], references: [id])
 
   @@index([sessionId])
   @@index([userId, createdAt])
@@ -211,83 +213,43 @@ model AgentFeedback {
 }
 
 model FeedbackAnalytics {
-  id              String   @id @default(cuid())
-  projectId       String
-  userId          String?  // Null for aggregated project-level analytics
-  period          String   // day, week, month
-  periodStart     DateTime
-  periodEnd       DateTime
-  totalFeedbacks  Int      @default(0)
-  avgRating       Float?
-  ratingCounts    String   // JSON: {"1": 2, "2": 5, "3": 10, "4": 15, "5": 8}
-  categoryBreakdown String // JSON: {"accuracy": 4.2, "helpfulness": 4.5, ...}
-  topIssues       String?  // JSON array of most common issues
-  improvement     Float?   // Rating improvement vs previous period
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  project         Project  @relation(fields: [projectId], references: [id])
-  user            User?    @relation(fields: [userId], references: [id])
+  id                String   @id @default(cuid())
+  projectId         String
+  userId            String?
+  period            String
+  periodStart       DateTime
+  periodEnd         DateTime
+  totalFeedbacks    Int      @default(0)
+  avgRating         Float?
+  ratingCounts      String
+  categoryBreakdown String
+  topIssues         String?
+  improvement       Float?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  project           Project  @relation(fields: [projectId], references: [id])
+  user              User?    @relation(fields: [userId], references: [id])
 
   @@unique([projectId, userId, period, periodStart])
   @@index([projectId, period, periodStart])
   @@index([userId, period, periodStart])
 }
 
-enum AgentFeedbackType {
-  POSITIVE
-  NEGATIVE
-  NEUTRAL
-}
-
-enum AgentFeedbackCategory {
-  ACCURACY      // How accurate was the response
-  HELPFULNESS   // How helpful was the response
-  RELEVANCE     // How relevant was the response
-  COMPLETENESS  // Was the response complete
-  CLARITY       // How clear was the response
-  SPEED         // Response speed satisfaction
-  OVERALL       // Overall satisfaction
-}
-
-enum OrganizationRole {
-  OWNER    // Full control over organization
-  ADMIN    // Can manage members and settings
-  EDITOR   // Can create and edit projects
-  VIEWER   // Read-only access
-}
-
-enum AutoFixStatus {
-  PENDING       // Auto-fix session created, waiting to start
-  ANALYZING     // Analyzing logs for issues
-  FIXING        // Generating fixes
-  CREATING_PR   // Creating pull request
-  COMPLETED     // Successfully completed
-  FAILED        // Failed to complete
-  CANCELLED     // Manually cancelled
-}
-
-enum AutoFixTriggerType {
-  MANUAL        // Manually triggered by user
-  WEBHOOK       // Triggered by GitHub webhook
-  CI_FAILURE    // Triggered by CI build failure
-  SCHEDULE      // Triggered by scheduled job
-}
-
 model Organization {
-  id          String                 @id @default(cuid())
+  id          String               @id @default(cuid())
   name        String
   description String?
-  slug        String                 @unique
+  slug        String               @unique
   avatarUrl   String?
-  plan        String                 @default("free") // free, pro, enterprise
-  maxProjects Int                    @default(5)
-  maxMembers  Int                    @default(10)
-  createdAt   DateTime               @default(now())
-  updatedAt   DateTime               @updatedAt
+  plan        String               @default("free")
+  maxProjects Int                  @default(5)
+  maxMembers  Int                  @default(10)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
   ownerId     String
-  owner       User                   @relation("OrganizationOwner", fields: [ownerId], references: [id])
-  members     OrganizationMember[]
+  owner       User                 @relation("OrganizationOwner", fields: [ownerId], references: [id])
   invites     OrganizationInvite[]
+  members     OrganizationMember[]
   projects    Project[]
 
   @@index([ownerId])
@@ -301,9 +263,9 @@ model OrganizationMember {
   invitedAt      DateTime?
   joinedAt       DateTime         @default(now())
   invitedBy      String?
+  inviter        User?            @relation("MembershipInviter", fields: [invitedBy], references: [id])
   organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  inviter        User?            @relation("MembershipInviter", fields: [invitedBy], references: [id])
 
   @@unique([organizationId, userId])
   @@index([organizationId])
@@ -319,58 +281,44 @@ model OrganizationInvite {
   expiresAt      DateTime
   createdAt      DateTime         @default(now())
   invitedBy      String
-  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   inviter        User             @relation("InviteSender", fields: [invitedBy], references: [id])
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([email])
 }
 
 model AutoFixSession {
-  id                 String               @id @default(cuid())
-  projectId          String
-  userId             String?              // Optional: can be triggered by webhooks without user
-  status             AutoFixStatus        @default(PENDING)
-  triggerType        AutoFixTriggerType   @default(MANUAL)
-  
-  // Input data
-  logContent         String?              // Original log content that triggered the fix
-  issuesDetected     String               // JSON array of detected issues
-  projectContext     String?              // Additional project context
-  
-  // Processing data
-  analysisResult     String?              // JSON result of log analysis
-  fixesGenerated     String?              // JSON array of generated fixes
-  
-  // Output data
-  branchName         String?              // Created branch name
-  commitSha          String?              // Created commit SHA
-  prUrl              String?              // Pull request URL
-  prNumber           Int?                 // Pull request number
-  filesChanged       String?              // JSON array of changed file paths
-  
-  // Metadata
-  processingTimeMs   Int?                 // Time taken to process (milliseconds)
-  errorMessage       String?              // Error message if failed
-  confidence         Float?               // Confidence level of fixes (0-1)
-  
-  // Approval workflow
-  requiresApproval   Boolean              @default(true)
-  approvedAt         DateTime?
-  approvedBy         String?
-  
-  // Timestamps
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
-  startedAt          DateTime?            // When processing started
-  completedAt        DateTime?            // When processing completed
-  
-  // Relations
-  project            Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user               User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
-  approver           User?                @relation("AutoFixApprover", fields: [approvedBy], references: [id])
-  results            AutoFixResult[]
-  
+  id               String             @id @default(cuid())
+  projectId        String
+  userId           String?
+  status           AutoFixStatus      @default(PENDING)
+  triggerType      AutoFixTriggerType @default(MANUAL)
+  logContent       String?
+  issuesDetected   String
+  projectContext   String?
+  analysisResult   String?
+  fixesGenerated   String?
+  branchName       String?
+  commitSha        String?
+  prUrl            String?
+  prNumber         Int?
+  filesChanged     String?
+  processingTimeMs Int?
+  errorMessage     String?
+  confidence       Float?
+  requiresApproval Boolean            @default(true)
+  approvedAt       DateTime?
+  approvedBy       String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  startedAt        DateTime?
+  completedAt      DateTime?
+  results          AutoFixResult[]
+  approver         User?              @relation("AutoFixApprover", fields: [approvedBy], references: [id])
+  project          Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user             User?              @relation(fields: [userId], references: [id])
+
   @@index([projectId, createdAt])
   @@index([userId, createdAt])
   @@index([status])
@@ -378,120 +326,177 @@ model AutoFixSession {
 }
 
 model AutoFixResult {
-  id                 String               @id @default(cuid())
-  sessionId          String
-  
-  // Result details
-  success            Boolean
-  message            String
-  issueType          String               // Type of issue fixed
-  severity           String               // Severity of issue
-  
-  // File changes
-  filePath           String               // Path of changed file
-  changeType         String               // Type of change (create, modify, delete)
-  linesAdded         Int                  @default(0)
-  linesRemoved       Int                  @default(0)
-  
-  // Quality metrics
-  confidence         Float?               // Confidence in this specific fix (0-1)
-  testability        String?              // Whether change is testable
-  reviewComplexity   String?              // Complexity of manual review needed
-  
-  // Timestamps
-  createdAt          DateTime             @default(now())
-  
-  // Relations
-  session            AutoFixSession       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  
+  id               String         @id @default(cuid())
+  sessionId        String
+  success          Boolean
+  message          String
+  issueType        String
+  severity         String
+  filePath         String
+  changeType       String
+  linesAdded       Int            @default(0)
+  linesRemoved     Int            @default(0)
+  confidence       Float?
+  testability      String?
+  reviewComplexity String?
+  createdAt        DateTime       @default(now())
+  session          AutoFixSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
   @@index([sessionId])
   @@index([success, createdAt])
   @@index([issueType, severity])
 }
 
 model AutoFixConfig {
-  id                 String               @id @default(cuid())
-  projectId          String               @unique
-  
-  // Configuration settings
-  enabled            Boolean              @default(true)
-  requireApproval    Boolean              @default(true)
-  maxFixesPerHour    Int                  @default(3)
-  
-  // Branch and commit settings
-  branchPrefix       String               @default("codemind/auto-fix")
-  commitPrefix       String               @default("fix: ")
-  
-  // PR template settings
-  prTitle            String               @default("🤖 Auto Fix: {issue}")
-  prBody             String               @default("This PR was automatically created by CodeMind to fix detected issues.\n\n## Changes Made\n{changes}\n\n## Issue Analysis\n{analysis}\n\n## Testing\n- [ ] Builds successfully\n- [ ] Tests pass\n- [ ] Manual review completed\n\nPlease review the changes carefully before merging.")
-  
-  // Issue type preferences
-  autoFixBuildErrors Boolean              @default(true)
-  autoFixTestFailures Boolean             @default(true)
-  autoFixLintErrors  Boolean              @default(true)
-  autoFixSecurity    Boolean              @default(false) // More conservative default
-  autoFixDependencies Boolean             @default(true)
-  autoFixSyntax      Boolean              @default(true)
-  
-  // Notification preferences
-  notifyOnSuccess    Boolean              @default(true)
-  notifyOnFailure    Boolean              @default(true)
-  
-  // Timestamps
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
-  
-  // Relations
-  project            Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  
+  id                  String   @id @default(cuid())
+  projectId           String   @unique
+  enabled             Boolean  @default(true)
+  requireApproval     Boolean  @default(true)
+  maxFixesPerHour     Int      @default(3)
+  branchPrefix        String   @default("codemind/auto-fix")
+  commitPrefix        String   @default("fix: ")
+  prTitle             String   @default("🤖 Auto Fix: {issue}")
+  prBody              String   @default("This PR was automatically created by CodeMind to fix detected issues.\n\n## Changes Made\n{changes}\n\n## Issue Analysis\n{analysis}\n\n## Testing\n- [ ] Builds successfully\n- [ ] Tests pass\n- [ ] Manual review completed\n\nPlease review the changes carefully before merging.")
+  autoFixBuildErrors  Boolean  @default(true)
+  autoFixTestFailures Boolean  @default(true)
+  autoFixLintErrors   Boolean  @default(true)
+  autoFixSecurity     Boolean  @default(false)
+  autoFixDependencies Boolean  @default(true)
+  autoFixSyntax       Boolean  @default(true)
+  notifyOnSuccess     Boolean  @default(true)
+  notifyOnFailure     Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  project             Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
   @@index([projectId])
 }
 
 model AutoFixMetrics {
-  id                 String               @id @default(cuid())
-  projectId          String
-  userId             String?              // Null for project-level metrics
-  
-  // Time period
-  period             String               // 'day', 'week', 'month'
-  periodStart        DateTime
-  periodEnd          DateTime
-  
-  // Session metrics
-  totalSessions      Int                  @default(0)
-  successfulSessions Int                  @default(0)
-  failedSessions     Int                  @default(0)
-  
-  // Issue metrics
-  totalIssuesDetected Int                 @default(0)
-  totalIssuesFixed   Int                  @default(0)
-  
-  // Issue type breakdown (JSON)
-  issueTypeBreakdown String?              // JSON object with counts per issue type
-  
-  // Performance metrics
-  avgProcessingTime  Int?                 // Average processing time in ms
-  avgConfidence      Float?               // Average confidence score
-  
-  // PR metrics
-  totalPRsCreated    Int                  @default(0)
-  totalPRsMerged     Int                  @default(0)
-  avgPRSize          Int?                 // Average number of files changed
-  
-  // Quality metrics
-  humanInterventionRate Float?            // Rate of sessions requiring human intervention
-  rollbackRate       Float?               // Rate of PRs that were reverted
-  
-  // Timestamps
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
-  
-  // Relations
-  project            Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user               User?                @relation("AutoFixMetricsUser", fields: [userId], references: [id], onDelete: Cascade)
-  
+  id                    String   @id @default(cuid())
+  projectId             String
+  userId                String?
+  period                String
+  periodStart           DateTime
+  periodEnd             DateTime
+  totalSessions         Int      @default(0)
+  successfulSessions    Int      @default(0)
+  failedSessions        Int      @default(0)
+  totalIssuesDetected   Int      @default(0)
+  totalIssuesFixed      Int      @default(0)
+  issueTypeBreakdown    String?
+  avgProcessingTime     Int?
+  avgConfidence         Float?
+  totalPRsCreated       Int      @default(0)
+  totalPRsMerged        Int      @default(0)
+  avgPRSize             Int?
+  humanInterventionRate Float?
+  rollbackRate          Float?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  project               Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user                  User?    @relation("AutoFixMetricsUser", fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([projectId, userId, period, periodStart])
   @@index([projectId, period, periodStart])
   @@index([userId, period, periodStart])
+}
+
+enum AgentFeedbackType {
+  POSITIVE
+  NEGATIVE
+  NEUTRAL
+}
+
+enum AgentFeedbackCategory {
+  ACCURACY
+  HELPFULNESS
+  RELEVANCE
+  COMPLETENESS
+  CLARITY
+  SPEED
+  OVERALL
+}
+
+enum OrganizationRole {
+  OWNER
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+enum AutoFixStatus {
+  PENDING
+  ANALYZING
+  FIXING
+  CREATING_PR
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum AutoFixTriggerType {
+  MANUAL
+  WEBHOOK
+  CI_FAILURE
+  SCHEDULE
+}
+
+model PullRequest {
+  id          String           @id @default(cuid())
+  projectId   String
+  number      Int
+  title       String
+  body        String?
+  state       PullRequestState @default(OPEN)
+  htmlUrl     String
+  headBranch  String
+  baseBranch  String
+  authorLogin String
+  authorUrl   String
+  createdAt   DateTime
+  updatedAt   DateTime
+  closedAt    DateTime?
+  mergedAt    DateTime?
+  draft       Boolean          @default(false)
+  mergeable   Boolean?
+  labels      String[]         @default([])
+  project     Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, number])
+  @@index([projectId, state])
+  @@index([projectId, createdAt])
+}
+
+model Issue {
+  id          String     @id @default(cuid())
+  projectId   String
+  number      Int
+  title       String
+  body        String?
+  state       IssueState @default(OPEN)
+  htmlUrl     String
+  authorLogin String
+  authorUrl   String
+  assignees   String[]   @default([])
+  labels      String[]   @default([])
+  createdAt   DateTime
+  updatedAt   DateTime
+  closedAt    DateTime?
+  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, number])
+  @@index([projectId, state])
+  @@index([projectId, createdAt])
+}
+
+enum PullRequestState {
+  OPEN
+  CLOSED
+  MERGED
+}
+
+enum IssueState {
+  OPEN
+  CLOSED
 }

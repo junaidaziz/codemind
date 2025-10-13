@@ -11,7 +11,7 @@
  */
 
 import { analyzeLogs } from '../src/lib/analyzeLogs';
-import { processWebhookEvent } from '../src/app/api/github/webhook/route';
+// Note: processWebhookEvent is internal to the webhook route
 
 // Sample log content for testing different error patterns
 const TEST_LOGS = {
@@ -91,18 +91,18 @@ async function testLogAnalysis() {
         'Test project context'
       );
       
-      console.log(`✅ Detected ${result.detectedIssues.length} issues`);
-      console.log(`   Summary: ${result.summary.substring(0, 80)}...`);
-      console.log(`   Confidence: ${result.confidence.toFixed(2)}`);
+      console.log(`✅ Detected ${result.issues.length} issues`);
+      console.log(`📊 Analysis confidence: ${result.confidence}%`);
+      console.log(`📋 Summary: ${result.summary}`);
       
-      if (result.detectedIssues.length > 0) {
-        const issue = result.detectedIssues[0];
+      if (result.issues.length > 0) {
+        const issue = result.issues[0];
         console.log(`   Type: ${issue.type}`);
         console.log(`   Severity: ${issue.severity}`);
-        console.log(`   Pattern: ${issue.pattern}`);
+        console.log(`   Description: ${issue.description}`);
         
-        if (issue.suggestedFix) {
-          console.log(`   Fix available: ${issue.suggestedFix.description.substring(0, 60)}...`);
+        if (issue.suggestion) {
+          console.log(`   Suggestion: ${issue.suggestion.substring(0, 60)}...`);
         }
       }
       

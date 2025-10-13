@@ -36,6 +36,7 @@
     "clsx": "^2.1.1",
     "dotenv": "^17.2.3",
     "langchain": "^0.3.35",
+    "lucide-react": "^0.545.0",
     "next": "15.5.4",
     "openai": "^6.3.0",
     "prisma": "^6.17.1",

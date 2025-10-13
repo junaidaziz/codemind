@@ -3,6 +3,11 @@ import { agentLogger } from './logger.js';
 import { env } from './env.js';
 import { RateLimitError } from './types.js';
 
+// Node.js globals
+declare const Buffer: typeof globalThis.Buffer;
+declare const process: typeof globalThis.process;
+declare const setInterval: typeof globalThis.setInterval;
+
 /**
  * Request metrics and tracking
  */
