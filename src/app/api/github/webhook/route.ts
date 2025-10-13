@@ -17,6 +17,9 @@ import {
   type GitHubWebhookEvent,
   GITHUB_EVENTS,
 } from '../../../../types/github';
+import { ciIntegration } from '../../../../lib/ci-integration';
+import { githubAPI } from '@/lib/github-api';
+import { jobQueue, JobType, type PRAnalysisJobData } from '../../../../lib/job-queue';
 
 
 
@@ -25,7 +28,7 @@ async function processWebhookEvent(
   eventType: string,
   eventData: Record<string, unknown>,
   projectId: string
-): Promise<{ success: boolean; message: string; shouldReindex?: boolean }> {
+): Promise<{ success: boolean; message: string; shouldReindex?: boolean; ciJobId?: string }> {
   logger.info('Processing GitHub webhook event', {
     eventType,
     projectId,
@@ -75,6 +78,60 @@ async function processWebhookEvent(
     // Check if project should be reindexed
     const shouldReindex = shouldReindexProject(parsedEvent);
     
+    // Process with CI integration system for automatic analysis
+    const ciResult = await ciIntegration.processWebhookEvent(parsedEvent, projectId);
+    
+    // Handle pull request events with automated analysis
+    if (eventType === GITHUB_EVENTS.PULL_REQUEST && parsedEvent.event_type === 'pull_request') {
+      const prEvent = parsedEvent;
+      const { action, pull_request, repository } = prEvent;
+      
+      // Analyze PR on open or synchronize (new commits)
+      if (action === 'opened' || action === 'synchronize') {
+        try {
+          // Create PR analysis job data
+          const prAnalysisJob: PRAnalysisJobData = {
+            type: JobType.PR_ANALYSIS,
+            projectId,
+            repository: {
+              owner: repository.owner.login,
+              name: repository.name,
+            },
+            pullRequest: {
+              number: pull_request.number,
+              title: pull_request.title,
+              sha: pull_request.head.sha,
+            },
+            priority: 5,
+            maxRetries: 2,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          
+          // Queue PR analysis job
+          const analysisJobId = await jobQueue.addJob(prAnalysisJob);
+          
+          logger.info('PR analysis job queued', {
+            projectId,
+            pullNumber: pull_request.number,
+            jobId: analysisJobId,
+          });
+          
+          return {
+            success: true,
+            message: `${description} - PR analysis queued: ${analysisJobId}`,
+            shouldReindex,
+            ciJobId: analysisJobId,
+          };
+        } catch (error) {
+          logger.error('Failed to queue PR analysis', {
+            projectId,
+            pullNumber: pull_request.number,
+          }, error as Error);
+        }
+      }
+    }
+    
     if (shouldReindex) {
       logger.info('Triggering project reindex due to webhook event', {
         projectId,
@@ -90,9 +147,6 @@ async function processWebhookEvent(
           status: 'indexing' 
         },
       });
-
-      // TODO: Trigger background job for reindexing
-      // This would be handled by the job queue system
     }
 
     logger.info('GitHub webhook event processed successfully', {
@@ -100,12 +154,14 @@ async function processWebhookEvent(
       eventType,
       description,
       shouldReindex,
+      ciJobId: ciResult.jobId,
     });
 
     return {
       success: true,
-      message: description,
+      message: `${description}${ciResult.jobId ? ` - Analysis job queued: ${ciResult.jobId}` : ''}`,
       shouldReindex,
+      ciJobId: ciResult.jobId,
     };
 
   } catch (error) {

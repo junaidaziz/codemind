@@ -1,18 +1,26 @@
 // Job processors for CodeMind background operations
 import { 
   JobType, 
-  IndexProjectJobData, 
-  IndexProjectResult,
-  ReindexProjectJobData,
-  ReindexProjectResult,
-  CleanupChunksJobData,
-  CleanupChunksResult,
-  OptimizeDatabaseJobData,
-  OptimizeDatabaseResult,
-  GenerateEmbeddingsJobData,
-  GenerateEmbeddingsResult,
   jobQueue,
+  type IndexProjectJobData, 
+  type IndexProjectResult,
+  type ReindexProjectJobData,
+  type ReindexProjectResult,
+  type CleanupChunksJobData,
+  type CleanupChunksResult,
+  type OptimizeDatabaseJobData,
+  type OptimizeDatabaseResult,
+  type GenerateEmbeddingsJobData,
+  type GenerateEmbeddingsResult,
+  type PRAnalysisJobData,
+  type PRAnalysisResult,
+  type FullIndexJobData,
+  type FullIndexResult,
 } from './job-queue';
+
+// Re-export important types for API usage  
+export type { FullIndexJobData, FullIndexResult };
+export { JobType };
 import { logger, withDatabaseTiming } from '../app/lib/logger';
 import { chunkCodeFile } from '../app/lib/chunking';
 import { embedTexts } from '../app/lib/embeddings';
@@ -481,6 +489,195 @@ async function fetchRepositoryFiles(
   ];
 }
 
+// PR Analysis processor
+async function prAnalysisProcessor(
+  data: PRAnalysisJobData,
+  progress: (percent: number) => void
+): Promise<PRAnalysisResult> {
+  const startTime = new Date();
+
+  try {
+    logger.info('Starting PR analysis', {
+      projectId: data.projectId,
+      pullNumber: data.pullRequest.number,
+    });
+
+    progress(10);
+
+    // Import GitHub API service dynamically to avoid circular dependencies
+    const { githubAPI } = await import('../app/lib/github-api');
+    
+    progress(30);
+
+    // Perform automated PR analysis
+    const analysis = await githubAPI.analyzePullRequest(
+      data.repository.owner,
+      data.repository.name,
+      data.pullRequest.number,
+      data.pullRequest
+    );
+    
+    progress(60);
+
+    // Generate formatted comment
+    const commentBody = githubAPI.generateAnalysisComment(analysis);
+    
+    progress(80);
+
+    // Post analysis comment to PR
+    const commentResult = await githubAPI.postPRComment({
+      owner: data.repository.owner,
+      repo: data.repository.name,
+      pullNumber: data.pullRequest.number,
+      body: commentBody,
+      updateExisting: true, // Update existing CodeMind comment if present
+    });
+    
+    progress(90);
+
+    if (commentResult.success) {
+      logger.info('PR analysis comment posted successfully', {
+        projectId: data.projectId,
+        pullNumber: data.pullRequest.number,
+        commentId: commentResult.commentId,
+        riskScore: analysis.riskScore,
+      });
+    } else {
+      logger.warn('Failed to post PR comment', {
+        projectId: data.projectId,
+        pullNumber: data.pullRequest.number,
+        error: commentResult.error,
+      });
+    }
+    
+    // Store analysis results in database for future reference
+    await prisma.message.create({
+      data: {
+        sessionId: `pr-analysis-${data.projectId}-${data.pullRequest.number}`,
+        role: 'system',
+        content: JSON.stringify({
+          type: 'pr_analysis',
+          analysis,
+          commentResult,
+          timestamp: new Date().toISOString(),
+        }),
+      }
+    });
+    
+    progress(100);
+
+    const endTime = new Date();
+    const duration = endTime.getTime() - startTime.getTime();
+
+    return {
+      success: true,
+      message: `PR analysis completed for #${data.pullRequest.number}. Risk: ${analysis.riskScore}/10, Quality: ${analysis.codeQuality.score}/10`,
+      startTime,
+      endTime,
+      duration,
+      pullRequestNumber: data.pullRequest.number,
+      riskScore: analysis.riskScore,
+      qualityScore: analysis.codeQuality.score,
+      commentPosted: commentResult.success,
+      commentId: commentResult.commentId,
+    };
+    
+  } catch (error) {
+    logger.error('Failed to process PR analysis', {
+      projectId: data.projectId,
+      pullNumber: data.pullRequest?.number,
+    }, error as Error);
+    
+    const endTime = new Date();
+    const duration = endTime.getTime() - startTime.getTime();
+    
+    return {
+      success: false,
+      message: `PR analysis failed: ${(error as Error).message}`,
+      startTime,
+      endTime,
+      duration,
+      pullRequestNumber: data.pullRequest?.number ?? 0,
+      riskScore: 0,
+      qualityScore: 0,
+      commentPosted: false,
+    };
+  }
+}
+
+// Full Repository Index processor
+async function fullIndexProcessor(
+  data: FullIndexJobData,
+  progress: (percent: number) => void
+): Promise<FullIndexResult> {
+  const startTime = new Date();
+
+  try {
+    logger.info('Starting full repository indexing job', {
+      projectId: data.projectId,
+      githubUrl: data.githubUrl,
+    });
+
+    progress(10);
+
+    // Import the full indexer service
+    const { performFullRepositoryIndex } = await import('./full-repository-indexer');
+    
+    progress(20);
+
+    // Perform the full indexing
+    const stats = await performFullRepositoryIndex(data.projectId, {
+      forceReindex: data.forceReindex ?? false,
+      includeContent: data.includeContent ?? true,
+      chunkAndEmbed: data.chunkAndEmbed ?? true,
+      maxConcurrentFiles: 5,
+    });
+    
+    progress(100);
+
+    const endTime = new Date();
+    const duration = endTime.getTime() - startTime.getTime();
+
+    return {
+      success: true,
+      message: `Full repository indexing completed. Processed ${stats.totalFiles} files, created ${stats.chunksCreated} chunks`,
+      startTime,
+      endTime,
+      duration,
+      totalFiles: stats.totalFiles,
+      newFiles: stats.newFiles,
+      updatedFiles: stats.updatedFiles,
+      deletedFiles: stats.deletedFiles,
+      chunksCreated: stats.chunksCreated,
+      embeddingsGenerated: stats.embeddingsGenerated,
+      errorCount: stats.errors.length,
+    };
+    
+  } catch (error) {
+    logger.error('Full repository indexing job failed', {
+      projectId: data.projectId,
+    }, error as Error);
+    
+    const endTime = new Date();
+    const duration = endTime.getTime() - startTime.getTime();
+    
+    return {
+      success: false,
+      message: `Full repository indexing failed: ${(error as Error).message}`,
+      startTime,
+      endTime,
+      duration,
+      totalFiles: 0,
+      newFiles: 0,
+      updatedFiles: 0,
+      deletedFiles: 0,
+      chunksCreated: 0,
+      embeddingsGenerated: 0,
+      errorCount: 1,
+    };
+  }
+}
+
 // Register all processors
 export function initializeJobProcessors(): void {
   jobQueue.registerProcessor(JobType.INDEX_PROJECT, indexProjectProcessor);
@@ -488,6 +685,8 @@ export function initializeJobProcessors(): void {
   jobQueue.registerProcessor(JobType.CLEANUP_CHUNKS, cleanupChunksProcessor);
   jobQueue.registerProcessor(JobType.OPTIMIZE_DATABASE, optimizeDatabaseProcessor);
   jobQueue.registerProcessor(JobType.GENERATE_EMBEDDINGS, generateEmbeddingsProcessor);
+  jobQueue.registerProcessor(JobType.PR_ANALYSIS, prAnalysisProcessor);
+  jobQueue.registerProcessor(JobType.FULL_INDEX_PROJECT, fullIndexProcessor);
   
   logger.info('All job processors initialized');
 }
@@ -501,4 +700,5 @@ export {
   cleanupChunksProcessor,
   optimizeDatabaseProcessor,
   generateEmbeddingsProcessor,
+  prAnalysisProcessor,
 };

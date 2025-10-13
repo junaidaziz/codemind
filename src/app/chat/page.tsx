@@ -8,6 +8,8 @@ import { ProtectedRoute } from '../components/ProtectedRoute';
 import { useAuth } from '../contexts/AuthContext';
 import { QuickFeedback } from '../../components/AgentFeedback';
 import { FeedbackSummary } from '../../components/FeedbackAnalytics';
+import { RealtimeCollaborationPanel, RealtimeStatusBadge } from '../../components/RealtimeCollaboration';
+import { useRealtimeCollaboration, useTypingIndicator } from '../../hooks/useRealtimeCollaboration';
 
 interface Project {
   id: string;
@@ -34,7 +36,50 @@ function ChatPageContent() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string>('');
   const [isRestoringSession, setIsRestoringSession] = useState(false);
+  const [showCollaborationPanel, setShowCollaborationPanel] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Realtime collaboration
+  const collaboration = useRealtimeCollaboration({
+    sessionId: currentSessionId,
+    autoConnect: !!currentSessionId && !!user?.id,
+  });
+
+  // Typing indicator management
+  const { handleTyping, stopTyping } = useTypingIndicator(collaboration, 1500);
+
+  // Handle incoming collaboration messages
+  useEffect(() => {
+    if (!currentSessionId || !collaboration.isConnected) return;
+
+    const unsubscribeMessage = collaboration.onMessage((message) => {
+      // Don't add our own messages (already added locally)
+      if (message.userId === user?.id) return;
+      
+      const newMessage: Message = {
+        id: message.messageId,
+        role: message.role,
+        content: message.content,
+        createdAt: message.createdAt,
+      };
+
+      setMessages(prev => {
+        // Check if message already exists
+        const exists = prev.some(msg => msg.id === message.messageId);
+        if (exists) return prev;
+        
+        // Add message in chronological order
+        const updated = [...prev, newMessage].sort((a, b) => 
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+        return updated;
+      });
+    });
+
+    return () => {
+      unsubscribeMessage();
+    };
+  }, [currentSessionId, collaboration, user?.id]);
 
   // Session persistence utilities
   const getStorageKey = useCallback((projectId: string) => `codemind_chat_session_${projectId}`, []);
@@ -181,6 +226,19 @@ function ChatPageContent() {
     setIsLoading(true);
     setIsStreaming(true);
 
+    // Stop typing indicator and broadcast user message
+    if (currentSessionId) {
+      stopTyping();
+      collaboration.sendMessage({
+        messageId: userMessage.id,
+        role: userMessage.role,
+        content: userMessage.content,
+        createdAt: userMessage.createdAt,
+      }).catch(error => {
+        console.warn('Failed to broadcast user message:', error);
+      });
+    }
+
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -245,6 +303,25 @@ function ChatPageContent() {
               const data = line.slice(6);
               if (data === '[DONE]') {
                 setIsStreaming(false);
+                
+                // Broadcast final assistant message to collaborators
+                if (currentSessionId) {
+                  // Get the final message content
+                  setMessages(prevMessages => {
+                    const finalMessage = prevMessages.find(msg => msg.id === assistantMessage.id);
+                    if (finalMessage && finalMessage.content) {
+                      collaboration.sendMessage({
+                        messageId: finalMessage.id,
+                        role: finalMessage.role,
+                        content: finalMessage.content,
+                        createdAt: finalMessage.createdAt,
+                      }).catch(error => {
+                        console.warn('Failed to broadcast assistant message:', error);
+                      });
+                    }
+                    return prevMessages;
+                  });
+                }
                 break;
               }
               try {
@@ -329,6 +406,14 @@ function ChatPageContent() {
           </Link>
           
           <div className="flex items-center gap-4">
+            {/* Collaboration Status */}
+            {currentSessionId && (
+              <RealtimeStatusBadge
+                connectionStatus={collaboration.connectionStatus}
+                participantCount={collaboration.participants.length}
+              />
+            )}
+            
             {/* Feedback Summary */}
             {selectedProjectId && (
               <FeedbackSummary projectId={selectedProjectId} />
@@ -342,7 +427,25 @@ function ChatPageContent() {
               <select
                 id="project-select"
                 value={selectedProjectId}
-                onChange={(e) => setSelectedProjectId(e.target.value)}
+                onChange={(e) => {
+                  const projectId = e.target.value;
+                  setSelectedProjectId(projectId);
+                  
+                  // Create or load session for the selected project
+                  if (projectId) {
+                    // Check for existing session in localStorage
+                    const existingSession = loadSessionFromStorage(projectId);
+                    if (existingSession && existingSession.sessionId) {
+                      setCurrentSessionId(existingSession.sessionId);
+                    } else {
+                      // Create new session ID for collaboration
+                      const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                      setCurrentSessionId(newSessionId);
+                    }
+                  } else {
+                    setCurrentSessionId('');
+                  }
+                }}
                 className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Select a project...</option>
@@ -353,13 +456,26 @@ function ChatPageContent() {
                 ))}
               </select>
             </div>
+            
+            {/* Collaboration Toggle */}
+            {currentSessionId && (
+              <button
+                onClick={() => setShowCollaborationPanel(!showCollaborationPanel)}
+                className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
+                title="Toggle collaboration panel"
+              >
+                👥
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4">
-        <div className="max-w-4xl mx-auto space-y-4">
+      {/* Main Content Area */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="max-w-4xl mx-auto space-y-4">
           {messages.length === 0 ? (
             <div className="text-center text-gray-500 dark:text-gray-400 py-8">
               {isRestoringSession ? (
@@ -415,8 +531,43 @@ function ChatPageContent() {
               </div>
             ))
           )}
+
+          {/* Typing Indicators */}
+          {collaboration.typingUsers.length > 0 && (
+            <div className="flex justify-start">
+              <div className="max-w-3xl rounded-lg p-4 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white mr-8">
+                <div className="flex items-center space-x-2 text-sm text-gray-500">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                  <span>
+                    {collaboration.typingUsers.length === 1
+                      ? `${collaboration.typingUsers[0].userName || 'Someone'} is typing...`
+                      : `${collaboration.typingUsers.length} people are typing...`}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div ref={messagesEndRef} />
+          </div>
         </div>
+
+        {/* Collaboration Panel */}
+        {showCollaborationPanel && currentSessionId && (
+          <div className="w-80 border-l border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+            <RealtimeCollaborationPanel
+              sessionId={currentSessionId}
+              onUserSelect={(user) => {
+                console.log('Selected user:', user);
+              }}
+              maxParticipants={10}
+            />
+          </div>
+        )}
       </div>
 
       {/* Input */}
@@ -425,8 +576,20 @@ function ChatPageContent() {
           <div className="flex gap-2">
             <textarea
               value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
+              onChange={(e) => {
+                setInputMessage(e.target.value);
+                if (e.target.value.trim() && currentSessionId) {
+                  handleTyping();
+                } else if (!e.target.value.trim() && currentSessionId) {
+                  stopTyping();
+                }
+              }}
               onKeyPress={handleKeyPress}
+              onBlur={() => {
+                if (currentSessionId) {
+                  stopTyping();
+                }
+              }}
               placeholder={selectedProjectId ? "Ask a question about your code..." : "Please select a project first"}
               disabled={!selectedProjectId || isStreaming}
               className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"

@@ -14,11 +14,15 @@ export enum JobStatus {
 
 // Job types
 export enum JobType {
-  INDEX_PROJECT = 'index_project',
-  REINDEX_PROJECT = 'reindex_project',
-  CLEANUP_CHUNKS = 'cleanup_chunks',
-  OPTIMIZE_DATABASE = 'optimize_database',
-  GENERATE_EMBEDDINGS = 'generate_embeddings',
+  INDEX_PROJECT = 'INDEX_PROJECT',
+  REINDEX_PROJECT = 'REINDEX_PROJECT',
+  CLEANUP_CHUNKS = 'CLEANUP_CHUNKS',
+  OPTIMIZE_DATABASE = 'OPTIMIZE_DATABASE',
+  GENERATE_EMBEDDINGS = 'GENERATE_EMBEDDINGS',
+  CODE_ANALYSIS = 'CODE_ANALYSIS',
+  PR_COMMENT = 'PR_COMMENT',
+  PR_ANALYSIS = 'PR_ANALYSIS',
+  FULL_INDEX_PROJECT = 'FULL_INDEX_PROJECT',
 }
 
 // Base job data interface
@@ -73,13 +77,76 @@ export interface GenerateEmbeddingsJobData extends BaseJobData {
   batchSize?: number;
 }
 
+export interface CodeAnalysisJobData extends BaseJobData {
+  type: JobType.CODE_ANALYSIS;
+  projectId: string;
+  repositoryUrl: string;
+  branch: string;
+  commitSha: string;
+  pullRequestNumber?: number;
+  eventType: 'push' | 'pull_request';
+  metadata: {
+    eventData: Record<string, unknown>;
+    triggeredAt: string;
+    triggeredBy: string;
+  };
+}
+
+export interface PRCommentJobData extends BaseJobData {
+  type: JobType.PR_COMMENT;
+  projectId: string;
+  repositoryUrl: string;
+  pullRequestNumber: number;
+  analysisResult: {
+    projectId: string;
+    commitSha: string;
+    analysisId: string;
+    metrics: Record<string, number>;
+    findings: Record<string, Array<Record<string, unknown>>>;
+    summary: string;
+    completedAt: string;
+    processingTime: number;
+  };
+  metadata: {
+    commitSha: string;
+    triggeredAt: string;
+  };
+}
+
+export interface PRAnalysisJobData extends BaseJobData {
+  type: JobType.PR_ANALYSIS;
+  projectId: string;
+  repository: {
+    owner: string;
+    name: string;
+  };
+  pullRequest: {
+    number: number;
+    title: string;
+    sha: string;
+  };
+}
+
+export interface FullIndexJobData extends BaseJobData {
+  type: JobType.FULL_INDEX_PROJECT;
+  projectId: string;
+  githubUrl: string;
+  forceReindex?: boolean;
+  includeContent?: boolean;
+  chunkAndEmbed?: boolean;
+}
+
 // Union type for all job data
 export type JobData = 
   | IndexProjectJobData
   | ReindexProjectJobData
   | CleanupChunksJobData
   | OptimizeDatabaseJobData
-  | GenerateEmbeddingsJobData;
+  | GenerateEmbeddingsJobData
+  | CodeAnalysisJobData
+  | PRCommentJobData
+  | PRAnalysisJobData
+  | FullIndexJobData;
 
 // Job result interfaces
 export interface BaseJobResult {
@@ -119,13 +186,33 @@ export interface GenerateEmbeddingsResult extends BaseJobResult {
   batchesProcessed: number;
 }
 
+export interface PRAnalysisResult extends BaseJobResult {
+  pullRequestNumber: number;
+  riskScore: number;
+  qualityScore: number;
+  commentPosted: boolean;
+  commentId?: number;
+}
+
+export interface FullIndexResult extends BaseJobResult {
+  totalFiles: number;
+  newFiles: number;
+  updatedFiles: number;
+  deletedFiles: number;
+  chunksCreated: number;
+  embeddingsGenerated: number;
+  errorCount: number;
+}
+
 // Union type for all job results
 export type JobResult = 
   | IndexProjectResult
   | ReindexProjectResult
   | CleanupChunksResult
   | OptimizeDatabaseResult
-  | GenerateEmbeddingsResult;
+  | GenerateEmbeddingsResult
+  | PRAnalysisResult
+  | FullIndexResult;
 
 // Job interface
 export interface Job {
@@ -389,6 +476,54 @@ class SimpleJobQueue {
       failed: jobs.filter(j => j.status === JobStatus.FAILED).length,
       cancelled: jobs.filter(j => j.status === JobStatus.CANCELLED).length,
     };
+  }
+
+  // Get active jobs (pending and running)
+  getActiveJobs(): Job[] {
+    const jobs = Array.from(this.jobs.values());
+    return jobs.filter(j => 
+      j.status === JobStatus.PENDING || 
+      j.status === JobStatus.RUNNING
+    );
+  }
+
+  // Get completed jobs (both successful and failed)
+  getCompletedJobs(limit = 50): Job[] {
+    const jobs = Array.from(this.jobs.values());
+    return jobs
+      .filter(j => 
+        j.status === JobStatus.COMPLETED || 
+        j.status === JobStatus.FAILED ||
+        j.status === JobStatus.CANCELLED
+      )
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+      .slice(0, limit);
+  }
+
+  // Add job with simplified interface for the API
+  async addJobWithConfig(config: {
+    type: JobType;
+    data: Record<string, unknown>;
+    priority?: 'low' | 'normal' | 'high';
+    retries?: number;
+  }): Promise<{ id: string }> {
+    const priorityMap = {
+      'low': 1,
+      'normal': 5,
+      'high': 10,
+    };
+
+    const jobData = {
+      ...config.data,
+      type: config.type,
+      priority: priorityMap[config.priority || 'normal'],
+      maxRetries: config.retries || 3,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as JobData;
+
+    const jobId = await this.addJob(jobData);
+    return { id: jobId };
   }
 }
 

@@ -10,12 +10,14 @@ import {
 } from '../../../types/feedback';
 import { z } from 'zod';
 
-// GET /api/feedback - Get feedback stored in message metadata (temporary until migration)
+// GET /api/feedback - Get feedback with proper database queries
 export async function GET(req: NextRequest): Promise<Response> {
   try {
     const url = new URL(req.url);
     const projectId = url.searchParams.get('projectId');
     const sessionId = url.searchParams.get('sessionId');
+    const messageId = url.searchParams.get('messageId');
+    const userId = url.searchParams.get('userId');
     const page = parseInt(url.searchParams.get('page') || '1');
     const limit = parseInt(url.searchParams.get('limit') || '20');
 
@@ -26,28 +28,39 @@ export async function GET(req: NextRequest): Promise<Response> {
       );
     }
 
-    // Build where clause for messages
+    // Build where clause for feedback
     const whereClause: Record<string, unknown> = {
-      session: { projectId },
-      role: 'assistant', // Only get assistant messages that could have feedback
+      projectId,
     };
     
     if (sessionId) {
       whereClause.sessionId = sessionId;
     }
+    
+    if (messageId) {
+      whereClause.messageId = messageId;
+    }
+    
+    if (userId) {
+      whereClause.userId = userId;
+    }
 
     const offset = (page - 1) * limit;
 
-    // Get messages that might have feedback in metadata
-    const [messages, totalCount] = await Promise.all([
-      prisma.message.findMany({
+    // Get feedback from AgentFeedback table
+    const [feedbacks, totalCount] = await Promise.all([
+      prisma.agentFeedback.findMany({
         where: whereClause,
         include: {
-          session: {
-            include: {
-              user: {
-                select: { id: true, name: true, email: true }
-              }
+          user: {
+            select: { id: true, name: true, email: true }
+          },
+          message: {
+            select: { 
+              id: true, 
+              content: true, 
+              role: true, 
+              createdAt: true 
             }
           }
         },
@@ -55,31 +68,68 @@ export async function GET(req: NextRequest): Promise<Response> {
         skip: offset,
         take: limit,
       }),
-      prisma.message.count({ where: whereClause }),
+      prisma.agentFeedback.count({ where: whereClause }),
     ]);
 
-    // Extract feedback from messages (stored as JSON in a hypothetical feedback field)
-    // For now, return mock data structure
-    const feedbacks = messages.map((message: typeof messages[0]) => ({
-      id: `feedback_${message.id}`,
-      messageId: message.id,
-      sessionId: message.sessionId,
-      projectId,
-      userId: message.session.user.id,
-      rating: 0, // Default - no feedback yet
-      comment: null,
-      createdAt: message.createdAt,
-      user: message.session.user,
-      message: {
-        id: message.id,
-        content: message.content,
-        role: message.role,
-        createdAt: message.createdAt,
-      },
-    }));
+    // Calculate summary statistics
+    const allProjectFeedback = await prisma.agentFeedback.findMany({
+      where: { projectId },
+      select: { rating: true, category: true, feedbackType: true, responseTime: true }
+    });
+
+    const totalFeedbacks = allProjectFeedback.length;
+    const averageRating = totalFeedbacks > 0 
+      ? allProjectFeedback.reduce((sum, f) => sum + f.rating, 0) / totalFeedbacks 
+      : 0;
+
+    // Rating distribution
+    const ratingDistribution = allProjectFeedback.reduce((acc, f) => {
+      acc[f.rating] = (acc[f.rating] || 0) + 1;
+      return acc;
+    }, {} as Record<number, number>);
+
+    // Category averages
+    const categoryGroups = allProjectFeedback.reduce((acc, f) => {
+      if (!acc[f.category]) acc[f.category] = [];
+      acc[f.category].push(f.rating);
+      return acc;
+    }, {} as Record<string, number[]>);
+
+    const categoryAverages = Object.entries(categoryGroups).reduce((acc, [cat, ratings]) => {
+      acc[cat] = ratings.reduce((sum, r) => sum + r, 0) / ratings.length;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Response time stats
+    const responseTimes = allProjectFeedback
+      .filter(f => f.responseTime !== null)
+      .map(f => f.responseTime!) 
+      .sort((a, b) => a - b);
+
+    const responseTimeStats = {
+      average: responseTimes.length > 0 ? responseTimes.reduce((sum, t) => sum + t, 0) / responseTimes.length : 0,
+      median: responseTimes.length > 0 ? responseTimes[Math.floor(responseTimes.length / 2)] : 0,
+      fastest: responseTimes.length > 0 ? responseTimes[0] : 0,
+      slowest: responseTimes.length > 0 ? responseTimes[responseTimes.length - 1] : 0,
+    };
 
     return NextResponse.json(createApiSuccess({
-      feedbacks,
+      feedbacks: feedbacks.map(feedback => ({
+        id: feedback.id,
+        messageId: feedback.messageId,
+        sessionId: feedback.sessionId,
+        projectId: feedback.projectId,
+        userId: feedback.userId,
+        feedbackType: feedback.feedbackType,
+        rating: feedback.rating,
+        comment: feedback.comment,
+        category: feedback.category,
+        responseTime: feedback.responseTime,
+        contextData: feedback.contextData ? JSON.parse(JSON.stringify(feedback.contextData)) : null,
+        createdAt: feedback.createdAt,
+        user: feedback.user,
+        message: feedback.message,
+      })),
       pagination: {
         page,
         limit,
@@ -87,18 +137,13 @@ export async function GET(req: NextRequest): Promise<Response> {
         totalPages: Math.ceil(totalCount / limit),
       },
       summary: {
-        totalFeedbacks: 0,
-        averageRating: 0,
-        ratingDistribution: {},
-        categoryAverages: {},
-        recentTrend: 'stable',
+        totalFeedbacks,
+        averageRating,
+        ratingDistribution,
+        categoryAverages,
+        recentTrend: 'stable' as const,
         topIssues: [],
-        responseTimeStats: {
-          average: 0,
-          median: 0,
-          fastest: 0,
-          slowest: 0,
-        },
+        responseTimeStats,
       },
     }));
 
@@ -111,13 +156,13 @@ export async function GET(req: NextRequest): Promise<Response> {
   }
 }
 
-// POST /api/feedback - Submit new feedback (temporary storage until migration)
+// POST /api/feedback - Submit new feedback with proper database storage
 export async function POST(req: NextRequest): Promise<Response> {
   try {
     const body = await req.json();
     const feedbackData = SubmitFeedbackSchema.parse(body);
     
-    // Verify that the message exists
+    // Verify that the message exists and get user info
     const message = await prisma.message.findUnique({
       where: { id: feedbackData.messageId },
       include: {
@@ -144,28 +189,131 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
     }
 
-    // For now, store feedback data in a simple JSON format in session metadata
-    // TODO: Replace with proper database storage after migration
-    const feedbackId = `feedback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    // Log the feedback for now (in production, this would be stored in the database)
-    console.log('Feedback submitted:', {
-      feedbackId,
-      messageId: feedbackData.messageId,
-      sessionId: feedbackData.sessionId,
-      projectId: feedbackData.projectId,
-      feedbackType: feedbackData.feedbackType,
-      rating: feedbackData.rating,
-      comment: feedbackData.comment,
-      category: feedbackData.category,
-      responseTime: feedbackData.responseTime,
-      contextData: feedbackData.contextData,
-      timestamp: new Date().toISOString(),
+    // Check if feedback already exists for this message
+    const existingFeedback = await prisma.agentFeedback.findFirst({
+      where: {
+        messageId: feedbackData.messageId,
+        userId: message.session.userId,
+      },
     });
 
+    let feedback;
+
+    if (existingFeedback) {
+      // Update existing feedback
+      feedback = await prisma.agentFeedback.update({
+        where: { id: existingFeedback.id },
+        data: {
+          feedbackType: feedbackData.feedbackType,
+          rating: feedbackData.rating,
+          comment: feedbackData.comment,
+          category: feedbackData.category,
+          responseTime: feedbackData.responseTime,
+          contextData: feedbackData.contextData ? JSON.parse(JSON.stringify(feedbackData.contextData)) : null,
+        },
+      });
+    } else {
+      // Create new feedback
+      feedback = await prisma.agentFeedback.create({
+        data: {
+          messageId: feedbackData.messageId,
+          sessionId: feedbackData.sessionId,
+          projectId: feedbackData.projectId,
+          userId: message.session.userId,
+          feedbackType: feedbackData.feedbackType,
+          rating: feedbackData.rating,
+          comment: feedbackData.comment,
+          category: feedbackData.category,
+          responseTime: feedbackData.responseTime,
+          contextData: feedbackData.contextData ? JSON.parse(JSON.stringify(feedbackData.contextData)) : null,
+        },
+      });
+    }
+
+    // Update or create analytics record for this feedback
+    const now = new Date();
+    const periodStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const periodEnd = new Date(periodStart);
+    periodEnd.setDate(periodEnd.getDate() + 1);
+
+    // Check if analytics record exists for today
+    const analyticsRecord = await prisma.feedbackAnalytics.findFirst({
+      where: {
+        projectId: feedbackData.projectId,
+        userId: message.session.userId,
+        period: 'day',
+        periodStart: {
+          gte: periodStart,
+          lt: periodEnd,
+        },
+      },
+    });
+
+    if (analyticsRecord) {
+      // Update existing analytics
+      const allTodayFeedbacks = await prisma.agentFeedback.findMany({
+        where: {
+          projectId: feedbackData.projectId,
+          userId: message.session.userId,
+          createdAt: {
+            gte: periodStart,
+            lt: periodEnd,
+          },
+        },
+        select: { rating: true, category: true },
+      });
+
+      const avgRating = allTodayFeedbacks.length > 0
+        ? allTodayFeedbacks.reduce((sum: number, f: typeof allTodayFeedbacks[0]) => sum + f.rating, 0) / allTodayFeedbacks.length
+        : 0;
+
+      const ratingCounts = allTodayFeedbacks.reduce((acc: Record<string, number>, f: typeof allTodayFeedbacks[0]) => {
+        acc[f.rating.toString()] = (acc[f.rating.toString()] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const categoryBreakdown = allTodayFeedbacks.reduce((acc: Record<string, number>, f: typeof allTodayFeedbacks[0]) => {
+        if (!acc[f.category]) {
+          acc[f.category] = allTodayFeedbacks
+            .filter((fb: typeof allTodayFeedbacks[0]) => fb.category === f.category)
+            .reduce((sum: number, fb: typeof allTodayFeedbacks[0]) => sum + fb.rating, 0) / 
+            allTodayFeedbacks.filter((fb: typeof allTodayFeedbacks[0]) => fb.category === f.category).length;
+        }
+        return acc;
+      }, {} as Record<string, number>);
+
+      await prisma.feedbackAnalytics.update({
+        where: { id: analyticsRecord.id },
+        data: {
+          totalFeedbacks: allTodayFeedbacks.length,
+          avgRating,
+          ratingCounts: JSON.parse(JSON.stringify(ratingCounts)),
+          categoryBreakdown: JSON.parse(JSON.stringify(categoryBreakdown)),
+          updatedAt: new Date(),
+        },
+      });
+    } else {
+      // Create new analytics record
+      await prisma.feedbackAnalytics.create({
+        data: {
+          projectId: feedbackData.projectId,
+          userId: message.session.userId,
+          period: 'day',
+          periodStart,
+          periodEnd,
+          totalFeedbacks: 1,
+          avgRating: feedbackData.rating,
+          ratingCounts: JSON.parse(JSON.stringify({ [feedbackData.rating.toString()]: 1 })),
+          categoryBreakdown: JSON.parse(JSON.stringify({ [feedbackData.category]: feedbackData.rating })),
+        },
+      });
+    }
+
     return NextResponse.json(createApiSuccess({
-      feedbackId,
-      message: 'Feedback submitted successfully (stored temporarily)',
+      feedbackId: feedback.id,
+      message: existingFeedback 
+        ? 'Feedback updated successfully' 
+        : 'Feedback submitted successfully',
     }));
 
   } catch (error) {
