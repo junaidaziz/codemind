@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Spinner } from './ui';
+import ConfirmationModal from './ui/ConfirmationModal';
 
 // Types for webhook management
 interface WebhookConfig {
@@ -68,6 +69,8 @@ export const GitHubWebhookManager: React.FC<GitHubWebhookManagerProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSetupForm, setShowSetupForm] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const loadWebhookData = useCallback(async () => {
     try {
@@ -125,13 +128,13 @@ export const GitHubWebhookManager: React.FC<GitHubWebhookManagerProps> = ({
     }
   };
 
-  const handleWebhookDelete = async () => {
-    if (!confirm('Are you sure you want to delete this webhook configuration?')) {
-      return;
-    }
+  const handleWebhookDelete = () => {
+    setShowDeleteModal(true);
+  };
 
+  const confirmWebhookDelete = async () => {
     try {
-      setLoading(true);
+      setIsDeleting(true);
       setError(null);
 
       const response = await fetch(`/api/github/webhooks?projectId=${projectId}`, {
@@ -143,6 +146,7 @@ export const GitHubWebhookManager: React.FC<GitHubWebhookManagerProps> = ({
       if (result.success) {
         setWebhookData(null);
         setShowSetupForm(true);
+        setShowDeleteModal(false);
       } else {
         setError(result.error || 'Failed to delete webhook');
       }
@@ -150,8 +154,12 @@ export const GitHubWebhookManager: React.FC<GitHubWebhookManagerProps> = ({
       setError('Failed to delete webhook');
       console.error('Webhook delete error:', err);
     } finally {
-      setLoading(false);
+      setIsDeleting(false);
     }
+  };
+
+  const cancelWebhookDelete = () => {
+    setShowDeleteModal(false);
   };
 
   if (loading) {
@@ -227,6 +235,19 @@ export const GitHubWebhookManager: React.FC<GitHubWebhookManagerProps> = ({
           <WebhookLogsList logs={webhookData.logs} />
         </>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={cancelWebhookDelete}
+        onConfirm={confirmWebhookDelete}
+        title="Delete Webhook Configuration"
+        message="Are you sure you want to delete this webhook configuration? This will stop all webhook events from being processed for this project. You can always set up a new webhook later."
+        confirmText="Delete Webhook"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

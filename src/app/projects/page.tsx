@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { FullPageSpinner, ErrorBanner, InlineSpinner } from '../../components/ui';
 import { ProtectedRoute } from '../components/ProtectedRoute';
+import ConfirmationModal from '../../components/ui/ConfirmationModal';
 
 interface Project {
   id: string;
@@ -23,6 +24,9 @@ function ProjectsPageContent() {
     githubUrl: ''
   });
   const [isCreating, setIsCreating] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchProjects();
@@ -84,18 +88,24 @@ function ProjectsPageContent() {
     }
   };
 
-  const handleDeleteProject = async (projectId: string, projectName: string) => {
-    if (!confirm(`Are you sure you want to delete "${projectName}"? This will permanently remove all project data, chat sessions, and messages.`)) {
-      return;
-    }
+  const handleDeleteProject = (projectId: string, projectName: string) => {
+    setProjectToDelete({ id: projectId, name: projectName });
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteProject = async () => {
+    if (!projectToDelete) return;
 
     try {
-      const response = await fetch(`/api/projects/${projectId}`, {
+      setIsDeleting(true);
+      const response = await fetch(`/api/projects/${projectToDelete.id}`, {
         method: 'DELETE',
       });
 
       if (response.ok) {
         await fetchProjects(); // Refresh the list
+        setShowDeleteModal(false);
+        setProjectToDelete(null);
       } else {
         const errorData = await response.json();
         setError(`Failed to delete project: ${errorData.error || 'Unknown error'}`);
@@ -103,7 +113,14 @@ function ProjectsPageContent() {
     } catch (err) {
       setError('Error deleting project');
       console.error('Error deleting project:', err);
+    } finally {
+      setIsDeleting(false);
     }
+  };
+
+  const cancelDeleteProject = () => {
+    setShowDeleteModal(false);
+    setProjectToDelete(null);
   };
 
   const handleCreateProject = async () => {
@@ -403,6 +420,19 @@ function ProjectsPageContent() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={cancelDeleteProject}
+        onConfirm={confirmDeleteProject}
+        title="Delete Project"
+        message={`Are you sure you want to delete "${projectToDelete?.name}"? This will permanently remove all project data, chat sessions, and messages. This action cannot be undone.`}
+        confirmText="Delete Project"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }
