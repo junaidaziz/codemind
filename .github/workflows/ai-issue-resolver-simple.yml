@@ -1,0 +1,196 @@
+name: CodeMind AI Issue Resolver
+
+on:
+  issues:
+    types: [labeled, opened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to resolve'
+        required: true
+        type: number
+      force_resolve:
+        description: 'Force resolve even if confidence is low'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  ai-issue-resolver:
+    name: AI Issue Resolver
+    runs-on: ubuntu-latest
+    if: |
+      (github.event.action == 'labeled' && contains(github.event.label.name, 'ai-fix')) ||
+      (github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'ai-fix')) ||
+      github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Extract issue information
+        id: issue-info
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            ISSUE_NUMBER="${{ github.event.inputs.issue_number }}"
+            FORCE_RESOLVE="${{ github.event.inputs.force_resolve }}"
+          else
+            ISSUE_NUMBER="${{ github.event.issue.number }}"
+            FORCE_RESOLVE="false"
+          fi
+          
+          echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
+          echo "force_resolve=$FORCE_RESOLVE" >> $GITHUB_OUTPUT
+
+      - name: Call CodeMind AI API
+        id: ai-resolve
+        run: |
+          # Create and run the AI resolution script
+          curl -X POST "${{ vars.CODEMIND_API_URL || 'https://codemind.dev' }}/api/github/resolve" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "X-GitHub-Repository: ${{ github.repository }}" \
+            -H "X-GitHub-Issue: ${{ steps.issue-info.outputs.issue_number }}" \
+            -d '{
+              "action": "fix",
+              "issueNumber": ${{ steps.issue-info.outputs.issue_number }},
+              "repository": {
+                "owner": "${{ github.repository_owner }}",
+                "name": "${{ github.event.repository.name }}",
+                "url": "https://github.com/${{ github.repository }}"
+              },
+              "forceResolve": ${{ steps.issue-info.outputs.force_resolve }}
+            }' \
+            --output ai_result.json \
+            --write-out "%{http_code}" > http_status.txt
+          
+          HTTP_STATUS=$(cat http_status.txt)
+          echo "HTTP Status: $HTTP_STATUS"
+          
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "success=true" >> $GITHUB_OUTPUT
+            
+            # Extract result data
+            if command -v jq &> /dev/null; then
+              PR_URL=$(jq -r '.data.fixResult.pullRequestUrl // empty' ai_result.json)
+              CONFIDENCE=$(jq -r '.data.fixResult.confidence // 0' ai_result.json)
+              BRANCH_NAME=$(jq -r '.data.fixResult.branchName // empty' ai_result.json)
+              
+              echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+              echo "confidence=$CONFIDENCE" >> $GITHUB_OUTPUT
+              echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+            echo "API call failed with status: $HTTP_STATUS"
+            cat ai_result.json || echo "No response body"
+          fi
+
+      - name: Comment on issue
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issueNumber = ${{ steps.issue-info.outputs.issue_number }};
+            const success = '${{ steps.ai-resolve.outputs.success }}' === 'true';
+            const prUrl = '${{ steps.ai-resolve.outputs.pr_url }}';
+            const confidence = parseFloat('${{ steps.ai-resolve.outputs.confidence }}') || 0;
+            const branchName = '${{ steps.ai-resolve.outputs.branch_name }}';
+            
+            let commentBody = '';
+            let labelsToAdd = [];
+            
+            if (success && prUrl) {
+              commentBody = '🤖 **AI Fix Applied Successfully**\\n\\n' +
+                '**Confidence Level:** ' + (confidence * 100).toFixed(1) + '%\\n' +
+                '**Pull Request:** ' + prUrl + '\\n' +
+                '**Branch:** `' + branchName + '`\\n\\n' +
+                '### What I Did\\n' +
+                'I analyzed this issue and generated a potential fix with ' + (confidence * 100).toFixed(1) + '% confidence.\\n\\n' +
+                '### Next Steps\\n' +
+                '1. Review the generated pull request\\n' +
+                '2. Test the changes locally\\n' +
+                '3. Merge if the fix looks good\\n' +
+                '4. Re-run this workflow if adjustments are needed\\n\\n' +
+                '*Generated by CodeMind AI - Workflow run: ${{ github.run_id }}*';
+              
+              labelsToAdd = ['ai-fix-applied'];
+              
+            } else if (success) {
+              commentBody = '🤖 **AI Analysis Complete**\\n\\n' +
+                '**Status:** Analysis completed but automatic fix not applied\\n' +
+                '**Confidence Level:** ' + (confidence * 100).toFixed(1) + '%\\n\\n' +
+                'The issue has been analyzed but requires manual review before automated fixing.\\n\\n' +
+                '*Generated by CodeMind AI - Workflow run: ${{ github.run_id }}*';
+              
+              labelsToAdd = ['ai-analyzed'];
+              
+            } else {
+              commentBody = `            } else {
+              commentBody = '❌ **AI Analysis Failed**\\n\\n' +
+                '**Status:** Unable to analyze this issue automatically\\n\\n' +
+                '**Possible reasons:**\\n' +
+                '- Network connectivity issues\\n' +
+                '- Repository access problems\\n' +
+                '- Service temporarily unavailable\\n\\n' +
+                'Please try adding the `ai-fix` label again or contact support.\\n\\n' +
+                '*Generated by CodeMind AI - Workflow run: ${{ github.run_id }}*';`;
+              
+              labelsToAdd = ['ai-fix-failed'];
+            }
+            
+            // Post comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: commentBody
+            });
+            
+            // Add labels
+            if (labelsToAdd.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                labels: labelsToAdd
+              });
+            }
+
+      - name: Workflow Summary
+        if: always()
+        run: |
+          echo "## 🤖 CodeMind AI Issue Resolver Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Issue:** #${{ steps.issue-info.outputs.issue_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Repository:** ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.ai-resolve.outputs.success }}" == "true" ]; then
+            echo "✅ **Status:** AI analysis completed successfully" >> $GITHUB_STEP_SUMMARY
+            if [ -n "${{ steps.ai-resolve.outputs.pr_url }}" ]; then
+              echo "🔧 **Fix Applied:** Yes" >> $GITHUB_STEP_SUMMARY
+              echo "📊 **Confidence:** ${{ steps.ai-resolve.outputs.confidence }}" >> $GITHUB_STEP_SUMMARY
+              echo "🔗 **PR URL:** ${{ steps.ai-resolve.outputs.pr_url }}" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "🔧 **Fix Applied:** Analysis only" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "❌ **Status:** AI analysis failed" >> $GITHUB_STEP_SUMMARY
+            echo "Check the job logs for detailed error information." >> $GITHUB_STEP_SUMMARY
+          fi
