@@ -18,7 +18,7 @@ const path = require('path');
 require('dotenv').config({ path: '.env.local' });
 
 function validateEnvironment() {
-  const requiredVars = ['VERCEL_TOKEN', 'VERCEL_PROJECT', 'VERCEL_TEAM', 'OPENAI_API_KEY'];
+  const requiredVars = ['VERCEL_TOKEN', 'VERCEL_PROJECT_ID', 'VERCEL_TEAM_ID', 'OPENAI_API_KEY'];
   const missing = [];
   
   for (const varName of requiredVars) {
@@ -62,8 +62,8 @@ function validateEnvironment() {
   
   return {
     VERCEL_TOKEN: process.env.VERCEL_TOKEN,
-    VERCEL_PROJECT: process.env.VERCEL_PROJECT,
-    VERCEL_TEAM: process.env.VERCEL_TEAM,
+    VERCEL_PROJECT: process.env.VERCEL_PROJECT_ID,
+    VERCEL_TEAM: process.env.VERCEL_TEAM_ID,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     GITHUB_TOKEN: process.env.GITHUB_TOKEN,
     GITHUB_REPO: process.env.GITHUB_REPO,
