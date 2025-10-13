@@ -26,6 +26,15 @@ const EnvSchema = z.object({
   GITHUB_CLIENT_ID: z.string().min(1, 'GitHub Client ID is required for OAuth authentication').optional(),
   GITHUB_CLIENT_SECRET: z.string().min(1, 'GitHub Client Secret is required for OAuth authentication').optional(),
   
+  // GitHub App for Auto Fix & PR Creation (optional - use either App or PAT)
+  GITHUB_APP_ID: z.string().optional(),
+  GITHUB_PRIVATE_KEY: z.string().optional(),
+  GITHUB_INSTALLATION_ID: z.string().optional(),
+  GITHUB_WEBHOOK_SECRET: z.string().optional(),
+  
+  // Personal Access Token alternative to GitHub App
+  GITHUB_TOKEN: z.string().optional(),
+  
   // Next.js
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   NEXT_PUBLIC_APP_URL: z.string().url().optional(),
@@ -76,6 +85,11 @@ function validateEnv(): Env {
       ENABLE_STANDALONE_AGENT: (process.env.ENABLE_STANDALONE_AGENT as 'true' | 'false') || 'false',
       GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
       GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
+      GITHUB_APP_ID: process.env.GITHUB_APP_ID,
+      GITHUB_PRIVATE_KEY: process.env.GITHUB_PRIVATE_KEY,
+      GITHUB_INSTALLATION_ID: process.env.GITHUB_INSTALLATION_ID,
+      GITHUB_WEBHOOK_SECRET: process.env.GITHUB_WEBHOOK_SECRET,
+      GITHUB_TOKEN: process.env.GITHUB_TOKEN,
       NODE_ENV: (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'development',
       NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
       SENTRY_DSN: process.env.SENTRY_DSN,
@@ -100,6 +114,11 @@ function validateEnv(): Env {
     ENABLE_STANDALONE_AGENT: process.env.ENABLE_STANDALONE_AGENT || 'false',
     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
+    GITHUB_APP_ID: process.env.GITHUB_APP_ID,
+    GITHUB_PRIVATE_KEY: process.env.GITHUB_PRIVATE_KEY,
+    GITHUB_INSTALLATION_ID: process.env.GITHUB_INSTALLATION_ID,
+    GITHUB_WEBHOOK_SECRET: process.env.GITHUB_WEBHOOK_SECRET,
+    GITHUB_TOKEN: process.env.GITHUB_TOKEN,
     NODE_ENV: process.env.NODE_ENV || 'development',
   };
 
@@ -129,6 +148,11 @@ function validateEnv(): Env {
         ENABLE_STANDALONE_AGENT: (process.env.ENABLE_STANDALONE_AGENT as 'true' | 'false') || 'false',
         GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
         GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
+        GITHUB_APP_ID: process.env.GITHUB_APP_ID,
+        GITHUB_PRIVATE_KEY: process.env.GITHUB_PRIVATE_KEY,
+        GITHUB_INSTALLATION_ID: process.env.GITHUB_INSTALLATION_ID,
+        GITHUB_WEBHOOK_SECRET: process.env.GITHUB_WEBHOOK_SECRET,
+        GITHUB_TOKEN: process.env.GITHUB_TOKEN,
         NODE_ENV: 'development',
         NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
         SENTRY_DSN: process.env.SENTRY_DSN,

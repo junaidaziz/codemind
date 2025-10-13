@@ -1,0 +1,357 @@
+name: Auto Fix on Build Failure
+
+on:
+  workflow_run:
+    workflows: ["CI/CD Pipeline", "Build and Test"]
+    types:
+      - completed
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize]
+
+jobs:
+  # Monitor for build/test failures and trigger auto-fix
+  auto-fix-trigger:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' || failure() }}
+    
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Get workflow run logs
+        id: get-logs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Get the failed workflow run
+            let workflowRunId;
+            let repositoryOwner;
+            let repositoryName;
+            
+            if (context.eventName === 'workflow_run') {
+              workflowRunId = context.payload.workflow_run.id;
+              repositoryOwner = context.payload.repository.owner.login;
+              repositoryName = context.payload.repository.name;
+            } else {
+              // For direct failures, get the current run
+              workflowRunId = context.runId;
+              repositoryOwner = context.repo.owner;
+              repositoryName = context.repo.repo;
+            }
+            
+            console.log(`Fetching logs for workflow run ${workflowRunId}`);
+            
+            try {
+              // Get workflow run details
+              const { data: workflowRun } = await github.rest.actions.getWorkflowRun({
+                owner: repositoryOwner,
+                repo: repositoryName,
+                run_id: workflowRunId,
+              });
+              
+              // Get jobs for this workflow run
+              const { data: jobs } = await github.rest.actions.listJobsForWorkflowRun({
+                owner: repositoryOwner,
+                repo: repositoryName,
+                run_id: workflowRunId,
+              });
+              
+              let allLogs = '';
+              let failedJobs = [];
+              
+              // Collect logs from failed jobs
+              for (const job of jobs.jobs) {
+                if (job.conclusion === 'failure') {
+                  failedJobs.push({
+                    name: job.name,
+                    id: job.id,
+                    started_at: job.started_at,
+                    completed_at: job.completed_at,
+                    html_url: job.html_url
+                  });
+                  
+                  try {
+                    // Get job logs
+                    const { data: logs } = await github.rest.actions.downloadJobLogsForWorkflowRun({
+                      owner: repositoryOwner,
+                      repo: repositoryName,
+                      job_id: job.id,
+                    });
+                    
+                    allLogs += `\n=== Job: ${job.name} (ID: ${job.id}) ===\n`;
+                    allLogs += logs;
+                    allLogs += '\n=== End Job Logs ===\n';
+                  } catch (logError) {
+                    console.log(`Failed to get logs for job ${job.id}:`, logError.message);
+                    allLogs += `\n=== Job: ${job.name} (ID: ${job.id}) ===\n`;
+                    allLogs += `ERROR: Could not retrieve logs - ${logError.message}\n`;
+                    allLogs += '=== End Job Logs ===\n';
+                  }
+                }
+              }
+              
+              // Write logs to file
+              fs.writeFileSync('workflow-logs.txt', allLogs);
+              
+              // Set outputs
+              core.setOutput('has-failures', failedJobs.length > 0 ? 'true' : 'false');
+              core.setOutput('failed-jobs', JSON.stringify(failedJobs));
+              core.setOutput('workflow-url', workflowRun.html_url);
+              core.setOutput('logs-length', allLogs.length.toString());
+              
+              console.log(`Collected ${allLogs.length} characters of logs from ${failedJobs.length} failed jobs`);
+              
+              return {
+                hasFailures: failedJobs.length > 0,
+                failedJobsCount: failedJobs.length,
+                logsLength: allLogs.length,
+                workflowUrl: workflowRun.html_url
+              };
+              
+            } catch (error) {
+              console.error('Error fetching workflow logs:', error);
+              core.setFailed(`Failed to fetch workflow logs: ${error.message}`);
+              return { error: error.message };
+            }
+      
+      - name: Check if auto-fix should run
+        id: should-autofix
+        run: |
+          if [ "${{ steps.get-logs.outputs.has-failures }}" == "true" ] && [ -f "workflow-logs.txt" ]; then
+            echo "should-run=true" >> $GITHUB_OUTPUT
+            echo "Auto-fix will be triggered due to build failures"
+          else
+            echo "should-run=false" >> $GITHUB_OUTPUT
+            echo "No auto-fix needed - no failures detected or logs not available"
+          fi
+      
+      - name: Trigger CodeMind Auto Fix
+        if: steps.should-autofix.outputs.should-run == 'true'
+        id: autofix
+        run: |
+          # Read the workflow logs
+          LOGS=$(cat workflow-logs.txt)
+          LOGS_LENGTH=${#LOGS}
+          
+          echo "Logs length: $LOGS_LENGTH characters"
+          
+          # Prepare the auto-fix request payload
+          cat > autofix-payload.json << EOF
+          {
+            "projectId": "${{ vars.CODEMIND_PROJECT_ID || github.repository }}",
+            "logContent": $(cat workflow-logs.txt | jq -Rs .),
+            "triggerType": "ci_failure",
+            "options": {
+              "requireApproval": ${{ vars.CODEMIND_REQUIRE_APPROVAL || 'false' }},
+              "maxFixesPerHour": ${{ vars.CODEMIND_MAX_FIXES_PER_HOUR || '3' }},
+              "branchPrefix": "codemind/ci-auto-fix"
+            }
+          }
+          EOF
+          
+          # Call CodeMind Auto Fix API
+          RESPONSE=$(curl -s -w "HTTPSTATUS:%{http_code}" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.CODEMIND_API_KEY }}" \
+            -H "User-Agent: GitHub-Action-AutoFix/1.0" \
+            -d @autofix-payload.json \
+            "${{ vars.CODEMIND_API_URL || 'https://codemind.app/api' }}/github/auto-fix")
+          
+          # Extract HTTP status code
+          HTTP_STATUS=$(echo $RESPONSE | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+          BODY=$(echo $RESPONSE | sed -e 's/HTTPSTATUS\:.*//g')
+          
+          echo "HTTP Status: $HTTP_STATUS"
+          echo "Response Body: $BODY"
+          
+          if [ "$HTTP_STATUS" -eq 200 ] || [ "$HTTP_STATUS" -eq 201 ]; then
+            echo "Auto-fix request successful!"
+            
+            # Parse response to get PR info
+            PR_URL=$(echo "$BODY" | jq -r '.data.autoFixResult.prUrl // empty')
+            PR_NUMBER=$(echo "$BODY" | jq -r '.data.autoFixResult.prNumber // empty')
+            SESSION_ID=$(echo "$BODY" | jq -r '.data.sessionId // empty')
+            
+            echo "pr-url=$PR_URL" >> $GITHUB_OUTPUT
+            echo "pr-number=$PR_NUMBER" >> $GITHUB_OUTPUT
+            echo "session-id=$SESSION_ID" >> $GITHUB_OUTPUT
+            echo "success=true" >> $GITHUB_OUTPUT
+            
+            # Create summary
+            echo "## 🤖 CodeMind Auto Fix Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ Auto-fix analysis completed successfully!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "- **Session ID**: $SESSION_ID" >> $GITHUB_STEP_SUMMARY
+            
+            if [ ! -z "$PR_URL" ]; then
+              echo "- **Pull Request**: [$PR_URL]($PR_URL)" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The auto-fix system has analyzed the build failures and created appropriate fixes." >> $GITHUB_STEP_SUMMARY
+            
+          else
+            echo "Auto-fix request failed with status $HTTP_STATUS"
+            echo "Response: $BODY"
+            echo "success=false" >> $GITHUB_OUTPUT
+            echo "error=HTTP $HTTP_STATUS" >> $GITHUB_OUTPUT
+            
+            # Create error summary
+            echo "## ❌ CodeMind Auto Fix Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Auto-fix request failed with HTTP status $HTTP_STATUS" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "```" >> $GITHUB_STEP_SUMMARY
+            echo "$BODY" >> $GITHUB_STEP_SUMMARY
+            echo "```" >> $GITHUB_STEP_SUMMARY
+          fi
+        env:
+          CODEMIND_API_KEY: ${{ secrets.CODEMIND_API_KEY }}
+          CODEMIND_API_URL: ${{ vars.CODEMIND_API_URL }}
+          CODEMIND_PROJECT_ID: ${{ vars.CODEMIND_PROJECT_ID }}
+      
+      - name: Comment on PR (if applicable)
+        if: github.event_name == 'pull_request' && steps.autofix.outputs.success == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prUrl = '${{ steps.autofix.outputs.pr-url }}';
+            const sessionId = '${{ steps.autofix.outputs.session-id }}';
+            
+            if (prUrl) {
+              const body = `## 🤖 CodeMind Auto Fix
+              
+              I've detected build failures in this PR and automatically created fixes!
+              
+              **Auto Fix PR**: ${prUrl}
+              **Session ID**: ${sessionId}
+              
+              The auto-fix analyzes the build errors and creates targeted solutions. Please review the generated fixes before merging.
+              
+              ---
+              *This comment was automatically generated by CodeMind Auto Fix*`;
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+      
+      - name: Create issue on repeated failures
+        if: steps.autofix.outputs.success == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const failedJobs = JSON.parse('${{ steps.get-logs.outputs.failed-jobs }}');
+            const workflowUrl = '${{ steps.get-logs.outputs.workflow-url }}';
+            
+            // Check if there's already an open auto-fix issue
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'auto-fix-failed,ci-failure',
+              per_page: 1
+            });
+            
+            if (issues.length === 0) {
+              // Create new issue
+              const body = `## 🚨 Auto Fix Failed - Manual Intervention Required
+              
+              CodeMind Auto Fix was unable to automatically resolve the CI/CD failures.
+              
+              ### Failed Workflow
+              - **Workflow**: [${context.workflow}](${workflowUrl})
+              - **Commit**: ${context.sha}
+              - **Branch**: ${context.ref}
+              
+              ### Failed Jobs
+              ${failedJobs.map(job => `- [${job.name}](${job.html_url})`).join('\n')}
+              
+              ### Possible Reasons
+              - Complex issues requiring architectural changes
+              - Missing dependencies or configuration
+              - Test failures requiring business logic updates
+              - Infrastructure or deployment issues
+              
+              ### Recommended Actions
+              1. Review the [workflow logs](${workflowUrl})
+              2. Analyze the specific failure points
+              3. Apply manual fixes as needed
+              4. Consider updating auto-fix rules for similar issues
+              
+              This issue will be automatically closed when the CI/CD pipeline passes successfully.
+              
+              ---
+              *Created by CodeMind Auto Fix System*`;
+              
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `🚨 Auto Fix Failed: ${failedJobs[0]?.name || 'CI/CD Pipeline'} Failure`,
+                body: body,
+                labels: ['auto-fix-failed', 'ci-failure', 'bug']
+              });
+            }
+
+  # Close auto-fix issues when builds are successful
+  close-autofix-issues:
+    runs-on: ubuntu-latest
+    if: success() && (github.event.workflow_run.conclusion == 'success' || success())
+    
+    permissions:
+      issues: write
+    
+    steps:
+      - name: Close resolved auto-fix issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Find open auto-fix issues
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'auto-fix-failed,ci-failure'
+            });
+            
+            // Close issues since build is now successful
+            for (const issue of issues) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed'
+              });
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: '✅ Auto-closing this issue as the CI/CD pipeline is now passing successfully.'
+              });
+            }

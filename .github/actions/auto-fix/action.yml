@@ -1,0 +1,312 @@
+name: CodeMind Auto Fix
+description: 'Automatically fix build failures using CodeMind AI'
+author: 'CodeMind Team'
+
+branding:
+  icon: 'zap'
+  color: 'blue'
+
+inputs:
+  codemind-api-key:
+    description: 'CodeMind API key for authentication'
+    required: true
+  
+  codemind-api-url:
+    description: 'CodeMind API base URL'
+    required: false
+    default: 'https://codemind.app/api'
+  
+  project-id:
+    description: 'CodeMind project ID (defaults to repository name)'
+    required: false
+    default: ''
+  
+  require-approval:
+    description: 'Whether auto-fix PRs require manual approval'
+    required: false
+    default: 'true'
+  
+  max-fixes-per-hour:
+    description: 'Maximum number of auto-fixes per hour'
+    required: false
+    default: '3'
+  
+  branch-prefix:
+    description: 'Prefix for auto-fix branches'
+    required: false
+    default: 'codemind/auto-fix'
+  
+  trigger-on:
+    description: 'When to trigger auto-fix (failure, always, manual)'
+    required: false
+    default: 'failure'
+
+outputs:
+  success:
+    description: 'Whether the auto-fix was successful'
+    value: ${{ steps.autofix.outputs.success }}
+  
+  pr-url:
+    description: 'URL of the created pull request'
+    value: ${{ steps.autofix.outputs.pr-url }}
+  
+  pr-number:
+    description: 'Number of the created pull request'
+    value: ${{ steps.autofix.outputs.pr-number }}
+  
+  session-id:
+    description: 'CodeMind session ID for tracking'
+    value: ${{ steps.autofix.outputs.session-id }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup environment
+      shell: bash
+      run: |
+        echo "Setting up CodeMind Auto Fix environment..."
+        
+        # Determine project ID
+        PROJECT_ID="${{ inputs.project-id }}"
+        if [ -z "$PROJECT_ID" ]; then
+          PROJECT_ID="${{ github.repository }}"
+        fi
+        
+        echo "PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
+        echo "Using project ID: $PROJECT_ID"
+    
+    - name: Collect failure logs
+      shell: bash
+      id: logs
+      run: |
+        echo "Collecting workflow failure logs..."
+        
+        # Check if we should trigger auto-fix
+        SHOULD_TRIGGER=false
+        
+        case "${{ inputs.trigger-on }}" in
+          "failure")
+            if [ "${{ job.status }}" == "failure" ] || [ "${{ github.event.workflow_run.conclusion }}" == "failure" ]; then
+              SHOULD_TRIGGER=true
+            fi
+            ;;
+          "always")
+            SHOULD_TRIGGER=true
+            ;;
+          "manual")
+            if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+              SHOULD_TRIGGER=true
+            fi
+            ;;
+        esac
+        
+        echo "should-trigger=$SHOULD_TRIGGER" >> $GITHUB_OUTPUT
+        
+        if [ "$SHOULD_TRIGGER" == "false" ]; then
+          echo "Auto-fix trigger conditions not met"
+          exit 0
+        fi
+        
+        # Collect logs from various sources
+        LOG_CONTENT=""
+        
+        # Add GitHub context
+        LOG_CONTENT+="=== GitHub Workflow Context ===\n"
+        LOG_CONTENT+="Repository: ${{ github.repository }}\n"
+        LOG_CONTENT+="Workflow: ${{ github.workflow }}\n"
+        LOG_CONTENT+="Event: ${{ github.event_name }}\n"
+        LOG_CONTENT+="SHA: ${{ github.sha }}\n"
+        LOG_CONTENT+="Ref: ${{ github.ref }}\n"
+        
+        if [ "${{ github.event_name }}" == "workflow_run" ]; then
+          LOG_CONTENT+="Workflow Run ID: ${{ github.event.workflow_run.id }}\n"
+          LOG_CONTENT+="Workflow Conclusion: ${{ github.event.workflow_run.conclusion }}\n"
+        fi
+        
+        LOG_CONTENT+="\n=== Build Failure Analysis ===\n"
+        
+        # Try to get previous step outputs or job logs
+        if [ -f "$GITHUB_STEP_SUMMARY" ]; then
+          LOG_CONTENT+="Step Summary:\n"
+          LOG_CONTENT+="$(cat $GITHUB_STEP_SUMMARY)\n\n"
+        fi
+        
+        # Add environment information
+        LOG_CONTENT+="=== Environment Information ===\n"
+        LOG_CONTENT+="Runner OS: ${{ runner.os }}\n"
+        LOG_CONTENT+="Node Version: $(node --version 2>/dev/null || echo 'Not available')\n"
+        LOG_CONTENT+="NPM Version: $(npm --version 2>/dev/null || echo 'Not available')\n"
+        
+        # Check for common build files and their status
+        LOG_CONTENT+="\n=== Project Structure ===\n"
+        
+        if [ -f "package.json" ]; then
+          LOG_CONTENT+="Found package.json\n"
+          # Extract key information from package.json
+          LOG_CONTENT+="Package info: $(cat package.json | jq -r '.name + "@" + .version' 2>/dev/null || echo 'Parse error')\n"
+        fi
+        
+        if [ -f "tsconfig.json" ]; then
+          LOG_CONTENT+="Found tsconfig.json\n"
+        fi
+        
+        if [ -f "next.config.js" ] || [ -f "next.config.ts" ]; then
+          LOG_CONTENT+="Found Next.js configuration\n"
+        fi
+        
+        # Add any error logs from common locations
+        LOG_CONTENT+="\n=== Error Logs ===\n"
+        
+        # Check for npm debug logs
+        if [ -f "npm-debug.log" ]; then
+          LOG_CONTENT+="NPM Debug Log:\n"
+          LOG_CONTENT+="$(tail -50 npm-debug.log)\n\n"
+        fi
+        
+        # Check for build logs
+        if [ -f ".next/build.log" ]; then
+          LOG_CONTENT+="Next.js Build Log:\n"
+          LOG_CONTENT+="$(tail -100 .next/build.log)\n\n"
+        fi
+        
+        # Add generic failure message if no specific logs found
+        if [ ${#LOG_CONTENT} -lt 500 ]; then
+          LOG_CONTENT+="\nGeneric build failure detected. Manual investigation may be required.\n"
+          LOG_CONTENT+="Consider enabling more detailed logging in your CI/CD pipeline.\n"
+        fi
+        
+        # Write logs to file
+        echo -e "$LOG_CONTENT" > autofix-logs.txt
+        
+        echo "Collected $(wc -c < autofix-logs.txt) characters of log data"
+        echo "has-logs=true" >> $GITHUB_OUTPUT
+    
+    - name: Trigger CodeMind Auto Fix
+      shell: bash
+      id: autofix
+      if: steps.logs.outputs.should-trigger == 'true' && steps.logs.outputs.has-logs == 'true'
+      run: |
+        echo "Triggering CodeMind Auto Fix..."
+        
+        # Prepare the API request payload
+        cat > autofix-request.json << EOF
+        {
+          "projectId": "$PROJECT_ID",
+          "logContent": $(cat autofix-logs.txt | jq -Rs .),
+          "triggerType": "ci_failure",
+          "options": {
+            "requireApproval": ${{ inputs.require-approval }},
+            "maxFixesPerHour": ${{ inputs.max-fixes-per-hour }},
+            "branchPrefix": "${{ inputs.branch-prefix }}"
+          }
+        }
+        EOF
+        
+        # Make the API request
+        echo "Sending auto-fix request to ${{ inputs.codemind-api-url }}/github/auto-fix"
+        
+        RESPONSE=$(curl -s -w "HTTPSTATUS:%{http_code}" \
+          -X POST \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ${{ inputs.codemind-api-key }}" \
+          -H "User-Agent: CodeMind-GitHub-Action/1.0" \
+          -H "X-GitHub-Repository: ${{ github.repository }}" \
+          -H "X-GitHub-SHA: ${{ github.sha }}" \
+          -H "X-GitHub-Ref: ${{ github.ref }}" \
+          -d @autofix-request.json \
+          "${{ inputs.codemind-api-url }}/github/auto-fix")
+        
+        # Parse response
+        HTTP_STATUS=$(echo $RESPONSE | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+        BODY=$(echo $RESPONSE | sed -e 's/HTTPSTATUS\:.*//g')
+        
+        echo "Response Status: $HTTP_STATUS"
+        
+        if [ "$HTTP_STATUS" -eq 200 ] || [ "$HTTP_STATUS" -eq 201 ]; then
+          echo "✅ Auto-fix request successful!"
+          
+          # Parse response data
+          SUCCESS=$(echo "$BODY" | jq -r '.success // false')
+          PR_URL=$(echo "$BODY" | jq -r '.data.autoFixResult.prUrl // empty')
+          PR_NUMBER=$(echo "$BODY" | jq -r '.data.autoFixResult.prNumber // empty')
+          SESSION_ID=$(echo "$BODY" | jq -r '.data.sessionId // empty')
+          MESSAGE=$(echo "$BODY" | jq -r '.data.autoFixResult.message // "Auto-fix completed"')
+          
+          # Set outputs
+          echo "success=$SUCCESS" >> $GITHUB_OUTPUT
+          echo "pr-url=$PR_URL" >> $GITHUB_OUTPUT
+          echo "pr-number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "session-id=$SESSION_ID" >> $GITHUB_OUTPUT
+          echo "message=$MESSAGE" >> $GITHUB_OUTPUT
+          
+          # Create job summary
+          echo "## 🤖 CodeMind Auto Fix Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: $MESSAGE" >> $GITHUB_STEP_SUMMARY
+          echo "**Session ID**: $SESSION_ID" >> $GITHUB_STEP_SUMMARY
+          
+          if [ ! -z "$PR_URL" ] && [ "$PR_URL" != "null" ]; then
+            echo "**Pull Request**: [$PR_URL]($PR_URL)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "🔧 **Auto-fix PR created successfully!**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The AI has analyzed your build failures and created targeted fixes. Please review the changes before merging." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "ℹ️  **Analysis completed** but no automatic fixes were generated." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The issues may require manual intervention or may not be automatically fixable." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+        else
+          echo "❌ Auto-fix request failed with status $HTTP_STATUS"
+          echo "Response: $BODY"
+          
+          ERROR_MESSAGE=$(echo "$BODY" | jq -r '.message // "Unknown error"')
+          
+          echo "success=false" >> $GITHUB_OUTPUT
+          echo "error=HTTP $HTTP_STATUS: $ERROR_MESSAGE" >> $GITHUB_OUTPUT
+          
+          # Create error summary
+          echo "## ❌ CodeMind Auto Fix Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Error**: $ERROR_MESSAGE" >> $GITHUB_STEP_SUMMARY
+          echo "**Status Code**: $HTTP_STATUS" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please check your CodeMind configuration and API key." >> $GITHUB_STEP_SUMMARY
+        fi
+    
+    - name: Add PR comment (if applicable)
+      shell: bash
+      if: github.event_name == 'pull_request' && steps.autofix.outputs.success == 'true' && steps.autofix.outputs.pr-url != ''
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        PR_URL="${{ steps.autofix.outputs.pr-url }}"
+        SESSION_ID="${{ steps.autofix.outputs.session-id }}"
+        
+        if [ ! -z "$PR_URL" ] && [ "$PR_URL" != "null" ]; then
+          COMMENT_BODY="## 🤖 CodeMind Auto Fix
+          
+          I've detected build failures in this PR and automatically created fixes!
+          
+          **🔧 Auto Fix PR**: $PR_URL
+          **📋 Session ID**: \`$SESSION_ID\`
+          
+          ### What happened?
+          - Build failures were detected in the CI/CD pipeline
+          - CodeMind AI analyzed the errors and generated targeted fixes
+          - A new PR has been created with the proposed solutions
+          
+          ### Next steps
+          1. Review the auto-generated fixes in the linked PR
+          2. Test the changes locally if needed  
+          3. Merge the auto-fix PR if the changes look good
+          4. This should resolve the build issues in your original PR
+          
+          ---
+          *🤖 This comment was automatically generated by [CodeMind Auto Fix](https://codemind.app)*"
+          
+          # Post comment using GitHub CLI or API
+          echo "$COMMENT_BODY" | gh pr comment ${{ github.event.pull_request.number }} --body-file=-
+        fi

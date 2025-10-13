@@ -345,3 +345,195 @@ export const getEventDescription = (event: GitHubWebhookEvent): string => {
       return `Release ${event.action}: ${event.release.tag_name}`;
   }
 };
+
+// ==============================
+// AUTO FIX & PR SYSTEM TYPES
+// ==============================
+
+// GitHub authentication configuration
+export const GitHubAuthConfigSchema = z.object({
+  type: z.enum(['app', 'token']),
+  
+  // For GitHub App authentication
+  appId: z.string().optional(),
+  privateKey: z.string().optional(),
+  installationId: z.string().optional(),
+  
+  // For Personal Access Token authentication
+  token: z.string().optional(),
+}).refine((config) => {
+  if (config.type === 'app') {
+    return config.appId && config.privateKey && config.installationId;
+  }
+  if (config.type === 'token') {
+    return config.token;
+  }
+  return false;
+}, {
+  message: "GitHub authentication requires either App credentials (appId, privateKey, installationId) or token",
+});
+
+export type GitHubAuthConfig = z.infer<typeof GitHubAuthConfigSchema>;
+
+// Auto Fix Configuration
+export const AutoFixConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  requireApproval: z.boolean().default(true),
+  maxFixesPerHour: z.number().min(1).max(10).default(3),
+  branchPrefix: z.string().default('codemind/auto-fix'),
+  commitPrefix: z.string().default('fix: '),
+  prTitle: z.string().default('🤖 Auto Fix: {issue}'),
+  prBody: z.string().default(`
+This PR was automatically created by CodeMind to fix detected issues.
+
+## Changes Made
+{changes}
+
+## Issue Analysis
+{analysis}
+
+## Testing
+- [ ] Builds successfully
+- [ ] Tests pass
+- [ ] Manual review completed
+
+Please review the changes carefully before merging.
+`),
+});
+
+export type AutoFixConfig = z.infer<typeof AutoFixConfigSchema>;
+
+// Repository information for auto-fix
+export const AutoFixRepositoryInfoSchema = z.object({
+  owner: z.string(),
+  repo: z.string(),
+  branch: z.string().default('main'),
+  fullName: z.string(),
+  cloneUrl: z.string().url(),
+});
+
+export type AutoFixRepositoryInfo = z.infer<typeof AutoFixRepositoryInfoSchema>;
+
+// File change for auto-fix
+export const FileChangeSchema = z.object({
+  path: z.string(),
+  content: z.string(),
+  encoding: z.enum(['utf-8', 'base64']).default('utf-8'),
+  mode: z.enum(['100644', '100755', '120000']).default('100644'), // file, executable, symlink
+});
+
+export type FileChange = z.infer<typeof FileChangeSchema>;
+
+// Auto fix result
+export const AutoFixResultSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  prUrl: z.string().url().optional(),
+  prNumber: z.number().optional(),
+  commitSha: z.string().optional(),
+  branchName: z.string().optional(),
+  filesChanged: z.array(z.string()),
+  error: z.string().optional(),
+});
+
+export type AutoFixResult = z.infer<typeof AutoFixResultSchema>;
+
+// Issue detection and analysis
+export const DetectedIssueSchema = z.object({
+  type: z.enum(['build_error', 'test_failure', 'lint_error', 'security_issue', 'dependency_issue', 'syntax_error']),
+  severity: z.enum(['low', 'medium', 'high', 'critical']),
+  message: z.string(),
+  file: z.string().optional(),
+  line: z.number().optional(),
+  column: z.number().optional(),
+  suggestion: z.string().optional(),
+  fixable: z.boolean().default(false),
+});
+
+export type DetectedIssue = z.infer<typeof DetectedIssueSchema>;
+
+// Log analysis result
+export const LogAnalysisResultSchema = z.object({
+  issues: z.array(DetectedIssueSchema),
+  summary: z.string(),
+  confidence: z.number().min(0).max(1),
+  recommendedActions: z.array(z.string()),
+  fixableIssues: z.array(DetectedIssueSchema),
+});
+
+export type LogAnalysisResult = z.infer<typeof LogAnalysisResultSchema>;
+
+// Auto fix session
+export const AutoFixSessionSchema = z.object({
+  id: z.string(),
+  projectId: z.string(),
+  userId: z.string(),
+  status: z.enum(['pending', 'analyzing', 'fixing', 'creating_pr', 'completed', 'failed']),
+  issues: z.array(DetectedIssueSchema),
+  fixes: z.array(FileChangeSchema),
+  result: AutoFixResultSchema.optional(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  approvedAt: z.date().optional(),
+  approvedBy: z.string().optional(),
+});
+
+export type AutoFixSession = z.infer<typeof AutoFixSessionSchema>;
+
+// GitHub webhook event types for auto-fix triggers
+export const AUTO_FIX_TRIGGERS = {
+  PUSH: 'push',
+  WORKFLOW_RUN: 'workflow_run',
+  CHECK_SUITE: 'check_suite',
+  PULL_REQUEST: 'pull_request',
+} as const;
+
+// Workflow run event that might trigger auto-fix
+export const WorkflowRunEventSchema = z.object({
+  action: z.enum(['completed', 'requested']),
+  workflow_run: z.object({
+    id: z.number(),
+    name: z.string(),
+    status: z.string(),
+    conclusion: z.enum(['success', 'failure', 'neutral', 'cancelled', 'timed_out', 'action_required', 'stale']).nullable(),
+    head_branch: z.string(),
+    head_sha: z.string(),
+    run_number: z.number(),
+    html_url: z.string().url(),
+  }),
+  repository: GitHubRepositorySchema,
+});
+
+export type WorkflowRunEvent = z.infer<typeof WorkflowRunEventSchema>;
+
+// Check suite event for build status monitoring
+export const CheckSuiteEventSchema = z.object({
+  action: z.enum(['completed', 'requested', 'rerequested']),
+  check_suite: z.object({
+    id: z.number(),
+    status: z.string(),
+    conclusion: z.enum(['success', 'failure', 'neutral', 'cancelled', 'timed_out', 'action_required', 'stale']).nullable(),
+    head_branch: z.string(),
+    head_sha: z.string(),
+    pull_requests: z.array(z.object({
+      number: z.number(),
+      head: z.object({
+        ref: z.string(),
+        sha: z.string(),
+      }),
+    })),
+  }),
+  repository: GitHubRepositorySchema,
+});
+
+export type CheckSuiteEvent = z.infer<typeof CheckSuiteEventSchema>;
+
+// GitHub API rate limit info
+export const RateLimitSchema = z.object({
+  limit: z.number(),
+  used: z.number(),
+  remaining: z.number(),
+  reset: z.number(),
+});
+
+export type RateLimit = z.infer<typeof RateLimitSchema>;

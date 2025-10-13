@@ -102,7 +102,7 @@ Make the AI agent deployable independently of the Next.js app.
 
 ---
 
-### 📈 Task 9.7 – Metrics & Usage Billing (Optional)
+### 📈 Task 9.7 – Metrics & Usage Billing
 **Goal:**  
 Track API usage and optionally add billing tiers.  
 **Details:**  

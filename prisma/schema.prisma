@@ -26,6 +26,9 @@ model User {
   organizationMemberships OrganizationMember[]
   sentInvites            OrganizationInvite[]    @relation("InviteSender")
   invitedMemberships     OrganizationMember[]    @relation("MembershipInviter")
+  autoFixSessions        AutoFixSession[]
+  autoFixApprovals       AutoFixSession[]        @relation("AutoFixApprover")
+  autoFixMetrics         AutoFixMetrics[]        @relation("AutoFixMetricsUser")
 }
 
 model Project {
@@ -48,6 +51,9 @@ model Project {
   agentMemories     AgentMemory[]
   agentFeedbacks    AgentFeedback[]
   feedbackAnalytics FeedbackAnalytics[]
+  autoFixSessions   AutoFixSession[]
+  autoFixConfig     AutoFixConfig?
+  autoFixMetrics    AutoFixMetrics[]
   owner             User                @relation(fields: [ownerId], references: [id])
   organization      Organization?       @relation(fields: [organizationId], references: [id])
 
@@ -250,6 +256,23 @@ enum OrganizationRole {
   VIEWER   // Read-only access
 }
 
+enum AutoFixStatus {
+  PENDING       // Auto-fix session created, waiting to start
+  ANALYZING     // Analyzing logs for issues
+  FIXING        // Generating fixes
+  CREATING_PR   // Creating pull request
+  COMPLETED     // Successfully completed
+  FAILED        // Failed to complete
+  CANCELLED     // Manually cancelled
+}
+
+enum AutoFixTriggerType {
+  MANUAL        // Manually triggered by user
+  WEBHOOK       // Triggered by GitHub webhook
+  CI_FAILURE    // Triggered by CI build failure
+  SCHEDULE      // Triggered by scheduled job
+}
+
 model Organization {
   id          String                 @id @default(cuid())
   name        String
@@ -301,4 +324,174 @@ model OrganizationInvite {
 
   @@index([organizationId])
   @@index([email])
+}
+
+model AutoFixSession {
+  id                 String               @id @default(cuid())
+  projectId          String
+  userId             String?              // Optional: can be triggered by webhooks without user
+  status             AutoFixStatus        @default(PENDING)
+  triggerType        AutoFixTriggerType   @default(MANUAL)
+  
+  // Input data
+  logContent         String?              // Original log content that triggered the fix
+  issuesDetected     String               // JSON array of detected issues
+  projectContext     String?              // Additional project context
+  
+  // Processing data
+  analysisResult     String?              // JSON result of log analysis
+  fixesGenerated     String?              // JSON array of generated fixes
+  
+  // Output data
+  branchName         String?              // Created branch name
+  commitSha          String?              // Created commit SHA
+  prUrl              String?              // Pull request URL
+  prNumber           Int?                 // Pull request number
+  filesChanged       String?              // JSON array of changed file paths
+  
+  // Metadata
+  processingTimeMs   Int?                 // Time taken to process (milliseconds)
+  errorMessage       String?              // Error message if failed
+  confidence         Float?               // Confidence level of fixes (0-1)
+  
+  // Approval workflow
+  requiresApproval   Boolean              @default(true)
+  approvedAt         DateTime?
+  approvedBy         String?
+  
+  // Timestamps
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  startedAt          DateTime?            // When processing started
+  completedAt        DateTime?            // When processing completed
+  
+  // Relations
+  project            Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user               User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  approver           User?                @relation("AutoFixApprover", fields: [approvedBy], references: [id])
+  results            AutoFixResult[]
+  
+  @@index([projectId, createdAt])
+  @@index([userId, createdAt])
+  @@index([status])
+  @@index([triggerType, createdAt])
+}
+
+model AutoFixResult {
+  id                 String               @id @default(cuid())
+  sessionId          String
+  
+  // Result details
+  success            Boolean
+  message            String
+  issueType          String               // Type of issue fixed
+  severity           String               // Severity of issue
+  
+  // File changes
+  filePath           String               // Path of changed file
+  changeType         String               // Type of change (create, modify, delete)
+  linesAdded         Int                  @default(0)
+  linesRemoved       Int                  @default(0)
+  
+  // Quality metrics
+  confidence         Float?               // Confidence in this specific fix (0-1)
+  testability        String?              // Whether change is testable
+  reviewComplexity   String?              // Complexity of manual review needed
+  
+  // Timestamps
+  createdAt          DateTime             @default(now())
+  
+  // Relations
+  session            AutoFixSession       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  @@index([sessionId])
+  @@index([success, createdAt])
+  @@index([issueType, severity])
+}
+
+model AutoFixConfig {
+  id                 String               @id @default(cuid())
+  projectId          String               @unique
+  
+  // Configuration settings
+  enabled            Boolean              @default(true)
+  requireApproval    Boolean              @default(true)
+  maxFixesPerHour    Int                  @default(3)
+  
+  // Branch and commit settings
+  branchPrefix       String               @default("codemind/auto-fix")
+  commitPrefix       String               @default("fix: ")
+  
+  // PR template settings
+  prTitle            String               @default("🤖 Auto Fix: {issue}")
+  prBody             String               @default("This PR was automatically created by CodeMind to fix detected issues.\n\n## Changes Made\n{changes}\n\n## Issue Analysis\n{analysis}\n\n## Testing\n- [ ] Builds successfully\n- [ ] Tests pass\n- [ ] Manual review completed\n\nPlease review the changes carefully before merging.")
+  
+  // Issue type preferences
+  autoFixBuildErrors Boolean              @default(true)
+  autoFixTestFailures Boolean             @default(true)
+  autoFixLintErrors  Boolean              @default(true)
+  autoFixSecurity    Boolean              @default(false) // More conservative default
+  autoFixDependencies Boolean             @default(true)
+  autoFixSyntax      Boolean              @default(true)
+  
+  // Notification preferences
+  notifyOnSuccess    Boolean              @default(true)
+  notifyOnFailure    Boolean              @default(true)
+  
+  // Timestamps
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  
+  // Relations
+  project            Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  @@index([projectId])
+}
+
+model AutoFixMetrics {
+  id                 String               @id @default(cuid())
+  projectId          String
+  userId             String?              // Null for project-level metrics
+  
+  // Time period
+  period             String               // 'day', 'week', 'month'
+  periodStart        DateTime
+  periodEnd          DateTime
+  
+  // Session metrics
+  totalSessions      Int                  @default(0)
+  successfulSessions Int                  @default(0)
+  failedSessions     Int                  @default(0)
+  
+  // Issue metrics
+  totalIssuesDetected Int                 @default(0)
+  totalIssuesFixed   Int                  @default(0)
+  
+  // Issue type breakdown (JSON)
+  issueTypeBreakdown String?              // JSON object with counts per issue type
+  
+  // Performance metrics
+  avgProcessingTime  Int?                 // Average processing time in ms
+  avgConfidence      Float?               // Average confidence score
+  
+  // PR metrics
+  totalPRsCreated    Int                  @default(0)
+  totalPRsMerged     Int                  @default(0)
+  avgPRSize          Int?                 // Average number of files changed
+  
+  // Quality metrics
+  humanInterventionRate Float?            // Rate of sessions requiring human intervention
+  rollbackRate       Float?               // Rate of PRs that were reverted
+  
+  // Timestamps
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  
+  // Relations
+  project            Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user               User?                @relation("AutoFixMetricsUser", fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([projectId, userId, period, periodStart])
+  @@index([projectId, period, periodStart])
+  @@index([userId, period, periodStart])
 }
