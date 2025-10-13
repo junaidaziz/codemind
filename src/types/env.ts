@@ -17,9 +17,9 @@ const EnvSchema = z.object({
   // Agent Service Configuration
   AGENT_SERVICE_URL: z.string().url().default('http://localhost:3001'),
   AGENT_SERVICE_API_KEY: z.string().optional(),
-  AGENT_SERVICE_TIMEOUT: z.string().regex(/^\d+$/).transform(Number).default('30000'),
-  AGENT_SERVICE_RETRIES: z.string().regex(/^\d+$/).transform(Number).default('3'),
-  AGENT_SERVICE_RETRY_DELAY: z.string().regex(/^\d+$/).transform(Number).default('1000'),
+  AGENT_SERVICE_TIMEOUT: z.string().regex(/^\d+$/).default('30000').transform(Number),
+  AGENT_SERVICE_RETRIES: z.string().regex(/^\d+$/).default('3').transform(Number),
+  AGENT_SERVICE_RETRY_DELAY: z.string().regex(/^\d+$/).default('1000').transform(Number),
   ENABLE_STANDALONE_AGENT: z.enum(['true', 'false']).default('false'),
   
   // GitHub OAuth (optional - required only when GitHub OAuth is enabled)

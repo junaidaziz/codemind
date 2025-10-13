@@ -13,15 +13,17 @@ export async function GET() {
     ] = await Promise.all([
       prisma.autoFixSession.count(),
       prisma.autoFixSession.count({
-        where: { status: 'completed' }
+        where: { status: 'COMPLETED' }
       }),
       prisma.autoFixSession.count({
-        where: { status: 'failed' }
+        where: { status: 'FAILED' }
       }),
       prisma.autoFixResult.count({
         where: { 
-          status: 'success',
-          pullRequestNumber: { not: null }
+          success: true,
+          session: {
+            prNumber: { not: null }
+          }
         }
       }),
       prisma.autoFixSession.findMany({
@@ -31,13 +33,12 @@ export async function GET() {
           project: {
             select: {
               name: true,
-              repository: true
+              githubUrl: true
             }
           },
           results: {
             select: {
-              status: true,
-              pullRequestNumber: true
+              success: true
             },
             take: 1,
             orderBy: { createdAt: 'desc' }

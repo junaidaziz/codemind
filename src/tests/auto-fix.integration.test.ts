@@ -1,9 +1,12 @@
 /**
  * Auto Fix System Integration Tests
- * Tests the complete auto-fix workflow from trigger to PR creation
+ * Comprehensive test suite for the complete auto-fix workflow
  */
 
-import { describe, test, expect, beforeEach, afterEach } from '@jest/test-utils'
+import { describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals'
+import { GitHubAutoFixService } from '../lib/autoFix'
+import { LogAnalysisService } from '../lib/analyzeLogs'
+import prisma from '../app/lib/db'
 
 describe('Auto Fix System Integration', () => {
   let testProjectId: string

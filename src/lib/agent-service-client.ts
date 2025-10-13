@@ -118,10 +118,12 @@ export class AgentServiceClient {
   async processRequest(request: AgentRequest): Promise<AgentResponse> {
     const validatedRequest = AgentRequestSchema.parse(request);
 
-    return this.makeRequest('/api/agent/process', {
+    const response = await this.makeRequest('/api/agent/process', {
       method: 'POST',
       body: JSON.stringify(validatedRequest),
     });
+    
+    return AgentResponseSchema.parse(response);
   }
 
   /**
@@ -134,7 +136,7 @@ export class AgentServiceClient {
       method: 'POST',
       body: JSON.stringify(validatedRequest),
       stream: true,
-    });
+    }) as Response;
 
     if (!response.body) {
       throw new AgentServiceError('No response body for stream', 'NO_STREAM_BODY');
@@ -200,9 +202,19 @@ export class AgentServiceClient {
     };
     version: string;
   }> {
-    return this.makeRequest('/api/agent/capabilities', {
+    const response = await this.makeRequest('/api/agent/capabilities', {
       method: 'GET',
     });
+    return response as {
+      commands: string[];
+      tools: string[];
+      limits: {
+        maxMessageLength: number;
+        maxTokens: number;
+        maxToolExecutions: number;
+      };
+      version: string;
+    };
   }
 
   /**
@@ -221,9 +233,22 @@ export class AgentServiceClient {
     activeConnections: number;
     totalRequests: number;
   }> {
-    return this.makeRequest('/health', {
+    const response = await this.makeRequest('/health', {
       method: 'GET',
     });
+    return response as {
+      status: 'healthy' | 'unhealthy';
+      timestamp: string;
+      uptime: number;
+      version: string;
+      memoryUsage: {
+        used: number;
+        total: number;
+        percentage: number;
+      };
+      activeConnections: number;
+      totalRequests: number;
+    };
   }
 
   /**
@@ -242,9 +267,22 @@ export class AgentServiceClient {
     environment: string;
     version: string;
   }> {
-    return this.makeRequest('/api/metrics', {
+    const response = await this.makeRequest('/api/metrics', {
       method: 'GET',
     });
+    return response as {
+      uptime: number;
+      totalRequests: number;
+      activeConnections: number;
+      memoryUsage: {
+        rss: number;
+        heapTotal: number;
+        heapUsed: number;
+        external: number;
+      };
+      environment: string;
+      version: string;
+    };
   }
 
   /**
@@ -311,11 +349,11 @@ export class AgentServiceClient {
           }
 
           throw new AgentServiceError(
-            errorData.message || `HTTP ${response.status}`,
-            errorData.error || 'HTTP_ERROR',
+            (errorData.message as string) || `HTTP ${response.status}`,
+            (errorData.error as string) || 'HTTP_ERROR',
             response.status,
-            errorData.requestId || requestId,
-            errorData.metadata
+            (errorData.requestId as string) || requestId,
+            errorData.metadata as Record<string, unknown>
           );
         }
 

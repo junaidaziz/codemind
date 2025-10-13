@@ -21,7 +21,17 @@
     "forceConsistentCasingInFileNames": true,
     "paths": {
       "@/*": [
-        "./src/app/*"
+        "./src/*"
+      ],
+      "@/lib/*": [
+        "./src/app/lib/*",
+        "./src/lib/*"
+      ],
+      "@/components/*": [
+        "./src/components/*"
+      ],
+      "@/types/*": [
+        "./src/types/*"
       ]
     },
     "plugins": [
@@ -38,6 +48,8 @@
     "src/types/**/*.d.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "services/**",
+    "scripts/**"
   ]
 }

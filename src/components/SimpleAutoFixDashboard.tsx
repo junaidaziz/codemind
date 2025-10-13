@@ -23,6 +23,11 @@ export default function SimpleAutoFixDashboard() {
   const [stats, setStats] = useState<AutoFixStats | null>(null)
   const [sessions, setSessions] = useState<AutoFixSession[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [healthCheck, setHealthCheck] = useState<{
+    overall: string
+    checks: Record<string, { status: string; message: string }>
+    recommendations: string[]
+  } | null>(null)
 
   // Fetch dashboard data
   const fetchData = async () => {
@@ -40,6 +45,13 @@ export default function SimpleAutoFixDashboard() {
       if (sessionsResponse.ok) {
         const sessionsData = await sessionsResponse.json()
         setSessions(sessionsData.sessions)
+      }
+
+      // Fetch health check
+      const healthResponse = await fetch('/api/auto-fix/health')
+      if (healthResponse.ok) {
+        const healthData = await healthResponse.json()
+        setHealthCheck(healthData)
       }
     } catch (err) {
       setError('Failed to load dashboard data')
@@ -86,14 +98,46 @@ export default function SimpleAutoFixDashboard() {
   }, [])
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 max-w-6xl mx-auto">
+      {/* Header with Feature Overview */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Auto Fix Dashboard
+          🤖 Auto Fix Dashboard
         </h1>
-        <p className="text-gray-600">
-          Monitor and manage automated code fixes and pull requests
+        <p className="text-gray-600 mb-4">
+          AI-powered automated code repair system with GitHub integration
         </p>
+        
+        {/* Available Features */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <h2 className="text-lg font-semibold text-blue-900 mb-3">✨ Available Features</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="flex items-center space-x-2">
+              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+              <span className="text-sm text-blue-800">AI Error Analysis (GPT-4)</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+              <span className="text-sm text-blue-800">Automatic PR Creation</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+              <span className="text-sm text-blue-800">GitHub Actions Integration</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+              <span className="text-sm text-blue-800">JavaScript/TypeScript Support</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+              <span className="text-sm text-blue-800">Syntax & Runtime Error Fixes</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+              <span className="text-sm text-blue-800">Real-time Monitoring</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {error && (
@@ -104,23 +148,43 @@ export default function SimpleAutoFixDashboard() {
 
       {/* Quick Actions */}
       <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-        <div className="flex gap-4">
+        <h2 className="text-xl font-semibold mb-4">🚀 Quick Actions</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Button 
             onClick={testAutoFix}
             disabled={isLoading}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-blue-600 hover:bg-blue-700 text-white h-12"
           >
-            {isLoading ? 'Processing...' : 'Test Auto Fix'}
+            {isLoading ? '🔄 Processing...' : '🧪 Test Auto Fix'}
           </Button>
           
           <Button 
             onClick={fetchData}
             disabled={isLoading}
             variant="outline"
+            className="h-12"
           >
-            Refresh Data
+            🔄 Refresh Data
           </Button>
+
+          <Button 
+            onClick={() => window.open('/api/github/auto-fix', '_blank')}
+            variant="outline"
+            className="h-12"
+          >
+            🔗 Test GitHub Auth
+          </Button>
+        </div>
+
+        {/* How to Use Instructions */}
+        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+          <h3 className="font-medium text-gray-900 mb-2">🎯 How to Use:</h3>
+          <ol className="text-sm text-gray-600 space-y-1">
+            <li><strong>1. Test Auto Fix:</strong> Click to test the system with sample error logs</li>
+            <li><strong>2. Monitor Sessions:</strong> Watch the Recent Sessions section for results</li>
+            <li><strong>3. Check GitHub:</strong> Look for automatically created pull requests in your repository</li>
+            <li><strong>4. CI Integration:</strong> Push code with errors to trigger automatic fixes</li>
+          </ol>
         </div>
       </div>
 
@@ -191,22 +255,107 @@ export default function SimpleAutoFixDashboard() {
         </div>
       </div>
 
+      {/* Error Types Supported */}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4">🔧 Supported Error Types</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-white p-4 rounded-lg border">
+            <h3 className="font-semibold text-gray-900 mb-3">🐛 JavaScript/TypeScript</h3>
+            <ul className="text-sm text-gray-600 space-y-1">
+              <li>• TypeError (null/undefined access)</li>
+              <li>• ReferenceError (undefined variables)</li>
+              <li>• SyntaxError (missing brackets, semicolons)</li>
+              <li>• Import/Export issues</li>
+              <li>• Type annotation errors</li>
+            </ul>
+          </div>
+          <div className="bg-white p-4 rounded-lg border">
+            <h3 className="font-semibold text-gray-900 mb-3">⚙️ Build & Runtime</h3>
+            <ul className="text-sm text-gray-600 space-y-1">
+              <li>• Build compilation errors</li>
+              <li>• Linting rule violations</li>
+              <li>• Missing dependencies</li>
+              <li>• Configuration issues</li>
+              <li>• Test failures (basic patterns)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       {/* System Health Check */}
       <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">System Health</h2>
+        <h2 className="text-xl font-semibold mb-4">🏥 System Health</h2>
         <div className="bg-white p-4 rounded-lg border">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center">
-              <div className="h-3 w-3 bg-green-500 rounded-full mr-2"></div>
-              <span className="text-sm text-gray-700">Database Connected</span>
+          {healthCheck ? (
+            <div>
+              <div className={`p-3 rounded-lg mb-4 ${
+                healthCheck.overall === 'ready' ? 'bg-green-50 border border-green-200' :
+                healthCheck.overall === 'needs_setup' ? 'bg-yellow-50 border border-yellow-200' :
+                'bg-red-50 border border-red-200'
+              }`}>
+                <div className="flex items-center mb-2">
+                  <span className={`h-3 w-3 rounded-full mr-2 ${
+                    healthCheck.overall === 'ready' ? 'bg-green-500' :
+                    healthCheck.overall === 'needs_setup' ? 'bg-yellow-500' :
+                    'bg-red-500'
+                  }`}></span>
+                  <span className="font-medium">
+                    {healthCheck.overall === 'ready' ? '✅ System Ready' :
+                     healthCheck.overall === 'needs_setup' ? '⚠️ Setup Required' :
+                     '❌ Configuration Issues'}
+                  </span>
+                </div>
+                <ul className="text-sm space-y-1">
+                  {healthCheck.recommendations.map((rec: string, i: number) => (
+                    <li key={i}>• {rec}</li>
+                  ))}
+                </ul>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {Object.entries(healthCheck.checks).map(([key, check]: [string, { status: string; message: string }]) => (
+                  <div key={key} className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className={`h-3 w-3 rounded-full mr-2 ${
+                        check.status === 'success' ? 'bg-green-500' :
+                        check.status === 'warning' ? 'bg-yellow-500' :
+                        'bg-red-500'
+                      }`}></div>
+                      <span className="text-sm text-gray-700 capitalize">{key}</span>
+                    </div>
+                    <span className={`text-xs px-2 py-1 rounded ${
+                      check.status === 'success' ? 'bg-green-100 text-green-800' :
+                      check.status === 'warning' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {check.message}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="flex items-center">
-              <div className="h-3 w-3 bg-green-500 rounded-full mr-2"></div>
-              <span className="text-sm text-gray-700">API Endpoints Ready</span>
+          ) : (
+            <div className="text-center text-gray-500">Loading health check...</div>
+          )}
+        </div>
+      </div>
+
+      {/* API Endpoints */}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4">🔌 API Endpoints</h2>
+        <div className="bg-white p-4 rounded-lg border">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+              <span className="font-mono text-sm">POST /api/github/auto-fix</span>
+              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Trigger Auto Fix</span>
             </div>
-            <div className="flex items-center">
-              <div className="h-3 w-3 bg-yellow-500 rounded-full mr-2"></div>
-              <span className="text-sm text-gray-700">GitHub Integration Configured</span>
+            <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+              <span className="font-mono text-sm">GET /api/auto-fix/stats</span>
+              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">View Statistics</span>
+            </div>
+            <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+              <span className="font-mono text-sm">GET /api/auto-fix/sessions</span>
+              <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Session History</span>
             </div>
           </div>
         </div>

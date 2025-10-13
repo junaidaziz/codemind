@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
+import { AutoFixStatus } from '@prisma/client'
 
 export async function GET(req: NextRequest) {
   try {
@@ -11,10 +12,20 @@ export async function GET(req: NextRequest) {
 
     const offset = (page - 1) * limit
 
-    // Build where clause
-    const where = {
-      ...(projectId && { projectId }),
-      ...(status && status !== 'all' && { status })
+    // Build where clause with proper typing
+    const where: {
+      projectId?: string
+      status?: AutoFixStatus
+    } = {}
+    
+    if (projectId) {
+      where.projectId = projectId
+    }
+    if (status && status !== 'all') {
+      // Only allow valid enum values
+      if (Object.values(AutoFixStatus).includes(status as AutoFixStatus)) {
+        where.status = status as AutoFixStatus
+      }
     }
 
 
