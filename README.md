@@ -51,12 +51,17 @@ An intelligent code understanding and chat platform that helps developers explor
 2. **Install dependencies:**
    ```bash
    pnpm install
+   # This will automatically install agent-core dependencies via postinstall
    ```
 
 3. **Set up environment variables:**
    ```bash
    cp env.production.template .env.local
    # Edit .env.local with your configuration
+   
+   # Also configure agent-core service
+   cp services/agent-core/env.template services/agent-core/.env
+   # Edit services/agent-core/.env with agent service configuration
    ```
 
 4. **Set up the database:**
@@ -68,20 +73,47 @@ An intelligent code understanding and chat platform that helps developers explor
 5. **Start the development server:**
    ```bash
    pnpm dev
+   
+   # In another terminal, start the agent service:
+   npm run agent:dev
    ```
 
 6. **Open your browser:**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
-## 🤖 Agent Service Deployment
+## 🤖 Agent Service Management
 
-CodeMind now supports a standalone agent service for improved scalability and performance:
+CodeMind includes a standalone agent service for improved scalability and performance. Use these npm scripts to manage the agent service:
+
+### Agent Service Scripts
+
+```bash
+# Install agent-core dependencies
+npm run agent:install
+
+# Build agent-core for production
+npm run agent:build
+
+# Start agent-core in development mode
+npm run agent:dev
+
+# Start agent-core in production mode
+npm run agent:start
+
+# Run agent-core tests
+npm run agent:test
+
+# Lint agent-core code
+npm run agent:lint
+```
 
 ### Quick Agent Service Setup
 
 1. **Start the agent service:**
    ```bash
    ./scripts/start-agent-service.sh
+   # OR use npm script:
+   npm run agent:dev
    ```
 
 2. **Enable standalone agent in web app:**

@@ -12,20 +12,49 @@ A standalone microservice for AI agent processing, extracted from the main CodeM
 
 ## Quick Start
 
-### Local Development
+### From Main Project
 
-1. **Install Dependencies**
+The easiest way to work with the agent service is through the main project's npm scripts:
+
 ```bash
-npm install
+# Install agent-core dependencies
+npm run agent:install
+
+# Build agent-core service
+npm run agent:build
+
+# Start agent-core in development mode
+npm run agent:dev
+
+# Start agent-core in production mode
+npm run agent:start
+
+# Run agent-core tests
+npm run agent:test
+
+# Lint agent-core code
+npm run agent:lint
 ```
 
-2. **Configure Environment**
+### Local Development (Direct)
+
+1. **Navigate to agent-core directory**
+```bash
+cd services/agent-core
+```
+
+2. **Install Dependencies**
+```bash
+npm install --legacy-peer-deps
+```
+
+3. **Configure Environment**
 ```bash
 cp env.template .env
 # Edit .env with your configuration
 ```
 
-3. **Start Development Server**
+4. **Start Development Server**
 ```bash
 npm run dev
 ```
