@@ -1,3 +1,22 @@
+# 🔍 Vercel Build Failure Analysis
+
+**Generated on:** 2025-10-13 16:53:56 UTC
+**Deployment ID:** 
+**Repository:** junaidaziz/codemind
+**Branch:** main
+**Commit:** e9490a035a1aeda6f63c34b182f3b693002df1fe
+
+## ❌ Build Failure Summary
+Build failed due to missing module imports.
+
+## 🔍 Root Cause Analysis
+Unknown cause
+
+## 🛠️ Suggested Fix
+See analysis for details
+
+## 📊 Full Analysis
+```json
 {
   "deployment": {
     "uid": "dpl_9MCVcsCeH9kB5hq3h4uMo76GdsEm",
@@ -58,3 +77,7 @@
   },
   "timestamp": "2025-10-13T16:53:56.347Z"
 }
+```
+
+---
+*This analysis was generated automatically by our AI-powered build failure analyzer.*
