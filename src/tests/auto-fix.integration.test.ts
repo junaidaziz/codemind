@@ -1,9 +1,12 @@
+/// <reference types="jest" />
+
 /**
  * Auto Fix System Integration Tests
  * Comprehensive test suite for the complete auto-fix workflow
  */
 
-import { describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals'
+// Jest globals (describe, test, expect, beforeEach, afterEach) are available globally
+// No need to import from '@jest/globals'
 import { GitHubAutoFixService } from '../lib/autoFix'
 import { LogAnalysisService } from '../lib/analyzeLogs'
 import prisma from '../app/lib/db'
