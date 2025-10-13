@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate && npm run agent:install",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
@@ -15,7 +15,13 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:all": "npm run test && npm run test:e2e",
-    "analyze-vercel": "ts-node scripts/analyze-vercel-build.ts"
+    "analyze-vercel": "ts-node scripts/analyze-vercel-build.ts",
+    "agent:install": "cd services/agent-core && npm install --legacy-peer-deps",
+    "agent:build": "cd services/agent-core && npm run build",
+    "agent:dev": "cd services/agent-core && npm run dev",
+    "agent:start": "cd services/agent-core && npm run start",
+    "agent:test": "cd services/agent-core && npm run test",
+    "agent:lint": "cd services/agent-core && npm run lint"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -54,6 +60,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/winston": "^2.4.4",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
     "eslint-plugin-react-hooks": "^5.2.0",
@@ -63,6 +70,7 @@
     "playwright": "^1.56.0",
     "tailwindcss": "^4",
     "ts-jest": "^29.4.5",
-    "typescript": "^5"
+    "typescript": "^5",
+    "winston": "^3.18.3"
   }
 }

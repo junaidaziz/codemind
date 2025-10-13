@@ -16,6 +16,15 @@ import {
   AgentStreamChunkSchema
 } from './types.js';
 
+// Interface for intermediate steps
+interface IntermediateStep {
+  action?: {
+    tool?: string;
+    toolInput?: Record<string, unknown>;
+  };
+  observation?: string;
+}
+
 /**
  * Core Agent Processor
  * Handles AI agent processing independently from Next.js web application
@@ -401,13 +410,16 @@ User query: ${message}`;
     success: boolean;
     executionTimeMs: number;
   }> {
-    return intermediateSteps.map((step, index) => ({
-      name: step.action?.tool || `tool_${index}`,
-      input: JSON.stringify(step.action?.toolInput || {}),
-      output: step.observation || '',
-      success: !step.observation?.includes('error'),
-      executionTimeMs: 100, // Placeholder - would need proper timing
-    }));
+    return intermediateSteps.map((step, index) => {
+      const typedStep = step as IntermediateStep;
+      return {
+        name: typedStep?.action?.tool || `tool_${index}`,
+        input: JSON.stringify(typedStep?.action?.toolInput || {}),
+        output: typedStep?.observation || '',
+        success: !typedStep?.observation?.includes('error'),
+        executionTimeMs: 100, // Placeholder - would need proper timing
+      };
+    });
   }
 
   /**

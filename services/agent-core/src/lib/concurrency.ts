@@ -95,7 +95,7 @@ export class ConcurrencyManager {
         this.recordRateLimitRequest(clientId);
 
         // Add metrics to request object
-        (req as any).concurrencyMetrics = {
+        (req as Request & { concurrencyMetrics?: { startTime: number; clientId: string } }).concurrencyMetrics = {
           startTime,
           clientId,
         };

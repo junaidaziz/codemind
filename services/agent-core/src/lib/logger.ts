@@ -3,16 +3,9 @@ import { env } from './env.js';
 
 const { combine, timestamp, errors, json, colorize, printf } = winston.format;
 
-// Define log info interface
-interface LogInfo {
-  level: string;
-  message: string;
-  timestamp: string;
-  [key: string]: unknown;
-}
-
 // Custom format for simple logging
-const simpleFormat = printf(({ level, message, timestamp, ...meta }: LogInfo) => {
+const simpleFormat = printf((info) => {
+  const { level, message, timestamp, ...meta } = info;
   const metaStr = Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : '';
   return `${timestamp} [${level.toUpperCase()}] ${message}${metaStr}`;
 });
@@ -61,6 +54,7 @@ export const agentLogger = {
     command?: string;
     executionTimeMs?: number;
     toolsUsed?: string[];
+    requestId?: string;
   }) => {
     logger.info(message, { 
       type: 'execution',
@@ -72,10 +66,18 @@ export const agentLogger = {
    * Log performance metrics
    */
   performance: (message: string, metrics: {
-    executionTimeMs: number;
+    executionTimeMs?: number;
     memoryUsage?: number;
     tokenUsage?: number;
     toolExecutions?: number;
+    activeRequests?: number;
+    totalRequests?: number;
+    requestsPerSecond?: number;
+    averageResponseTime?: number;
+    memoryUsageMB?: number;
+    rateLimitEntries?: number;
+    statusCode?: number;
+    endpoint?: string;
   }) => {
     logger.info(message, {
       type: 'performance', 
@@ -107,6 +109,8 @@ export const agentLogger = {
     endpoint?: string;
     limit?: number;
     current?: number;
+    clientId?: string;
+    userAgent?: string;
   }) => {
     logger.warn(message, {
       type: 'rate_limit',
