@@ -55,8 +55,22 @@ export const RealtimeCollaborationPanel: React.FC<RealtimeCollaborationPanelProp
   };
 
   const getConnectionStatusIcon = () => {
-    if (isConnected) return '🟢';
-    return '🔴';
+    switch (connectionStatus) {
+      case 'connected': return '🟢';
+      case 'connecting': return '�';
+      case 'error': return '�🔴';
+      default: return '⚪';
+    }
+  };
+
+  const getConnectionStatusText = () => {
+    switch (connectionStatus) {
+      case 'connected': return 'Connected - Real-time collaboration active';
+      case 'connecting': return 'Connecting to collaboration server...';
+      case 'error': return 'Connection failed - Check internet connection';
+      case 'disconnected': return 'Disconnected - Click to connect for collaboration';
+      default: return 'Unknown status';
+    }
   };
 
   const displayParticipants = participants.slice(0, maxParticipants);
@@ -71,7 +85,7 @@ export const RealtimeCollaborationPanel: React.FC<RealtimeCollaborationPanelProp
             <span>👥</span>
             <span>Active Users ({participants.length})</span>
           </div>
-          <div className={`flex items-center gap-2 ${getConnectionStatusColor()}`}>
+          <div className={`flex items-center gap-2 ${getConnectionStatusColor()}`} title={getConnectionStatusText()}>
             <span>{getConnectionStatusIcon()}</span>
             <span className="text-xs font-normal capitalize">
               {connectionStatus}
@@ -82,22 +96,37 @@ export const RealtimeCollaborationPanel: React.FC<RealtimeCollaborationPanelProp
       
       <div className="p-4 space-y-4">
         {/* Connection Controls */}
-        {connectionStatus === 'disconnected' || connectionStatus === 'error' ? (
-          <button 
-            onClick={connect} 
-            disabled={isConnecting}
-            className="w-full px-3 py-2 text-sm border rounded-md hover:bg-gray-50 disabled:opacity-50"
-          >
-            {isConnecting ? 'Connecting...' : 'Reconnect'}
-          </button>
-        ) : (
-          <button 
-            onClick={disconnect} 
-            className="w-full px-3 py-2 text-sm border rounded-md hover:bg-gray-50"
-          >
-            Disconnect
-          </button>
-        )}
+        <div className="space-y-2">
+          <div className="text-xs text-gray-600 font-medium">Real-time Collaboration</div>
+          {connectionStatus === 'disconnected' || connectionStatus === 'error' ? (
+            <div className="space-y-2">
+              <button 
+                onClick={connect} 
+                disabled={isConnecting}
+                className="w-full px-3 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isConnecting ? 'Connecting...' : 'Connect to Collaborate'}
+              </button>
+              {connectionStatus === 'error' && (
+                <div className="text-xs text-red-600 bg-red-50 p-2 rounded border">
+                  ⚠️ Connection failed. Check your internet connection and try again.
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="text-xs text-green-600 bg-green-50 p-2 rounded border">
+                ✅ Connected - You can see and collaborate with other users
+              </div>
+              <button 
+                onClick={disconnect} 
+                className="w-full px-3 py-2 text-sm border rounded-md hover:bg-gray-50"
+              >
+                Disconnect
+              </button>
+            </div>
+          )}
+        </div>
 
         <hr className="border-gray-200" />
 

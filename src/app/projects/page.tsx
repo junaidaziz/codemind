@@ -172,6 +172,40 @@ function ProjectsPageContent() {
     }
   };
 
+  const getStatusInfo = (status: string) => {
+    switch (status) {
+      case 'ready':
+        return 'Project is indexed and ready for chat interactions';
+      case 'indexing':
+        return 'Project is currently being indexed. This process analyzes your code structure and content for AI assistance';
+      case 'error':
+        return 'Indexing failed due to repository access issues, network errors, or unsupported file types';
+      case 'idle':
+      default:
+        return 'Project has been created but not yet indexed';
+    }
+  };
+
+  const getReindexButtonText = (project: Project) => {
+    if (reindexingProjects.has(project.id) || project.status === 'indexing') {
+      return 'Reindexing...';
+    }
+    
+    if (project.lastIndexedAt) {
+      return 'Re-index';
+    }
+    
+    return 'Index Now';
+  };
+
+  const getReindexTooltip = (project: Project) => {
+    if (project.lastIndexedAt) {
+      return 'Re-index this project to update the AI knowledge base with recent code changes. This analyzes your repository structure, extracts code context, and prepares embeddings for intelligent chat responses.';
+    }
+    
+    return 'Index this project for the first time to enable AI chat functionality. This process analyzes your code structure and prepares it for intelligent assistance.';
+  };
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Never';
     const date = new Date(dateString);
@@ -187,7 +221,7 @@ function ProjectsPageContent() {
       <div className="max-w-7xl mx-auto p-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-3xl font-bold mb-2">📁 Projects Dashboard</h1>
               <p className="text-gray-600 dark:text-gray-400">
@@ -207,6 +241,20 @@ function ProjectsPageContent() {
               >
                 ← Back to Home
               </Link>
+            </div>
+          </div>
+          
+          {/* Information Panel */}
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <div className="text-blue-600 dark:text-blue-400 text-xl">💡</div>
+              <div>
+                <h3 className="font-semibold text-blue-900 dark:text-blue-300 mb-1">About Project Indexing</h3>
+                <p className="text-sm text-blue-800 dark:text-blue-300 leading-relaxed">
+                  Indexing analyzes your repository structure, extracts code context, and creates AI embeddings for intelligent chat responses. 
+                  Projects must be indexed before you can chat with them. Re-index after significant code changes to keep the AI knowledge up-to-date.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -276,9 +324,19 @@ function ProjectsPageContent() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={getStatusBadge(project.status)}>
-                          {project.status}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={getStatusBadge(project.status)}>
+                            {project.status}
+                          </span>
+                          <div className="group relative">
+                            <svg className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div className="absolute left-0 top-6 w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                              {getStatusInfo(project.status)}
+                            </div>
+                          </div>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {formatDate(project.lastIndexedAt)}
@@ -291,19 +349,27 @@ function ProjectsPageContent() {
                           >
                             Chat
                           </Link>
-                          <button
-                            onClick={() => handleReindex(project.id)}
-                            disabled={reindexingProjects.has(project.id) || project.status === 'indexing'}
-                            className="px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs"
-                          >
-                            {reindexingProjects.has(project.id) || project.status === 'indexing' ? (
-                              <InlineSpinner size="sm" color="white">
-                                Reindexing...
-                              </InlineSpinner>
-                            ) : (
-                              'Reindex'
-                            )}
-                          </button>
+                          <div className="group relative">
+                            <button
+                              onClick={() => handleReindex(project.id)}
+                              disabled={reindexingProjects.has(project.id) || project.status === 'indexing'}
+                              className="px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs"
+                              title={getReindexTooltip(project)}
+                            >
+                              {reindexingProjects.has(project.id) || project.status === 'indexing' ? (
+                                <InlineSpinner size="sm" color="white">
+                                  Reindexing...
+                                </InlineSpinner>
+                              ) : (
+                                getReindexButtonText(project)
+                              )}
+                            </button>
+                            <div className="absolute right-0 top-8 w-80 p-3 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                              <strong>What is indexing?</strong>
+                              <br />
+                              {getReindexTooltip(project)}
+                            </div>
+                          </div>
                           <button
                             onClick={() => handleDeleteProject(project.id, project.name)}
                             className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-xs"
@@ -342,10 +408,28 @@ function ProjectsPageContent() {
               <div className="text-sm text-gray-600 dark:text-gray-400">Indexing</div>
             </div>
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
-              <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-                {projects.filter(p => p.status === 'error').length}
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                    {projects.filter(p => p.status === 'error').length}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Indexing Errors</div>
+                </div>
+                <div className="group relative">
+                  <svg className="w-5 h-5 text-gray-400 hover:text-gray-600 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="absolute right-0 top-6 w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                    <strong>Indexing Errors</strong>
+                    <br />
+                    Projects that failed to index due to:
+                    <br />• Repository access permissions
+                    <br />• Network connectivity issues  
+                    <br />• Unsupported file formats
+                    <br />• Large repository size limits
+                  </div>
+                </div>
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Errors</div>
             </div>
           </div>
         )}
