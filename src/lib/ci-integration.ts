@@ -140,7 +140,7 @@ export class CIIntegrationService {
       metadata: {
         eventData: event as Record<string, unknown>,
         triggeredAt: now.toISOString(),
-        triggeredBy: event.sender.login,
+        triggeredBy: 'sender' in event ? (event.sender as { login: string }).login : 'system',
       },
     };
 

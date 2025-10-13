@@ -12,17 +12,139 @@ import {
   GitHubPullRequestEventSchema,
   GitHubIssuesEventSchema,
   GitHubReleaseEventSchema,
+  WorkflowRunEventSchema,
+  CheckSuiteEventSchema,
   shouldReindexProject,
   getEventDescription,
   type GitHubWebhookEvent,
+  type WorkflowRunEvent,
+  type CheckSuiteEvent,
   GITHUB_EVENTS,
+  AUTO_FIX_TRIGGERS,
 } from '../../../../types/github';
 import { ciIntegration } from '../../../../lib/ci-integration';
 import { jobQueue, JobType, type PRAnalysisJobData } from '../../../../lib/job-queue';
 import { JobType as FullIndexJobType, type FullIndexJobData } from '../../../../lib/job-processors';
+import { analyzeAndAutoFix } from '../../../../lib/analyzeLogs';
+import { Octokit } from '@octokit/rest';
+import { env } from '../../../../types/env';
+/**
+ * Fetch workflow run logs from GitHub API
+ */
+async function fetchWorkflowRunLogs(
+  repository: { owner: { login: string }; name: string },
+  runId: number
+): Promise<string | null> {
+  try {
+    // Create GitHub client
+    const octokit = new Octokit({
+      auth: env.GITHUB_PRIVATE_KEY ? undefined : env.GITHUB_TOKEN,
+    });
 
+    // Get workflow run jobs
+    const { data: jobs } = await octokit.rest.actions.listJobsForWorkflowRun({
+      owner: repository.owner.login,
+      repo: repository.name,
+      run_id: runId,
+    });
 
+    // Collect logs from all failed jobs
+    const logContents: string[] = [];
 
+    for (const job of jobs.jobs) {
+      if (job.conclusion === 'failure') {
+        try {
+          // Get job logs
+          const { data: logData } = await octokit.rest.actions.downloadJobLogsForWorkflowRun({
+            owner: repository.owner.login,
+            repo: repository.name,
+            job_id: job.id,
+          });
+
+          if (logData && typeof logData === 'string') {
+            logContents.push(`=== Job: ${job.name} ===\n${logData}\n`);
+          }
+        } catch {
+          logger.warn('Failed to fetch job logs', {
+            jobId: job.id,
+            jobName: job.name,
+          });
+        }
+      }
+    }
+
+    return logContents.length > 0 ? logContents.join('\n') : null;
+
+  } catch (error) {
+    logger.error('Failed to fetch workflow run logs', {
+      owner: repository.owner.login,
+      repo: repository.name,
+      runId,
+    }, error as Error);
+    
+    return null;
+  }
+}
+
+/**
+ * Fetch check suite logs from GitHub API
+ */
+async function fetchCheckSuiteLogs(
+  repository: { owner: { login: string }; name: string },
+  checkSuiteId: number
+): Promise<string | null> {
+  try {
+    // Create GitHub client
+    const octokit = new Octokit({
+      auth: env.GITHUB_PRIVATE_KEY ? undefined : env.GITHUB_TOKEN,
+    });
+
+    // Get check runs for the check suite
+    const { data: checkRuns } = await octokit.rest.checks.listForSuite({
+      owner: repository.owner.login,
+      repo: repository.name,
+      check_suite_id: checkSuiteId,
+    });
+
+    // Collect logs from all failed check runs
+    const logContents: string[] = [];
+
+    for (const checkRun of checkRuns.check_runs) {
+      if (checkRun.conclusion === 'failure') {
+        try {
+          // Get check run details which may include logs in output
+          const { data: checkRunDetails } = await octokit.rest.checks.get({
+            owner: repository.owner.login,
+            repo: repository.name,
+            check_run_id: checkRun.id,
+          });
+
+          if (checkRunDetails.output?.text) {
+            logContents.push(`=== Check: ${checkRun.name} ===\n${checkRunDetails.output.text}\n`);
+          } else if (checkRunDetails.output?.summary) {
+            logContents.push(`=== Check: ${checkRun.name} ===\n${checkRunDetails.output.summary}\n`);
+          }
+        } catch {
+          logger.warn('Failed to fetch check run details', {
+            checkRunId: checkRun.id,
+            checkRunName: checkRun.name,
+          });
+        }
+      }
+    }
+
+    return logContents.length > 0 ? logContents.join('\n') : null;
+
+  } catch (error) {
+    logger.error('Failed to fetch check suite logs', {
+      owner: repository.owner.login,
+      repo: repository.name,
+      checkSuiteId,
+    }, error as Error);
+    
+    return null;
+  }
+}
 
 // Process GitHub webhook event
 async function processWebhookEvent(
@@ -55,6 +177,14 @@ async function processWebhookEvent(
       
       case GITHUB_EVENTS.RELEASE:
         parsedEvent = { event_type: 'release', ...GitHubReleaseEventSchema.parse(eventData) };
+        break;
+      
+      case AUTO_FIX_TRIGGERS.WORKFLOW_RUN:
+        parsedEvent = { event_type: 'workflow_run', ...WorkflowRunEventSchema.parse(eventData) };
+        break;
+      
+      case AUTO_FIX_TRIGGERS.CHECK_SUITE:
+        parsedEvent = { event_type: 'check_suite', ...CheckSuiteEventSchema.parse(eventData) };
         break;
       
       default:
@@ -132,7 +262,122 @@ async function processWebhookEvent(
         }
       }
     }
-    
+
+    // Handle workflow_run events for auto-fix triggers
+    if (eventType === AUTO_FIX_TRIGGERS.WORKFLOW_RUN && parsedEvent.event_type === 'workflow_run') {
+      const workflowEvent = parsedEvent as WorkflowRunEvent;
+      const { action, workflow_run, repository } = workflowEvent;
+      
+      // Trigger auto-fix on workflow failure
+      if (action === 'completed' && workflow_run.conclusion === 'failure') {
+        logger.info('Workflow run failed, triggering auto-fix analysis', {
+          projectId,
+          workflowName: workflow_run.name,
+          runNumber: workflow_run.run_number,
+          headSha: workflow_run.head_sha,
+        });
+
+        try {
+          // Fetch workflow run logs for analysis
+          const logs = await fetchWorkflowRunLogs(repository, workflow_run.id);
+          
+          if (logs) {
+            // Trigger auto-fix analysis
+            const autoFixResult = await analyzeAndAutoFix(
+              logs,
+              projectId,
+              repository.html_url,
+              undefined, // No specific user for webhook triggers
+              `Repository: ${repository.full_name}, Workflow: ${workflow_run.name}`
+            );
+
+            logger.info('Auto-fix analysis completed for failed workflow', {
+              projectId,
+              workflowName: workflow_run.name,
+              analysisSuccess: autoFixResult.analysis.confidence > 0.5,
+              fixableIssues: autoFixResult.analysis.fixableIssues.length,
+              autoFixSuccess: autoFixResult.autoFixResult?.success,
+              prUrl: autoFixResult.autoFixResult?.prUrl,
+            });
+
+            return {
+              success: true,
+              message: `${description} - Auto-fix triggered: ${autoFixResult.analysis.fixableIssues.length} issues analyzed${autoFixResult.autoFixResult?.prUrl ? `, PR created: ${autoFixResult.autoFixResult.prUrl}` : ''}`,
+              shouldReindex,
+              ciJobId: ciResult.jobId,
+            };
+          } else {
+            logger.warn('Could not fetch workflow run logs for auto-fix', {
+              projectId,
+              workflowRunId: workflow_run.id,
+            });
+          }
+        } catch (error) {
+          logger.error('Failed to process workflow failure for auto-fix', {
+            projectId,
+            workflowRunId: workflow_run.id,
+          }, error as Error);
+        }
+      }
+    }
+
+    // Handle check_suite events for auto-fix triggers  
+    if (eventType === AUTO_FIX_TRIGGERS.CHECK_SUITE && parsedEvent.event_type === 'check_suite') {
+      const checkSuiteEvent = parsedEvent as CheckSuiteEvent;
+      const { action, check_suite, repository } = checkSuiteEvent;
+      
+      // Trigger auto-fix on check suite failure
+      if (action === 'completed' && check_suite.conclusion === 'failure') {
+        logger.info('Check suite failed, triggering auto-fix analysis', {
+          projectId,
+          checkSuiteId: check_suite.id,
+          headSha: check_suite.head_sha,
+          pullRequests: check_suite.pull_requests.length,
+        });
+
+        try {
+          // Fetch check suite logs for analysis
+          const logs = await fetchCheckSuiteLogs(repository, check_suite.id);
+          
+          if (logs) {
+            // Trigger auto-fix analysis
+            const autoFixResult = await analyzeAndAutoFix(
+              logs,
+              projectId,
+              repository.html_url,
+              undefined, // No specific user for webhook triggers
+              `Repository: ${repository.full_name}, Check Suite: ${check_suite.id}`
+            );
+
+            logger.info('Auto-fix analysis completed for failed check suite', {
+              projectId,
+              checkSuiteId: check_suite.id,
+              analysisSuccess: autoFixResult.analysis.confidence > 0.5,
+              fixableIssues: autoFixResult.analysis.fixableIssues.length,
+              autoFixSuccess: autoFixResult.autoFixResult?.success,
+              prUrl: autoFixResult.autoFixResult?.prUrl,
+            });
+
+            return {
+              success: true,
+              message: `${description} - Auto-fix triggered: ${autoFixResult.analysis.fixableIssues.length} issues analyzed${autoFixResult.autoFixResult?.prUrl ? `, PR created: ${autoFixResult.autoFixResult.prUrl}` : ''}`,
+              shouldReindex,
+              ciJobId: ciResult.jobId,
+            };
+          } else {
+            logger.warn('Could not fetch check suite logs for auto-fix', {
+              projectId,
+              checkSuiteId: check_suite.id,
+            });
+          }
+        } catch (error) {
+          logger.error('Failed to process check suite failure for auto-fix', {
+            projectId,
+            checkSuiteId: check_suite.id,
+          }, error as Error);
+        }
+      }
+    }
 
 
     logger.info('GitHub webhook event processed successfully', {

@@ -167,12 +167,54 @@ export const GitHubReleaseEventSchema = z.object({
   sender: GitHubUserSchema,
 });
 
+// Workflow run event that might trigger auto-fix
+export const WorkflowRunEventSchema = z.object({
+  action: z.enum(['completed', 'requested']),
+  workflow_run: z.object({
+    id: z.number(),
+    name: z.string(),
+    status: z.string(),
+    conclusion: z.enum(['success', 'failure', 'neutral', 'cancelled', 'timed_out', 'action_required', 'stale']).nullable(),
+    head_branch: z.string(),
+    head_sha: z.string(),
+    run_number: z.number(),
+    html_url: z.string().url(),
+  }),
+  repository: GitHubRepositorySchema,
+});
+
+export type WorkflowRunEvent = z.infer<typeof WorkflowRunEventSchema>;
+
+// Check suite event for build status monitoring
+export const CheckSuiteEventSchema = z.object({
+  action: z.enum(['completed', 'requested', 'rerequested']),
+  check_suite: z.object({
+    id: z.number(),
+    status: z.string(),
+    conclusion: z.enum(['success', 'failure', 'neutral', 'cancelled', 'timed_out', 'action_required', 'stale']).nullable(),
+    head_branch: z.string(),
+    head_sha: z.string(),
+    pull_requests: z.array(z.object({
+      number: z.number(),
+      head: z.object({
+        ref: z.string(),
+        sha: z.string(),
+      }),
+    })),
+  }),
+  repository: GitHubRepositorySchema,
+});
+
+export type CheckSuiteEvent = z.infer<typeof CheckSuiteEventSchema>;
+
 // Generic Webhook Event Schema
 export const GitHubWebhookEventSchema = z.discriminatedUnion('event_type', [
   z.object({ event_type: z.literal('push'), ...GitHubPushEventSchema.shape }),
   z.object({ event_type: z.literal('pull_request'), ...GitHubPullRequestEventSchema.shape }),
   z.object({ event_type: z.literal('issues'), ...GitHubIssuesEventSchema.shape }),
   z.object({ event_type: z.literal('release'), ...GitHubReleaseEventSchema.shape }),
+  z.object({ event_type: z.literal('workflow_run'), ...WorkflowRunEventSchema.shape }),
+  z.object({ event_type: z.literal('check_suite'), ...CheckSuiteEventSchema.shape }),
 ]);
 
 // Webhook Configuration Schema
@@ -325,6 +367,14 @@ export const shouldReindexProject = (event: GitHubWebhookEvent): boolean => {
              event.pull_request.merged === true &&
              event.pull_request.base.ref === event.repository.default_branch;
     
+    case 'workflow_run':
+      // Don't reindex for workflow runs - they are for auto-fix triggers
+      return false;
+    
+    case 'check_suite':
+      // Don't reindex for check suites - they are for auto-fix triggers
+      return false;
+    
     default:
       return false;
   }
@@ -343,6 +393,12 @@ export const getEventDescription = (event: GitHubWebhookEvent): string => {
     
     case 'release':
       return `Release ${event.action}: ${event.release.tag_name}`;
+    
+    case 'workflow_run':
+      return `Workflow "${event.workflow_run.name}" ${event.action} with ${event.workflow_run.conclusion || 'unknown'} result`;
+    
+    case 'check_suite':
+      return `Check suite ${event.action} with ${event.check_suite.conclusion || 'unknown'} result`;
   }
 };
 
@@ -440,7 +496,19 @@ export type AutoFixResult = z.infer<typeof AutoFixResultSchema>;
 
 // Issue detection and analysis
 export const DetectedIssueSchema = z.object({
-  type: z.enum(['build_error', 'test_failure', 'lint_error', 'security_issue', 'dependency_issue', 'syntax_error']),
+  type: z.enum([
+    'build_error', 
+    'test_failure', 
+    'lint_error', 
+    'security_issue', 
+    'dependency_issue', 
+    'syntax_error',
+    'typescript_error',
+    'import_error',
+    'prisma_error',
+    'env_config_error',
+    'supabase_error'
+  ]),
   severity: z.enum(['low', 'medium', 'high', 'critical']),
   message: z.string(),
   file: z.string().optional(),
@@ -488,45 +556,7 @@ export const AUTO_FIX_TRIGGERS = {
   PULL_REQUEST: 'pull_request',
 } as const;
 
-// Workflow run event that might trigger auto-fix
-export const WorkflowRunEventSchema = z.object({
-  action: z.enum(['completed', 'requested']),
-  workflow_run: z.object({
-    id: z.number(),
-    name: z.string(),
-    status: z.string(),
-    conclusion: z.enum(['success', 'failure', 'neutral', 'cancelled', 'timed_out', 'action_required', 'stale']).nullable(),
-    head_branch: z.string(),
-    head_sha: z.string(),
-    run_number: z.number(),
-    html_url: z.string().url(),
-  }),
-  repository: GitHubRepositorySchema,
-});
 
-export type WorkflowRunEvent = z.infer<typeof WorkflowRunEventSchema>;
-
-// Check suite event for build status monitoring
-export const CheckSuiteEventSchema = z.object({
-  action: z.enum(['completed', 'requested', 'rerequested']),
-  check_suite: z.object({
-    id: z.number(),
-    status: z.string(),
-    conclusion: z.enum(['success', 'failure', 'neutral', 'cancelled', 'timed_out', 'action_required', 'stale']).nullable(),
-    head_branch: z.string(),
-    head_sha: z.string(),
-    pull_requests: z.array(z.object({
-      number: z.number(),
-      head: z.object({
-        ref: z.string(),
-        sha: z.string(),
-      }),
-    })),
-  }),
-  repository: GitHubRepositorySchema,
-});
-
-export type CheckSuiteEvent = z.infer<typeof CheckSuiteEventSchema>;
 
 // GitHub API rate limit info
 export const RateLimitSchema = z.object({

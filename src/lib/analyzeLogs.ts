@@ -69,6 +69,52 @@ const ERROR_PATTERNS = {
     /parse.*error/i,
     /invalid.*syntax/i,
   ],
+  
+  // TypeScript specific errors
+  TYPESCRIPT_ERROR: [
+    /error\s+TS\d+/i,
+    /cannot find module/i,
+    /property.*does not exist/i,
+    /type.*is not assignable/i,
+    /cannot resolve.*path mapping/i,
+    /module.*has no exported member/i,
+  ],
+  
+  // Import/Export errors
+  IMPORT_ERROR: [
+    /cannot find module/i,
+    /module not found/i,
+    /failed to resolve/i,
+    /cannot resolve module/i,
+    /module.*has no default export/i,
+    /module.*has no exported member/i,
+  ],
+  
+  // Prisma specific errors
+  PRISMA_ERROR: [
+    /prisma.*error/i,
+    /database.*connection/i,
+    /schema.*validation/i,
+    /migration.*failed/i,
+    /prisma generate/i,
+  ],
+  
+  // Environment/Configuration errors
+  ENV_CONFIG_ERROR: [
+    /environment variable.*not defined/i,
+    /missing.*env/i,
+    /invalid.*configuration/i,
+    /config.*not found/i,
+    /dotenv/i,
+  ],
+  
+  // Supabase specific errors
+  SUPABASE_ERROR: [
+    /supabase.*error/i,
+    /authentication.*failed/i,
+    /invalid.*supabase/i,
+    /supabase.*connection/i,
+  ],
 };
 
 /**
@@ -110,6 +156,36 @@ const FIX_SUGGESTIONS = {
     'Check for missing brackets or semicolons',
     'Verify proper indentation',
     'Review language-specific syntax',
+  ],
+  typescript_error: [
+    'Add missing type definitions',
+    'Update tsconfig.json paths configuration',
+    'Install @types packages for missing types',
+    'Fix type compatibility issues',
+  ],
+  import_error: [
+    'Add missing import statements',
+    'Check file paths and extensions',
+    'Install missing npm packages',
+    'Update module resolution settings',
+  ],
+  prisma_error: [
+    'Run prisma generate to update client',
+    'Check database connection string',
+    'Run pending migrations with prisma migrate deploy',
+    'Verify schema.prisma syntax',
+  ],
+  env_config_error: [
+    'Add missing environment variables',
+    'Check .env file configuration',
+    'Verify environment variable names',
+    'Update environment setup documentation',
+  ],
+  supabase_error: [
+    'Check Supabase connection credentials',
+    'Verify SUPABASE_URL and SUPABASE_ANON_KEY',
+    'Update Supabase client configuration',
+    'Check network connectivity to Supabase',
   ],
 };
 
@@ -156,6 +232,80 @@ export class LogAnalysisService {
     }
 
     return {};
+  }
+
+  /**
+   * Extract structured error information from log content
+   */
+  private extractStructuredError(logContent: string): {
+    errorType: string;
+    filePath?: string;
+    suggestion: string;
+    confidence: number;
+    details?: Record<string, string>;
+  } | null {
+    const content = logContent.toLowerCase();
+    
+    // TypeScript config missing path
+    if (content.includes('cannot resolve') && content.includes('path mapping')) {
+      return {
+        errorType: 'ts_config_missing_path',
+        filePath: 'tsconfig.json',
+        suggestion: 'Add paths configuration to tsconfig.json for module resolution',
+        confidence: 0.9,
+        details: { configSection: 'compilerOptions.paths' },
+      };
+    }
+    
+    // Missing import
+    const moduleNotFoundMatch = logContent.match(/cannot find module ['"]([^'"]+)['"]/i);
+    if (moduleNotFoundMatch) {
+      return {
+        errorType: 'missing_import',
+        filePath: this.extractFileLocation(logContent).file,
+        suggestion: `Add import statement or install package: ${moduleNotFoundMatch[1]}`,
+        confidence: 0.95,
+        details: { missingModule: moduleNotFoundMatch[1] },
+      };
+    }
+    
+    // Prisma schema error
+    if (content.includes('prisma') && (content.includes('schema') || content.includes('generate'))) {
+      return {
+        errorType: 'prisma_schema_error',
+        filePath: 'prisma/schema.prisma',
+        suggestion: 'Run prisma generate and check schema syntax',
+        confidence: 0.85,
+        details: { command: 'npx prisma generate' },
+      };
+    }
+    
+    // Missing environment variable
+    const envVarMatch = logContent.match(/environment variable ['"]?([A-Z_]+)['"]? (is )?not (defined|set)/i);
+    if (envVarMatch) {
+      return {
+        errorType: 'missing_env_var',
+        filePath: '.env',
+        suggestion: `Add ${envVarMatch[1]} to environment variables`,
+        confidence: 0.9,
+        details: { envVar: envVarMatch[1] },
+      };
+    }
+    
+    // Supabase connection error
+    if (content.includes('supabase') && (content.includes('connection') || content.includes('auth'))) {
+      return {
+        errorType: 'supabase_connection_error',
+        filePath: '.env',
+        suggestion: 'Check SUPABASE_URL and SUPABASE_ANON_KEY configuration',
+        confidence: 0.8,
+        details: { 
+          requiredVars: 'SUPABASE_URL, SUPABASE_ANON_KEY',
+        },
+      };
+    }
+    
+    return null;
   }
 
   /**
@@ -206,15 +356,43 @@ export class LogAnalysisService {
     location?: { file?: string; line?: number; column?: number };
     type: DetectedIssue['type'];
     severity: DetectedIssue['severity'];
+    suggestion?: string;
+    structured?: {
+      errorType: string;
+      details?: Record<string, string>;
+    };
   }> {
     const issues: Array<{
       message: string;
       location?: { file?: string; line?: number; column?: number };
       type: DetectedIssue['type'];
       severity: DetectedIssue['severity'];
+      suggestion?: string;
+      structured?: {
+        errorType: string;
+        details?: Record<string, string>;
+      };
     }> = [];
 
-    // Split log into lines and analyze each
+    // First, try to extract structured errors from the full log
+    const structuredError = this.extractStructuredError(logContent);
+    if (structuredError && structuredError.confidence > 0.7) {
+      const location = structuredError.filePath ? { file: structuredError.filePath } : undefined;
+      
+      issues.push({
+        message: `Structured error detected: ${structuredError.errorType}`,
+        location,
+        type: this.mapErrorTypeToDetectedType(structuredError.errorType),
+        severity: this.getSeverityForErrorType(structuredError.errorType),
+        suggestion: structuredError.suggestion,
+        structured: {
+          errorType: structuredError.errorType,
+          details: structuredError.details,
+        },
+      });
+    }
+
+    // Then analyze individual lines
     const lines = logContent.split('\n').filter(line => line.trim());
     
     for (const line of lines) {
@@ -223,6 +401,26 @@ export class LogAnalysisService {
         continue;
       }
 
+      // Check for structured errors in individual lines too
+      const lineStructuredError = this.extractStructuredError(line);
+      if (lineStructuredError && lineStructuredError.confidence > 0.8) {
+        const location = lineStructuredError.filePath ? { file: lineStructuredError.filePath } : this.extractFileLocation(line);
+        
+        issues.push({
+          message: line.trim(),
+          location,
+          type: this.mapErrorTypeToDetectedType(lineStructuredError.errorType),
+          severity: this.getSeverityForErrorType(lineStructuredError.errorType),
+          suggestion: lineStructuredError.suggestion,
+          structured: {
+            errorType: lineStructuredError.errorType,
+            details: lineStructuredError.details,
+          },
+        });
+        continue;
+      }
+
+      // Fallback to pattern-based classification
       const classification = this.classifyIssue(line);
       
       // Only include lines that match error patterns
@@ -239,6 +437,41 @@ export class LogAnalysisService {
     }
 
     return issues;
+  }
+
+  /**
+   * Map structured error type to DetectedIssue type
+   */
+  private mapErrorTypeToDetectedType(errorType: string): DetectedIssue['type'] {
+    if (errorType.includes('ts_config') || errorType.includes('typescript')) {
+      return 'typescript_error';
+    }
+    if (errorType.includes('import') || errorType.includes('module')) {
+      return 'import_error';
+    }
+    if (errorType.includes('prisma')) {
+      return 'prisma_error';
+    }
+    if (errorType.includes('env')) {
+      return 'env_config_error';
+    }
+    if (errorType.includes('supabase')) {
+      return 'supabase_error';
+    }
+    return 'build_error';
+  }
+
+  /**
+   * Get severity level for structured error type
+   */
+  private getSeverityForErrorType(errorType: string): DetectedIssue['severity'] {
+    if (errorType.includes('missing_env') || errorType.includes('connection')) {
+      return 'high';
+    }
+    if (errorType.includes('config') || errorType.includes('schema')) {
+      return 'medium';
+    }
+    return 'medium';
   }
 
   /**
@@ -440,7 +673,7 @@ Return the analysis in the following JSON format:
           file: issue.location?.file,
           line: issue.location?.line,
           column: issue.location?.column,
-          suggestion: FIX_SUGGESTIONS[issue.type]?.[0],
+          suggestion: issue.suggestion || FIX_SUGGESTIONS[issue.type]?.[0],
           fixable: true,
         });
         
