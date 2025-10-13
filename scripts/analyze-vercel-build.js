@@ -27,8 +27,37 @@ function validateEnvironment() {
     }
   }
   
+  // In CI environment, provide helpful guidance but don't fail completely
   if (missing.length > 0) {
-    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+    const isCI = process.env.GITHUB_ACTIONS === 'true';
+    
+    if (isCI) {
+      console.log('⚠️  Missing required GitHub secrets for Vercel analysis:');
+      console.log(`   Missing: ${missing.join(', ')}`);
+      console.log('');
+      console.log('📋 To fix this, add these secrets to your GitHub repository:');
+      console.log('   1. Go to Settings > Secrets and Variables > Actions');
+      console.log('   2. Add the following repository secrets:');
+      for (const varName of missing) {
+        console.log(`      - ${varName}`);
+      }
+      console.log('');
+      console.log('💡 For now, skipping Vercel analysis due to missing configuration.');
+      console.log('   The webhook auto-fix system will work once secrets are configured.');
+      
+      // Return a mock configuration to allow graceful degradation
+      return {
+        VERCEL_TOKEN: null,
+        VERCEL_PROJECT: null,
+        VERCEL_TEAM: null,
+        OPENAI_API_KEY: null,
+        GITHUB_TOKEN: process.env.GITHUB_TOKEN,
+        GITHUB_REPO: process.env.GITHUB_REPO,
+        isConfigured: false
+      };
+    } else {
+      throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+    }
   }
   
   return {
@@ -38,6 +67,7 @@ function validateEnvironment() {
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     GITHUB_TOKEN: process.env.GITHUB_TOKEN,
     GITHUB_REPO: process.env.GITHUB_REPO,
+    isConfigured: true
   };
 }
 
@@ -340,6 +370,13 @@ Focus on actionable, specific solutions.`,
   async run() {
     try {
       console.log('🚀 Starting Vercel Build Analysis...\n');
+
+      // Check if configuration is available
+      if (!this.env.isConfigured) {
+        console.log('⏭️  Skipping analysis due to missing configuration.');
+        console.log('✅ System ready - configure GitHub secrets to enable full functionality.');
+        return;
+      }
 
       // Step 1: Get latest failed deployment
       const failedDeployment = await this.getLatestFailedDeployment();

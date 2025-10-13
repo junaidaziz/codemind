@@ -64,7 +64,30 @@ An intelligent code understanding and chat platform that helps developers explor
    # Edit services/agent-core/.env with agent service configuration
    ```
 
-4. **Set up the database:**
+4. **Configure GitHub Secrets (for auto-fix functionality):**
+   
+   To enable automated build failure analysis and auto-fix features, add these secrets to your GitHub repository:
+   
+   **Go to: Settings → Secrets and Variables → Actions → Repository Secrets**
+   
+   ```
+   VERCEL_TOKEN         # Your Vercel API token
+   VERCEL_PROJECT_ID    # Vercel project ID  
+   VERCEL_TEAM_ID       # Vercel team ID
+   OPENAI_API_KEY       # OpenAI API key for analysis
+   ```
+   
+   **Optional secrets for enhanced functionality:**
+   ```
+   GITHUB_TOKEN         # GitHub token (usually auto-provided)
+   SLACK_WEBHOOK_URL    # For deployment notifications
+   SNYK_TOKEN          # For security scanning
+   CODECOV_TOKEN       # For coverage reporting
+   ```
+   
+   > ⚠️ **Note**: The auto-fix system will run but skip analysis if these secrets are not configured. All core functionality works without them.
+
+5. **Set up the database:**
    ```bash
    pnpm prisma generate
    pnpm prisma migrate deploy
