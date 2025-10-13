@@ -18,8 +18,9 @@ import {
   GITHUB_EVENTS,
 } from '../../../../types/github';
 import { ciIntegration } from '../../../../lib/ci-integration';
-import { githubAPI } from '@/lib/github-api';
 import { jobQueue, JobType, type PRAnalysisJobData } from '../../../../lib/job-queue';
+import { JobType as FullIndexJobType, type FullIndexJobData } from '../../../../lib/job-processors';
+
 
 
 
@@ -132,22 +133,7 @@ async function processWebhookEvent(
       }
     }
     
-    if (shouldReindex) {
-      logger.info('Triggering project reindex due to webhook event', {
-        projectId,
-        eventType,
-        description,
-      });
 
-      // Update project's lastIndexedAt to null to trigger reindexing
-      await prisma.project.update({
-        where: { id: projectId },
-        data: { 
-          lastIndexedAt: null,
-          status: 'indexing' 
-        },
-      });
-    }
 
     logger.info('GitHub webhook event processed successfully', {
       projectId,
@@ -264,6 +250,74 @@ export async function POST(req: NextRequest) {
 
     // Process the webhook event
     const result = await processWebhookEvent(githubEvent, eventData, project.id);
+    
+    // Trigger full repository indexing if needed
+    if (result.shouldReindex) {
+      logger.info('Triggering full repository reindex due to webhook event', {
+        projectId: project.id,
+        eventType: githubEvent,
+        repositoryUrl,
+      });
+
+      try {
+        // Create full index job data
+        const fullIndexJob: FullIndexJobData = {
+          type: FullIndexJobType.FULL_INDEX_PROJECT,
+          projectId: project.id,
+          githubUrl: project.githubUrl,
+          forceReindex: false, // Only reindex changed files
+          includeContent: true,
+          chunkAndEmbed: true,
+          priority: 7, // Higher priority for webhook triggers
+          maxRetries: 2,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        // Queue full indexing job using our enhanced job queue method
+        const fullIndexJobResult = await jobQueue.addJobWithConfig({
+          type: FullIndexJobType.FULL_INDEX_PROJECT,
+          data: fullIndexJob as unknown as Record<string, unknown>,
+          priority: 'high',
+          retries: 2,
+        });
+
+        // Update project status
+        await prisma.project.update({
+          where: { id: project.id },
+          data: { 
+            status: 'indexing',
+            lastFullScanAt: new Date(), // Track when we triggered full scan
+          },
+        });
+
+        logger.info('Full repository indexing job queued', {
+          projectId: project.id,
+          jobId: fullIndexJobResult.id,
+          eventType: githubEvent,
+          repositoryUrl,
+        });
+
+        // Update the result message to include full indexing info
+        result.message = `${result.message} - Full indexing queued: ${fullIndexJobResult.id}`;
+        result.ciJobId = fullIndexJobResult.id;
+
+      } catch (fullIndexError) {
+        logger.error('Failed to queue full indexing job', {
+          projectId: project.id,
+          eventType: githubEvent,
+        }, fullIndexError as Error);
+
+        // Fall back to basic status update
+        await prisma.project.update({
+          where: { id: project.id },
+          data: { 
+            lastIndexedAt: null,
+            status: 'indexing' 
+          },
+        });
+      }
+    }
     
     const processingTime = Date.now() - startTime;
     

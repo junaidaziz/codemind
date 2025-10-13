@@ -2,6 +2,7 @@
 import { logger } from '../app/lib/logger';
 import { jobQueue, JobType, type CodeAnalysisJobData, type PRCommentJobData } from './job-queue';
 import prisma from '../app/lib/db';
+import { JobType as FullIndexJobType, type FullIndexJobData } from './job-processors';
 import { 
   type GitHubWebhookEvent, 
   type GitHubPullRequestEvent,
@@ -220,20 +221,74 @@ export class CIIntegrationService {
     }
   }
 
-  // Trigger project reindexing
+  // Trigger project reindexing using full repository indexing
   private async triggerReindexing(projectId: string, commitSha: string): Promise<void> {
-    await prisma.project.update({
-      where: { id: projectId },
-      data: {
-        status: 'indexing',
-        lastIndexedAt: null,
-      },
-    });
+    try {
+      // Get project information
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+      });
 
-    logger.info('Project reindexing triggered', {
-      projectId,
-      commitSha,
-    });
+      if (!project || !project.githubUrl) {
+        logger.warn('Project not found or missing GitHub URL for reindexing', {
+          projectId,
+          commitSha,
+        });
+        return;
+      }
+
+      // Create full index job for incremental update
+      const fullIndexJob: FullIndexJobData = {
+        type: FullIndexJobType.FULL_INDEX_PROJECT,
+        projectId,
+        githubUrl: project.githubUrl,
+        forceReindex: false, // Incremental update for new commits
+        includeContent: true,
+        chunkAndEmbed: true,
+        priority: 6, // Medium-high priority for CI triggers
+        maxRetries: 2,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      // Queue full indexing job
+      const indexJobResult = await jobQueue.addJobWithConfig({
+        type: FullIndexJobType.FULL_INDEX_PROJECT,
+        data: fullIndexJob as unknown as Record<string, unknown>,
+        priority: 'high',
+        retries: 2,
+      });
+
+      // Update project status
+      await prisma.project.update({
+        where: { id: projectId },
+        data: {
+          status: 'indexing',
+          lastFullScanAt: new Date(),
+        },
+      });
+
+      logger.info('Full repository indexing triggered for CI analysis', {
+        projectId,
+        commitSha,
+        jobId: indexJobResult.id,
+      });
+
+    } catch (error) {
+      logger.error('Failed to trigger full repository indexing', {
+        projectId,
+        commitSha,
+      }, error as Error);
+
+      // Fallback to basic status update
+      await prisma.project.update({
+        where: { id: projectId },
+        data: {
+          status: 'indexing',
+          lastIndexedAt: null,
+        },
+      });
+    }
   }
 
   // Perform actual code analysis
