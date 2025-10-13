@@ -7,6 +7,9 @@ import { z, ZodError } from 'zod';
 import { logger, createError, withRequestTiming } from '../../lib/logger';
 import { generateAnswerStream, GenerateAnswerInput } from '../../lib/langchain-rag';
 import { createEnhancedRAGChain, AgentCommand } from '../../lib/langchain-agent';
+import { getAgentRouter } from '../../../lib/agent-router';
+import { AgentRequest } from '../../../lib/agent-service-client';
+import { env } from '../../../types/env';
 import prisma from '../../lib/db';
 
 // Enhanced chat request schema supporting developer agent commands
@@ -58,31 +61,68 @@ export async function POST(req: Request): Promise<Response> {
         async start(controller) {
           try {
             if (useAgent && command) {
-              // Use Developer Agent for specialized commands
-              const enhancedChain = await createEnhancedRAGChain(
-                projectId,
-                finalUserId,
-                sessionId
-              );
+              // Check if standalone agent is enabled
+              if (env.ENABLE_STANDALONE_AGENT === 'true') {
+                // Use Agent Router for routing between local and standalone agent
+                const agentRouter = getAgentRouter();
+                
+                const agentRequest: AgentRequest = {
+                  id: crypto.randomUUID(),
+                  command,
+                  projectId,
+                  userId: finalUserId,
+                  sessionId,
+                  context,
+                  message,
+                  options: {
+                    enableTools: true,
+                    maxToolExecutions: 5,
+                    temperature: 0.7,
+                    maxTokens: 1000,
+                  },
+                };
 
-              const agentCommand: AgentCommand = {
-                command,
-                projectId,
-                userId: finalUserId,
-                sessionId,
-                context,
-                message,
-              };
-
-              // Stream agent response
-              for await (const chunk of enhancedChain.streamCommand(agentCommand)) {
-                controller.enqueue(
-                  encoder.encode(`data: ${JSON.stringify({ content: chunk })}\n\n`)
+                // Stream agent response through router
+                for await (const chunk of agentRouter.processRequestStream(agentRequest)) {
+                  if (chunk.type === 'content' && chunk.content) {
+                    controller.enqueue(
+                      encoder.encode(`data: ${JSON.stringify({ content: chunk.content })}\n\n`)
+                    );
+                  } else if (chunk.type === 'done') {
+                    controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+                    controller.close();
+                    break;
+                  } else if (chunk.type === 'error') {
+                    throw new Error(chunk.error || 'Agent processing error');
+                  }
+                }
+              } else {
+                // Use local enhanced RAG chain (existing behavior)
+                const enhancedChain = await createEnhancedRAGChain(
+                  projectId,
+                  finalUserId,
+                  sessionId
                 );
-              }
 
-              controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
-              controller.close();
+                const agentCommand: AgentCommand = {
+                  command,
+                  projectId,
+                  userId: finalUserId,
+                  sessionId,
+                  context,
+                  message,
+                };
+
+                // Stream agent response
+                for await (const chunk of enhancedChain.streamCommand(agentCommand)) {
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify({ content: chunk })}\n\n`)
+                  );
+                }
+
+                controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+                controller.close();
+              }
 
             } else {
               // Use traditional RAG chain

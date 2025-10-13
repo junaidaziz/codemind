@@ -73,6 +73,50 @@ An intelligent code understanding and chat platform that helps developers explor
 6. **Open your browser:**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
+## 🤖 Agent Service Deployment
+
+CodeMind now supports a standalone agent service for improved scalability and performance:
+
+### Quick Agent Service Setup
+
+1. **Start the agent service:**
+   ```bash
+   ./scripts/start-agent-service.sh
+   ```
+
+2. **Enable standalone agent in web app:**
+   ```bash
+   # Add to your .env.local
+   ENABLE_STANDALONE_AGENT=true
+   AGENT_SERVICE_URL=http://localhost:3001
+   ```
+
+3. **Validate deployment:**
+   ```bash
+   ./scripts/validate-deployment.sh
+   ```
+
+### Docker Deployment
+
+```bash
+# Build and run with Docker Compose
+cd services/agent-core
+docker-compose up -d
+
+# Check service health
+curl http://localhost:3001/health
+```
+
+### Features
+
+- **Independent Scaling**: Deploy and scale AI processing separately from web app
+- **Rate Limiting**: Built-in concurrency controls and rate limiting
+- **Health Monitoring**: Comprehensive health checks and metrics
+- **Fallback Support**: Automatic fallback to local agent if service unavailable
+- **Production Ready**: Docker containerization with security best practices
+
+For detailed setup instructions, see [services/agent-core/README.md](services/agent-core/README.md).
+
 ## 📁 Project Structure
 
 ```
