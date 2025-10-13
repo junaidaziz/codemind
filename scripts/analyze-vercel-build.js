@@ -156,19 +156,26 @@ class VercelBuildAnalyzer {
       let buildLogs = '';
       let totalEvents = 0;
       
-      for (const build of data.builds) {
-        buildLogs += `\n=== Build ${build.id} ===\n`;
+      // Handle the Vercel API response format - it's an array of events directly
+      const events = Array.isArray(data) ? data : [];
+      
+      if (events.length === 0) {
+        buildLogs = 'No build events found in deployment logs. This may be a different deployment type or the logs may not be available yet.';
+        console.log('📄 No build events found in response');
+        return buildLogs;
+      }
+      
+      buildLogs += `\n=== Deployment Build Log (${events.length} events) ===\n`;
+      
+      for (const event of events) {
+        const timestamp = new Date(event.created).toISOString();
+        const eventText = event.payload?.text?.trim() || '';
         
-        for (const event of build.events) {
-          const timestamp = new Date(event.created).toISOString();
-          const eventText = event.payload.text.trim();
-          
-          // Skip empty events
-          if (!eventText) continue;
-          
-          buildLogs += `[${timestamp}] ${event.type.toUpperCase()}: ${eventText}\n`;
-          totalEvents++;
-        }
+        // Skip empty events
+        if (!eventText) continue;
+        
+        buildLogs += `[${timestamp}] ${event.type.toUpperCase()}: ${eventText}\n`;
+        totalEvents++;
       }
 
       if (!buildLogs.trim() || totalEvents === 0) {
@@ -282,9 +289,11 @@ Focus on actionable, specific solutions.`,
         throw new Error('No analysis content received from OpenAI');
       }
 
-      // Parse JSON response
+      // Parse JSON response (handle markdown wrapping)
       try {
-        const analysis = JSON.parse(content);
+        // Remove markdown code blocks if present
+        const cleanedContent = content.replace(/```json\n?|\n?```/g, '').trim();
+        const analysis = JSON.parse(cleanedContent);
         
         // Validate required fields
         if (!analysis.rootCause || !analysis.suggestedFix || typeof analysis.confidence !== 'number') {
@@ -294,6 +303,11 @@ Focus on actionable, specific solutions.`,
         // Ensure summary exists, fallback to rootCause if not
         if (!analysis.summary) {
           analysis.summary = analysis.rootCause.split('.')[0];
+        }
+
+        // Convert suggestedFix array to string if needed
+        if (Array.isArray(analysis.suggestedFix)) {
+          analysis.suggestedFix = analysis.suggestedFix.join('\n');
         }
 
         console.log('🤖 Analysis completed successfully');
