@@ -710,7 +710,7 @@ export const ProjectAnalyticsDashboard: React.FC<ProjectAnalyticsDashboardProps>
               contributor={contributor}
               projectId={projectId}
             >
-              <div className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
+              <div className="p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0">
                     {contributor.avatarUrl ? (

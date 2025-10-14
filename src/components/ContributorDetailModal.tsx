@@ -147,35 +147,35 @@ export function ContributorDetailModal({ contributor, projectId, children }: Con
 
   return (
     <Dialog>
-      <DialogTrigger onClick={fetchContributorDetail}>
+      <DialogTrigger onClick={fetchContributorDetail} className="cursor-pointer">
         {children}
       </DialogTrigger>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+      <DialogContent align="center" className="max-w-5xl shadow-lg">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
+          <DialogTitle className="flex items-center gap-4">
+            <Avatar className="h-12 w-12 ring-2 ring-primary/20">
               <AvatarImage src={contributor.avatarUrl} alt={contributor.login} />
               <AvatarFallback>{getInitials(contributor.login)}</AvatarFallback>
             </Avatar>
-            <div>
-              <div className="flex items-center gap-2">
-                {contributor.login}
-                {contributor.htmlUrl && (
-                  <a
-                    href={contributor.htmlUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center h-6 w-6 p-0 rounded-sm opacity-70 transition-opacity hover:opacity-100"
-                  >
-                    <ExternalLinkIcon className="h-3 w-3" />
-                  </a>
-                )}
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2 text-lg font-semibold cursor-pointer group">
+                <a 
+                  href={contributor.htmlUrl || `https://github.com/${contributor.login}`}
+                  target="_blank" rel="noopener noreferrer"
+                  className="hover:text-primary transition-colors"
+                >
+                  {contributor.login}
+                </a>
+                <ExternalLinkIcon className="h-4 w-4 opacity-60 group-hover:opacity-100 transition-opacity" />
               </div>
-              {contributor.lastActivity && (
-                <p className="text-sm text-muted-foreground">
-                  Last active: {formatTimeAgo(contributor.lastActivity)}
-                </p>
-              )}
+              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                {contributor.lastActivity && (
+                  <span className="inline-flex items-center gap-1"><ClockIcon className="h-3 w-3" />Last active: {formatTimeAgo(contributor.lastActivity)}</span>
+                )}
+                <span className="inline-flex items-center gap-1"><GitCommitIcon className="h-3 w-3" />{contributor.commitsInPeriod} commits (period)</span>
+                <span className="inline-flex items-center gap-1"><GitPullRequestIcon className="h-3 w-3" />{contributor.pullRequestsInPeriod} PRs (period)</span>
+                <span className="inline-flex items-center gap-1"><ActivityIcon className="h-3 w-3" />{contributor.totalContributions} total</span>
+              </div>
             </div>
           </DialogTitle>
         </DialogHeader>

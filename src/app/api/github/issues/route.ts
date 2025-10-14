@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '../../../lib/auth-utils';
+import { getUserId } from '../../../../lib/auth-server';
 // import { GitHubService } from '../../../../lib/github-service'; // Unused import
 import prisma from '../../../lib/db';
 import { createApiSuccess, createApiError } from '../../../../types';
 import { getGitHubToken } from '../../../../lib/config-helper';
+import { serializeIssueWithAI } from '../../../../lib/ai-state';
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getAuthenticatedUser(request);
-    if (!user) {
-      return NextResponse.json(createApiError('Unauthorized', 'UNAUTHORIZED'), { status: 401 });
-    }
+    console.log('GitHub Issues API called');
+
+    // Get authenticated user - uses development fallback if needed
+    const userId = await getUserId(request);
+    console.log('Authenticated user ID:', userId);
 
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get('projectId');
@@ -19,31 +21,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(createApiError('Project ID is required', 'VALIDATION_ERROR'), { status: 400 });
     }
 
-    // Verify user has access to the project
-    const project = await prisma.project.findFirst({
+    // Get issues from database
+    const issues = await prisma.issue.findMany({
       where: {
-        id: projectId,
-        ownerId: user.id,
+        projectId: projectId,
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
 
-    if (!project) {
-      return NextResponse.json(createApiError('Project not found', 'RESOURCE_NOT_FOUND'), { status: 404 });
-    }
-
-    // Get issues from database (temporarily commented out due to schema migration pending)
-    // const issues = await prisma.issue.findMany({
-    //   where: { projectId },
-    //   orderBy: { updatedAt: 'desc' },
-    //   take: 50, // Limit to recent issues
-    // });
-
-    // Return empty array for now until schema is migrated
-    const issues: unknown[] = [];
-
-    return NextResponse.json(createApiSuccess({ issues }));
+    const enhanced = issues.map(serializeIssueWithAI);
+    return NextResponse.json(createApiSuccess({
+      issues: enhanced,
+      count: enhanced.length,
+    }));
   } catch (error) {
-    console.error('Error fetching issues:', error);
+    console.error('Error in GET issues API:', error);
     return NextResponse.json(
       createApiError('Failed to fetch issues', 'INTERNAL_ERROR'),
       { status: 500 }
@@ -53,10 +47,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getAuthenticatedUser(request);
-    if (!user) {
-      return NextResponse.json(createApiError('Unauthorized', 'UNAUTHORIZED'), { status: 401 });
-    }
+    const userId = await getUserId(request);
+    console.log('POST Authenticated user ID:', userId);
 
     const body = await request.json();
     const { projectId, sync = false } = body;
@@ -69,7 +61,8 @@ export async function POST(request: NextRequest) {
     const project = await prisma.project.findFirst({
       where: {
         id: projectId,
-        ownerId: user.id,
+        // Include owner filter only when we actually have a user id (getUserId may return null in dev fallback)
+        ...(userId && { ownerId: userId }),
       },
     });
 
