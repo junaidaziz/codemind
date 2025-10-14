@@ -231,7 +231,7 @@ function ProjectSettingsPageContent() {
       }
 
       const results = await response.json();
-      setTestResults(results);
+      setTestResults(results.testResults || {});
     } catch (err) {
       console.error('Error testing connections:', err);
       setError('Failed to test connections');
@@ -446,6 +446,40 @@ function ProjectSettingsPageContent() {
                     )}
                   </div>
                 ))}
+
+                {/* Test Results */}
+                {Object.keys(testResults).length > 0 && (
+                  <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3 flex items-center">
+                      <span className="mr-2">🧪</span>
+                      Connection Test Results
+                    </h4>
+                    <div className="space-y-3">
+                      {Object.entries(testResults).map(([service, result]) => (
+                        <div key={service} className={`p-3 rounded-md border text-sm ${
+                          result.success
+                            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
+                            : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'
+                        }`}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <span className="mr-2">
+                                {result.success ? '✅' : '❌'}
+                              </span>
+                              <span className="font-medium capitalize">{service}</span>
+                            </div>
+                            <div className="text-xs opacity-75">
+                              {result.success ? 'Connected' : 'Failed'}
+                            </div>
+                          </div>
+                          <div className="mt-1 text-xs">
+                            {result.message}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Action Buttons */}
                 <div className="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
