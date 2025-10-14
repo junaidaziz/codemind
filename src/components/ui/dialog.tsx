@@ -28,9 +28,32 @@ const DialogContent: React.FC<{
   className?: string;
   children: React.ReactNode;
 }> = ({ className, children }) => {
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      // Close dialog when clicking backdrop
+      const dialogs = document.querySelectorAll('[data-state="open"]');
+      dialogs.forEach(dialog => {
+        const closeButton = dialog.querySelector('[data-close="true"]');
+        if (closeButton) {
+          (closeButton as HTMLElement).click();
+        }
+      });
+    }
+  };
+
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/80 ${className || ''}`}>
+    <div 
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/80 ${className || ''}`}
+      onClick={handleBackdropClick}
+    >
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto relative">
+        <button
+          data-close="true"
+          onClick={() => window.location.reload()}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold"
+        >
+          ×
+        </button>
         {children}
       </div>
     </div>
