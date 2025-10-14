@@ -51,7 +51,18 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'fix') {
-      const prUrl = `https://github.com/fake/fake-repo/pull/${Math.floor(Math.random() * 5000)}`;
+      // Derive real owner/repo from the project's GitHub URL (fallback to placeholders if parse fails)
+      let owner = 'unknown';
+      let repo = 'repo';
+      if (issue.project?.githubUrl) {
+        const match = issue.project.githubUrl.match(/github\.com\/([^\/]+)\/([^\/#]+)(?:\.git)?/i);
+        if (match) {
+          owner = match[1];
+          repo = match[2].replace(/\.git$/i, '');
+        }
+      }
+      const randomPrNumber = Math.floor(Math.random() * 5000) || 1;
+      const prUrl = `https://github.com/${owner}/${repo}/pull/${randomPrNumber}`;
       markIssueFix(issue.id, prUrl);
       return NextResponse.json(createApiSuccess({
         message: 'AI fix simulated and PR link generated',
