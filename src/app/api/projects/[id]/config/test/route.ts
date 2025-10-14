@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { Octokit } from '@octokit/rest';
+import { createAppAuth } from '@octokit/auth-app';
 
 interface TestParams {
   params: Promise<{
@@ -12,14 +13,67 @@ export async function POST(request: NextRequest, { params }: TestParams) {
   const { id } = await params;
   try {
     const body = await request.json();
-    const { service, credentials } = body;
+    
+    // Handle both formats: { service, credentials } or the config object itself
+    let service = 'all';
+    let credentials: any = {};
+    
+    if (body.service && body.credentials) {
+      // New format: { service: 'github', credentials: {...} }
+      service = body.service;
+      credentials = body.credentials;
+    } else {
+      // Config object format: { githubAppId, vercelToken, ... }
+      service = 'all';
+      credentials = body;
+    }
 
     const results: Record<string, any> = {};
 
     if (service === 'github' || service === 'all') {
       try {
-        if (credentials.githubToken) {
-          const octokit = new Octokit({ auth: credentials.githubToken });
+        let octokit: Octokit;
+
+        // Check if GitHub App credentials are provided
+        if (credentials.githubAppId && credentials.githubPrivateKey && credentials.githubInstallationId) {
+          // Use GitHub App authentication
+          octokit = new Octokit({
+            authStrategy: createAppAuth,
+            auth: {
+              appId: parseInt(credentials.githubAppId),
+              privateKey: credentials.githubPrivateKey.replace(/\\n/g, '\n'),
+              installationId: parseInt(credentials.githubInstallationId),
+            },
+          });
+
+          // Test repository access since GitHub Apps don't have a user context
+          try {
+            const { data: installation } = await octokit.rest.apps.getInstallation({
+              installation_id: parseInt(credentials.githubInstallationId)
+            });
+            
+            const accountName = installation.account ? 
+              ('login' in installation.account ? installation.account.login : installation.account.name) : 
+              'Unknown';
+              
+            results.github = {
+              success: true,
+              message: `GitHub App connected successfully for ${accountName}`,
+              app: {
+                account: accountName,
+                type: installation.target_type,
+                permissions: Object.keys(installation.permissions).join(', ')
+              }
+            };
+          } catch (appError) {
+            results.github = {
+              success: false,
+              message: `GitHub App authentication failed: ${appError instanceof Error ? appError.message : 'Unknown error'}`
+            };
+          }
+        } else if (credentials.githubToken) {
+          // Use personal access token authentication
+          octokit = new Octokit({ auth: credentials.githubToken });
           const { data: user } = await octokit.rest.users.getAuthenticated();
           results.github = {
             success: true,
@@ -33,7 +87,7 @@ export async function POST(request: NextRequest, { params }: TestParams) {
         } else {
           results.github = {
             success: false,
-            message: 'GitHub token not provided'
+            message: 'GitHub credentials not provided (need either githubToken or GitHub App credentials)'
           };
         }
       } catch (error) {
