@@ -1,3 +1,22 @@
+# 🔍 Vercel Build Failure Analysis
+
+**Generated on:** 2025-10-14 15:36:52 UTC
+**Deployment ID:** 
+**Repository:** junaidaziz/codemind
+**Branch:** main
+**Commit:** 2d6fb396206f628b9cc06dfcbb0e90ca71c12dcd
+
+## ❌ Build Failure Summary
+Build failed due to a TypeScript error related to the 'prisma' property.
+
+## 🔍 Root Cause Analysis
+Unknown cause
+
+## 🛠️ Suggested Fix
+See analysis for details
+
+## 📊 Full Analysis
+```json
 {
   "deployment": {
     "uid": "dpl_46wpeM1m8LxBGEA8MRA5bZ5qWS71",
@@ -58,3 +77,7 @@
   },
   "timestamp": "2025-10-14T15:36:52.063Z"
 }
+```
+
+---
+*This analysis was generated automatically by our AI-powered build failure analyzer.*
