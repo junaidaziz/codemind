@@ -12,21 +12,20 @@ import {
 interface ProjectConfig {
   id: string;
   projectId: string;
-  configData: Record<string, unknown>;
-  encryptedFields: string[];
   createdAt: Date;
   updatedAt: Date;
   // Configuration fields accessed in the code
-  vercelToken?: string;
-  vercelProjectId?: string;
-  vercelTeamId?: string;
-  openaiApiKey?: string;
-  githubAppId?: string;
-  githubPrivateKey?: string;
-  githubInstallationId?: string;
-  githubWebhookSecret?: string;
-  githubToken?: string;
-  isEncrypted?: boolean;
+  vercelToken: string | null;
+  vercelProjectId: string | null;
+  vercelTeamId: string | null;
+  openaiApiKey: string | null;
+  githubAppId: string | null;
+  githubPrivateKey: string | null;
+  githubInstallationId: string | null;
+  githubWebhookSecret: string | null;
+  githubToken: string | null;
+  encryptionSalt: string | null;
+  isEncrypted: boolean;
 }
 
 // Extend PrismaClient type to include projectConfig
@@ -39,20 +38,48 @@ type PrismaWithProjectConfig = typeof prisma & {
     create: (args: {
       data: {
         projectId: string;
-        configData: Record<string, unknown>;
-        encryptedFields?: string[];
+        vercelToken?: string | null;
+        vercelProjectId?: string | null;
+        vercelTeamId?: string | null;
+        openaiApiKey?: string | null;
+        githubAppId?: string | null;
+        githubPrivateKey?: string | null;
+        githubInstallationId?: string | null;
+        githubWebhookSecret?: string | null;
+        githubToken?: string | null;
+        encryptionSalt?: string | null;
+        isEncrypted?: boolean;
       };
     }) => Promise<ProjectConfig>;
     upsert: (args: {
       where: { projectId: string };
       update: {
-        configData: Record<string, unknown>;
-        encryptedFields?: string[];
+        vercelToken?: string | null;
+        vercelProjectId?: string | null;
+        vercelTeamId?: string | null;
+        openaiApiKey?: string | null;
+        githubAppId?: string | null;
+        githubPrivateKey?: string | null;
+        githubInstallationId?: string | null;
+        githubWebhookSecret?: string | null;
+        githubToken?: string | null;
+        encryptionSalt?: string | null;
+        isEncrypted?: boolean;
+        updatedAt?: Date;
       };
       create: {
         projectId: string;
-        configData: Record<string, unknown>;
-        encryptedFields?: string[];
+        vercelToken?: string | null;
+        vercelProjectId?: string | null;
+        vercelTeamId?: string | null;
+        openaiApiKey?: string | null;
+        githubAppId?: string | null;
+        githubPrivateKey?: string | null;
+        githubInstallationId?: string | null;
+        githubWebhookSecret?: string | null;
+        githubToken?: string | null;
+        encryptionSalt?: string | null;
+        isEncrypted?: boolean;
       };
     }) => Promise<ProjectConfig>;
     delete: (args: { where: { id: string } }) => Promise<ProjectConfig>;
@@ -373,7 +400,7 @@ export async function DELETE(request: NextRequest, { params }: ConfigParams) {
     // Delete configuration
     await (prisma as PrismaWithProjectConfig).projectConfig.delete({
       where: {
-        projectId: id
+        id: existingConfig.id
       }
     });
 
