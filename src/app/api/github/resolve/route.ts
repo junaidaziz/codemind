@@ -6,10 +6,13 @@ import { markIssueAnalyzed, markIssueFix, serializeIssueWithAI } from '../../../
 
 export async function POST(request: NextRequest) {
   try {
-    let userId = await getUserId(request);
+    const realUserId = await getUserId(request);
+    let userId = realUserId;
+    let devFallback = false;
     // Development fallback: if no user identified, generate a temporary one so feature can be exercised locally
     if (!userId && process.env.NODE_ENV !== 'production') {
       userId = 'dev-user';
+      devFallback = true;
       console.warn('[resolve] No authenticated user; using dev fallback userId=dev-user');
     }
 
@@ -24,11 +27,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(createApiError('Invalid action. Use "analyze" or "fix"', 'VALIDATION_ERROR'), { status: 400 });
     }
 
-    // Build conditional where clause: enforce ownership only if we have a concrete userId
+    // Build conditional where clause: enforce ownership only when we have a real authenticated user (not dev fallback)
     const issue = await prisma.issue.findFirst({
       where: {
         id: issueId,
-        ...(userId ? { project: { ownerId: userId } } : {}),
+        ...(userId && !devFallback ? { project: { ownerId: userId } } : {}),
       },
       include: { project: true },
     });
