@@ -9,18 +9,47 @@ export class ConfigHelper {
   
   /**
    * Get GitHub token for a project (replaces process.env.GITHUB_TOKEN)
+   * For GitHub App authentication, this will generate an installation access token
    */
   static async getGitHubToken(projectId: string): Promise<string | null> {
     try {
       const config = await ConfigHelpers.getGitHubConfig(projectId);
       
-      // For GitHub App authentication, we might need to generate a token
-      // For now, return the direct token if available
-      return config.privateKey || process.env.GITHUB_TOKEN || null;
+      // If we have GitHub App credentials, generate an installation access token
+      if (config.appId && config.privateKey && config.installationId) {
+        return await this.generateGitHubAppToken(config.appId, config.privateKey, config.installationId);
+      }
+      
+      // Fall back to direct token or environment variable
+      return config.token || process.env.GITHUB_TOKEN || null;
     } catch (error) {
       logger.error('Error getting GitHub token', { projectId, error });
       return process.env.GITHUB_TOKEN || null;
     }
+  }
+
+  /**
+   * Generate GitHub App installation access token
+   */
+  private static async generateGitHubAppToken(appId: string, privateKey: string, installationId: string): Promise<string> {
+    const { Octokit } = await import('@octokit/rest');
+    const { createAppAuth } = await import('@octokit/auth-app');
+    
+    const octokit = new Octokit({
+      authStrategy: createAppAuth,
+      auth: {
+        appId: parseInt(appId),
+        privateKey: privateKey.replace(/\\n/g, '\n'), // Handle escaped newlines
+        installationId: parseInt(installationId),
+      },
+    });
+
+    // Get installation access token
+    const { data } = await octokit.rest.apps.createInstallationAccessToken({
+      installation_id: parseInt(installationId),
+    });
+
+    return data.token;
   }
 
   /**
