@@ -99,7 +99,18 @@ export async function GET(request: NextRequest, { params }: ConfigParams) {
   const { id } = await params;
   try {
     // TODO: Get actual user ID from session when auth is configured
-    const userId = request.headers.get('x-user-id') || 'anonymous';
+    let userId = request.headers.get('x-user-id') || 'anonymous';
+
+    // Development mode: If no user ID provided, check if project has an owner and use that
+    if (userId === 'anonymous' && process.env.NODE_ENV === 'development') {
+      const project = await prisma.project.findFirst({
+        where: { id: id }
+      });
+      if (project?.ownerId) {
+        userId = project.ownerId;
+        console.log(`Development mode: Using project owner ID ${userId} for authentication`);
+      }
+    }
 
     // Check user permissions for this project
     const accessLevel = await getConfigAccessLevel(userId, id);
@@ -178,7 +189,18 @@ export async function POST(request: NextRequest, { params }: ConfigParams) {
   const { id } = await params;
   try {
     // TODO: Get actual user ID from session when auth is configured
-    const userId = request.headers.get('x-user-id') || 'anonymous';
+    let userId = request.headers.get('x-user-id') || 'anonymous';
+
+    // Development mode: If no user ID provided, check if project has an owner and use that
+    if (userId === 'anonymous' && process.env.NODE_ENV === 'development') {
+      const project = await prisma.project.findFirst({
+        where: { id: id }
+      });
+      if (project?.ownerId) {
+        userId = project.ownerId;
+        console.log(`Development mode: Using project owner ID ${userId} for authentication`);
+      }
+    }
 
     // Check user permissions for creating config
     const accessLevel = await getConfigAccessLevel(userId, id);
@@ -272,11 +294,26 @@ export async function POST(request: NextRequest, { params }: ConfigParams) {
 export async function PUT(request: NextRequest, { params }: ConfigParams) {
   const { id } = await params;
   try {
-    // TODO: Add authentication when auth system is configured
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
+    // TODO: Get actual user ID from session when auth is configured
+    let userId = request.headers.get('x-user-id') || 'anonymous';
+
+    // Development mode: If no user ID provided, check if project has an owner and use that
+    if (userId === 'anonymous' && process.env.NODE_ENV === 'development') {
+      const project = await prisma.project.findFirst({
+        where: { id: id }
+      });
+      if (project?.ownerId) {
+        userId = project.ownerId;
+        console.log(`Development mode: Using project owner ID ${userId} for authentication`);
+      }
+    }
+
+    // Check user permissions for updating config
+    const accessLevel = await getConfigAccessLevel(userId, id);
+    
+    if (!accessLevel.canWrite) {
+      return NextResponse.json({ error: 'Insufficient permissions to update configuration' }, { status: 403 });
+    }
 
     // Verify project exists and user has access (TODO: Add user access verification when auth is configured)
     const project = await prisma.project.findFirst({
@@ -367,13 +404,28 @@ export async function PUT(request: NextRequest, { params }: ConfigParams) {
 export async function DELETE(request: NextRequest, { params }: ConfigParams) {
   const { id } = await params;
   try {
-    // TODO: Add authentication when auth system is configured
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
+    // TODO: Get actual user ID from session when auth is configured
+    let userId = request.headers.get('x-user-id') || 'anonymous';
 
-    // Verify project exists and user has access (TODO: Add user access verification when auth is configured)
+    // Development mode: If no user ID provided, check if project has an owner and use that
+    if (userId === 'anonymous' && process.env.NODE_ENV === 'development') {
+      const project = await prisma.project.findFirst({
+        where: { id: id }
+      });
+      if (project?.ownerId) {
+        userId = project.ownerId;
+        console.log(`Development mode: Using project owner ID ${userId} for authentication`);
+      }
+    }
+
+    // Check user permissions for deleting config
+    const accessLevel = await getConfigAccessLevel(userId, id);
+    
+    if (!accessLevel.canDelete) {
+      return NextResponse.json({ error: 'Insufficient permissions to delete configuration' }, { status: 403 });
+    }
+
+    // Verify project exists
     const project = await prisma.project.findFirst({
       where: {
         id: id

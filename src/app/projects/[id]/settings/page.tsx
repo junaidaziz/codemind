@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { FullPageSpinner, ErrorBanner } from '../../../../components/ui';
 import { ProtectedRoute } from '../../../components/ProtectedRoute';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface Project {
   id: string;
@@ -106,6 +107,7 @@ const CONFIG_FIELDS: ConfigField[] = [
 function ProjectSettingsPageContent() {
   const params = useParams();
   const projectId = params.id as string;
+  const { user } = useAuth();
   
   const [project, setProject] = useState<Project | null>(null);
   const [config, setConfig] = useState<ProjectConfig>({
@@ -136,7 +138,18 @@ function ProjectSettingsPageContent() {
     const fetchConfig = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/projects/${projectId}/config`);
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+        
+        // Add user ID header if authenticated
+        if (user?.id) {
+          headers['x-user-id'] = user.id;
+        }
+        
+        const response = await fetch(`/api/projects/${projectId}/config`, {
+          headers
+        });
         if (response.ok) {
           const data = await response.json();
           setConfig(data);
@@ -156,7 +169,7 @@ function ProjectSettingsPageContent() {
 
     fetchProject();
     fetchConfig();
-  }, [projectId]);
+  }, [projectId, user]);
 
   const handleConfigChange = (key: keyof ProjectConfig, value: string) => {
     setConfig(prev => ({
@@ -186,11 +199,18 @@ function ProjectSettingsPageContent() {
       setSuccess(null);
 
       const method = config.id ? 'PUT' : 'POST';
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add user ID header if authenticated
+      if (user?.id) {
+        headers['x-user-id'] = user.id;
+      }
+      
       const response = await fetch(`/api/projects/${projectId}/config`, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(config),
       });
 
@@ -214,11 +234,18 @@ function ProjectSettingsPageContent() {
       setTesting(true);
       setTestResults({});
 
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add user ID header if authenticated
+      if (user?.id) {
+        headers['x-user-id'] = user.id;
+      }
+
       const response = await fetch(`/api/projects/${projectId}/config/test`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(config),
       });
 
