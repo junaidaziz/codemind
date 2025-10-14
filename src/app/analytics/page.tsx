@@ -77,7 +77,7 @@ export default function AnalyticsPage() {
       <ErrorBoundary fallback={DashboardError}>
         <Suspense fallback={<DashboardLoading />}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <DeveloperInsightsDashboard projectId="1" />
+            <DeveloperInsightsDashboard projectId="cmgozze6z0001xos16qpcefg1" />
           </div>
         </Suspense>
       </ErrorBoundary>
