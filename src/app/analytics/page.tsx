@@ -11,7 +11,7 @@ const DashboardLoading = () => (
     <div className="flex items-center justify-center h-64">
       <div className="text-center">
         <Spinner size="lg" />
-        <p className="mt-4 text-gray-600">Loading analytics dashboard...</p>
+        <p className="mt-4 text-gray-600 dark:text-gray-400">Loading analytics dashboard...</p>
       </div>
     </div>
   </div>
@@ -20,18 +20,18 @@ const DashboardLoading = () => (
 // Error fallback component
 const DashboardError = ({ error, resetError }: { error: Error; resetError: () => void }) => (
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-      <div className="text-red-600 text-6xl mb-4">⚠️</div>
-      <h2 className="text-xl font-semibold text-red-800 mb-2">
+    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center">
+      <div className="text-red-600 dark:text-red-400 text-6xl mb-4">⚠️</div>
+      <h2 className="text-xl font-semibold text-red-800 dark:text-red-200 mb-2">
         Analytics Dashboard Error
       </h2>
-      <p className="text-red-600 mb-4">
+      <p className="text-red-600 dark:text-red-300 mb-4">
         {error.message || 'Failed to load the analytics dashboard'}
       </p>
       <div className="space-x-4">
         <button
           onClick={resetError}
-          className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+          className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white px-4 py-2 rounded-md transition-colors"
         >
           Try Again
         </button>
@@ -41,7 +41,7 @@ const DashboardError = ({ error, resetError }: { error: Error; resetError: () =>
               window.location.reload();
             }
           }}
-          className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors"
+          className="bg-gray-600 hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-600 text-white px-4 py-2 rounded-md transition-colors"
         >
           Reload Page
         </button>
@@ -53,14 +53,14 @@ const DashboardError = ({ error, resetError }: { error: Error; resetError: () =>
 // Main analytics page component
 export default function AnalyticsPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Page Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
-              <p className="text-gray-600 mt-1">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Analytics</h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
                 Monitor system performance, user activity, and usage metrics
               </p>
             </div>
@@ -83,9 +83,9 @@ export default function AnalyticsPage() {
       </ErrorBoundary>
 
       {/* Footer */}
-      <footer className="bg-white border-t mt-12">
+      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between text-sm text-gray-500">
+          <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
             <div>
               <p>CodeMind Analytics Dashboard</p>
             </div>

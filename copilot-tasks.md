@@ -1,105 +1,395 @@
-# ✅ CodeMind Verification & Next Steps — AI PR & Issue Manager
+# 📊 Project-Based Analytics & Contributor Insights — CodeMind
 
-This document tracks **verification results** and outlines **next steps** for the AI Pull Request & Issue Manager feature.
-
----
-
-## 🧪 Verification Report
-
-| Test Area                             | Description                                                                        | Result | Notes                                                                                   |
-| ------------------------------------- | ---------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------- |
-| **GitHub App / Authentication**       | Confirm GitHub App installation, webhook, and API access using installation token. | ✅ Pass | App installed, webhook responding with 200 OK.                                          |
-| **Pull Request Listing Verification** | Validate PR list loads correctly in dashboard and updates after merge.             | ✅ Pass | All open PRs displayed correctly, status synced within 2–3 seconds via webhook.         |
-| **Issue Listing Verification**        | Verify open issues appear correctly and sync after close/update.                   | ✅ Pass | All open issues listed, pagination working, closed issues removed after webhook event.  |
-| **AI Resolve Flow**                   | Trigger “Resolve with AI” and confirm new PR creation.                             | ✅ Pass | AI agent created `fix/issue-123-ai` branch, committed fix, and opened PR automatically. |
-| **Database Verification**             | Check Prisma/Supabase tables (`PullRequest`, `Issue`) for synced data.             | ✅ Pass | Tables synced, states reflect GitHub data accurately.                                   |
-| **Webhook Event Handling**            | Confirm webhook updates on PR merge and issue close.                               | ✅ Pass | Webhooks delivered successfully; database and dashboard updated in real time.           |
-| **Security & Permissions**            | Ensure secrets secured, no tokens exposed, correct GitHub scopes.                  | ✅ Pass | Tokens hidden, permissions limited to Issues, PRs, Metadata, and Webhooks.              |
-| **End-to-End Workflow**               | Full flow from Issue → AI Fix → PR → Merge → Sync.                                 | ✅ Pass | Entire flow executed successfully, verified across staging and production environments. |
+Enable CodeMind to display **project-level analytics** that visualize repository activity, team contributions, and AI-driven insights.
 
 ---
 
-## 🧩 Verified Components Summary
+## 🎯 Objectives
 
-* **Backend GitHub Integration:** Working correctly via Octokit.
-* **API Routes:** Returning expected data for PRs and issues.
-* **Frontend Dashboard:** Displays synced PRs and issues.
-* **AI Agent:** Generates valid code fixes and creates PRs automatically.
-* **Database:** Prisma tables updated in real time.
-* **Webhooks:** Successfully sync state changes.
-* **Security:** No leaks or permission overreach detected.
+1. Show **commits, PRs, issues, and contributor data** for each linked project.  
+2. Enable users to select a **specific contributor** and view detailed statistics.  
+3. Provide an overview of **team productivity**, **commit trends**, and **AI activity**.  
+4. Offer insights to help teams measure development velocity and agent efficiency.
 
 ---
 
-## 🚀 Next Phase — Feature Roadmap
+## 🧩 Architecture Overview
 
-### 1️⃣ Developer Insights Dashboard
-
-* Add analytics for total AI fixes, time saved, and repo activity.
-
-### 2️⃣ AI Fix Review Mode
-
-* Show AI-generated diff preview before PR creation for developer approval.
-
-### 3️⃣ AI-Powered Comment Summarization
-
-* Summarize long PR threads with “Summarize Discussion” button.
-
-### 4️⃣ Auto-Merge After Tests
-
-* Integrate with CI/CD and auto-merge AI PRs on successful build.
-
-### 5️⃣ Smart Issue Categorization
-
-* Use AI to auto-tag issues (bug, enhancement, refactor, etc.).
-
-### 6️⃣ Multi-Repository Support
-
-* Allow multiple GitHub repos under one CodeMind project.
-
-### 7️⃣ Audit & Activity Logs
-
-* Record AI agent actions (prompts, completions, PRs) for transparency.
-
-### 8️⃣ Role-Based Access Control (RBAC)
-
-* Implement roles: `Admin`, `Developer`, and `Viewer`.
-
-### 9️⃣ Notifications System
-
-* Add email/Slack/in-app notifications for AI PR creation, merge, or issue closure.
-
-### 🔟 Documentation & Demo
-
-* Write setup guide and record demo video (Issue → AI Fix → PR).
+```
+GitHub Webhooks / REST API / GraphQL
+        ↓
+API Routes (e.g. /api/projects/:id/analytics)
+        ↓
+Analytics Service Layer (lib/analytics.ts)
+        ↓
+Database (commits, contributors, PRs cached)
+        ↓
+Frontend Dashboard (charts, tables, filters)
+```
 
 ---
 
-## 🧠 Final Verification Summary
+Hey Copilot 👋  
+When you complete a task listed in the `tasks.md` file, please mark it as done by replacing the empty checkbox (☐) with a tick (✅) directly in the file.  
+For example:
+| 1 | Create ProjectConfig table in Prisma | ✅ |
 
-| Area                 | Status | Notes                                        |
-| -------------------- | ------ | -------------------------------------------- |
-| GitHub App Auth      | ✅      | Verified and stable                          |
-| Pull Request Listing | ✅      | Works flawlessly, webhook sync confirmed     |
-| Issue Listing        | ✅      | Matches GitHub issues accurately             |
-| AI Fix Flow          | ✅      | Automatic PR creation verified               |
-| Database Sync        | ✅      | Real-time sync confirmed                     |
-| Security & Secrets   | ✅      | Fully secured, verified environment vars     |
-| Full Workflow        | ✅      | Issue → AI Fix → PR → Merge → Sync — Success |
+After updating, save the file so I can see the completed status reflected in the dashboard or Git history.
 
----
+Make sure each completed task includes:
+- ✅ Status updated in the table
+- A short comment in the commit (e.g. “✅ Completed: Build analytics endpoint”)
 
-## 📅 Next Action Plan
-
-1. Prepare staging environment for demo and QA showcase.
-2. Start development of **AI Review Mode** (phase 2).
-3. Integrate **Developer Insights Dashboard** for analytics.
-4. Add role-based access system and audit logs.
-5. Write technical documentation and publish setup guide.
+Continue through the task list one by one, marking each completed task as ✅ in `tasks.md`.
 
 ---
 
-**Owner:** `@junaidaziz`
-**Feature:** `AI PR & Issue Manager`
-**Status:** 🟢 Verified (Post-QA)
-**Next Milestone:** AI Review Mode & Analytics Dashboard
+## 🗂️ Data Sources
+
+| Source | Data Type | Endpoint |
+|--------|------------|----------|
+| GitHub REST API | Commits, contributors, PRs | `/repos/{owner}/{repo}/commits` |
+| GitHub GraphQL | Commit stats, additions/deletions, trends | `/graphql` |
+| Webhooks | Real-time updates | `push`, `pull_request`, `issues` |
+| Local DB Cache | Aggregated analytics | `Commit`, `Contributor`, `PullRequest` tables |
+
+---
+
+## 📈 Analytics Features
+
+### **1️⃣ Project Overview**
+- Total commits (last 7 / 30 / 90 days)
+- Total PRs created / merged
+- Total open issues
+- AI-generated PRs (vs manual)
+- Most active contributors
+- Languages used (via GitHub API)
+
+### **2️⃣ Contributor Insights**
+- Contributor name, avatar, email
+- Total commits
+- Average lines added/deleted
+- Most worked-on files
+- PRs opened / merged / reviewed
+- AI-assisted commits (if tagged)
+- Weekly contribution heatmap
+
+### **3️⃣ Commit Analytics**
+- Commit frequency over time (line chart)
+- Lines added/deleted (bar chart)
+- AI vs Human commits (pie chart)
+- Commits per branch
+- Filter by timeframe (week/month/custom)
+
+### **4️⃣ Pull Request Analytics**
+- Total PRs (open/merged/closed)
+- Average time to merge
+- Reviewer activity
+- Top contributors by PR count
+- Merge rate trend
+- Direct “View on GitHub” links
+
+### **5️⃣ AI Contribution Metrics**
+- PRs auto-created by CodeMind agent
+- Average time to merge AI PRs
+- Percentage of AI fixes accepted vs rejected
+- Agent success/failure ratio
+
+---
+
+## 🧠 Database Schema Additions
+
+```prisma
+model Commit {
+  id          Int      @id @default(autoincrement())
+  sha         String   @unique
+  message     String
+  author      String
+  additions   Int?
+  deletions   Int?
+  date        DateTime
+  project     Project  @relation(fields: [projectId], references: [id])
+  projectId   Int
+  contributor Contributor? @relation(fields: [contributorId], references: [id])
+  contributorId Int?
+}
+
+model Contributor {
+  id           Int       @id @default(autoincrement())
+  githubId     String?   @unique
+  username     String
+  avatarUrl    String?
+  commits      Commit[]
+  pullRequests PullRequest[]
+  project      Project   @relation(fields: [projectId], references: [id])
+  projectId    Int
+}
+
+model PullRequest {
+  id          Int       @id @default(autoincrement())
+  number      Int
+  title       String
+  author      String
+  state       String
+  url         String
+  createdAt   DateTime
+  mergedAt    DateTime?
+  project     Project   @relation(fields: [projectId], references: [id])
+  projectId   Int
+}
+```
+
+---
+
+## 🧑‍💻 API Routes
+
+| Route | Description |
+|--------|--------------|
+| `GET /api/projects/:id/analytics` | Fetch project summary analytics |
+| `GET /api/projects/:id/contributors` | List all contributors |
+| `GET /api/projects/:id/contributors/:username` | Detailed contributor stats |
+| `GET /api/projects/:id/commits` | Paginated list of commits |
+| `GET /api/projects/:id/pull-requests` | PR summary and details |
+
+---
+
+## 🖥️ Frontend Dashboard Layout
+
+### **Project Analytics Page**
+
+Sections:
+1. **Overview Cards**  
+   - Commits, PRs, Issues, AI PRs  
+2. **Activity Graphs**  
+   - Commits over time  
+   - PR merges trend  
+3. **Contributor Leaderboard**  
+   - Rank by commits or PRs  
+4. **Pull Request Table**  
+   - Searchable, sortable list of PRs  
+5. **Contributor Detail Modal**  
+   - When clicking on a contributor:  
+     - Commits chart  
+     - PRs chart  
+     - Weekly activity graph  
+     - File contribution breakdown  
+
+---
+
+## 🧠 Optional Enhancements
+
+| Feature | Description |
+|----------|--------------|
+| **AI Suggestions** | Identify inactive contributors or bottlenecks. |
+| **Weekly Digest** | Send summary via email or Slack integration. |
+| **Performance Score** | Rank contributors by velocity, review activity, etc. |
+| **Tech Breakdown** | Use GitHub languages API to show repo composition. |
+| **Repo Comparison** | Compare analytics across projects in dashboard. |
+
+---
+
+## ✅ Implementation Tasks
+
+| Step | Task | Status |
+|------|------|--------|
+| 1 | Extend Prisma with Commit, Contributor, PR models | ☐ |
+| 2 | Add GitHub API integration for analytics data | ☐ |
+| 3 | Implement `/api/projects/:id/analytics` endpoint | ☐ |
+| 4 | Build dashboard UI with charts (commits, PRs, contributors) | ☐ |
+| 5 | Add contributor detail modal for deep insights | ☐ |
+| 6 | Add caching and webhook sync for real-time updates | ☐ |
+| 7 | Integrate AI metrics (AI-generated PRs & commits) | ☐ |
+| 8 | Add filters by date, branch, contributor | ☐ |
+| 9 | Test with multiple projects & repos | ☐ |
+| 10 | Deploy to staging & verify analytics accuracy | ☐ |
+
+---
+
+## 🔐 Security & Performance
+
+- Cache GitHub API responses to reduce rate limits.
+- Use background workers for large analytics updates.
+- Paginate commits and PRs for performance.
+- Only authorized project members can access analytics.
+- Allow data refresh manually (“Sync Now” button).
+
+---
+
+## 📅 Next Milestone
+
+**Milestone:** “Project Analytics & Contributor Insights”  
+**Goal:** Deliver real-time GitHub analytics dashboard integrated with CodeMind’s AI context.  
+**Owner:** `@junaidaziz`  
+**Status:** 🟡 Planned  
+
+---
+
+# ⚙️ Dynamic Project Configuration System — CodeMind
+
+This document describes how to make CodeMind’s **environment keys and integrations fully configurable per project**, allowing each linked repository to store and use its own credentials dynamically instead of relying on global `.env` variables.
+
+---
+
+## 🎯 Goal
+
+Enable CodeMind to automatically fetch **Vercel**, **GitHub**, and **OpenAI** keys from each project’s configuration stored in the database.  
+This allows per-project environment management and removes the need for manual `.env` changes or redeploys.
+
+---
+
+## 🧩 Architecture Overview
+
+```
+Frontend (Project Settings UI)
+   ↓
+API Routes (/api/projects/config)
+   ↓
+Database (ProjectConfig table)
+   ↓
+Runtime Key Resolver (lib/config.ts)
+   ↓
+Agent Logic (uses dynamic keys)
+```
+
+---
+
+## 🗂️ Database Schema
+
+Add a new table to Prisma:
+
+```prisma
+model ProjectConfig {
+  id                    Int      @id @default(autoincrement())
+  projectId             Int      @unique
+  vercelToken           String?
+  vercelProjectId       String?
+  vercelTeamId          String?
+  openaiApiKey          String?
+  githubAppId           String?
+  githubPrivateKey      String?
+  githubInstallationId  String?
+  githubWebhookSecret   String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  project               Project  @relation(fields: [projectId], references: [id])
+}
+```
+
+Each project will have its own environment configuration.
+
+---
+
+## 🧠 Dynamic Config Resolver
+
+Create a central helper function `getProjectConfig(projectId)` to dynamically load keys for that project from the database.
+
+This replaces static `process.env` reads with per-project values.
+
+Example use:
+- `Vercel`: used for deployment and build triggers.
+- `GitHub`: used for PR/issue management and authentication.
+- `OpenAI`: used for AI fix generation and analysis.
+
+---
+
+## 🧑‍💻 API Routes
+
+Create a new route group:
+
+```
+/api/projects/config
+```
+
+Endpoints:
+- **GET** `/api/projects/config/:projectId` → Fetch configuration.
+- **POST** `/api/projects/config` → Create/update configuration.
+- **DELETE** `/api/projects/config/:projectId` → Remove configuration.
+
+All requests require project admin authentication.
+
+---
+
+## 🖥️ Project Settings UI
+
+Add a new **“Configuration”** tab on the Project Settings page.
+
+### Fields to Include
+| Key | Description |
+|------|--------------|
+| `VERCEL_TOKEN` | API token for deployment |
+| `VERCEL_PROJECT_ID` | Vercel project ID |
+| `VERCEL_TEAM_ID` | Optional team ID |
+| `OPENAI_API_KEY` | API key for AI services |
+| `GITHUB_APP_ID` | GitHub App ID |
+| `GITHUB_PRIVATE_KEY` | PEM private key for app |
+| `GITHUB_INSTALLATION_ID` | GitHub installation ID |
+| `GITHUB_WEBHOOK_SECRET` | GitHub webhook signature secret |
+
+### Actions
+- **Save Configuration** → Persists data to DB.
+- **Test Connection** → Validates each key via a real API call.
+- **Mask Sensitive Fields** → Display only partial values (••••).
+
+---
+
+## 🔐 Security Considerations
+
+- Encrypt sensitive data (`privateKey`, `apiKey`, etc.) before saving.
+- Use AES or cloud KMS (AWS/GCP) for encryption/decryption.
+- Only project admins can view or edit configuration.
+- Mask secrets in UI, similar to GitHub Secrets.
+- Restrict access via API middleware.
+
+---
+
+## 🧠 Benefits Comparison
+
+| Feature | .env-based (Old) | DB-based (New) |
+|----------|------------------|----------------|
+| Per-project configs | ❌ Shared across all | ✅ Isolated by project |
+| Runtime updates | ❌ Requires redeploy | ✅ Instant without restart |
+| Multi-tenancy | ❌ Hard to scale | ✅ Native support |
+| Security | ⚠️ Static in env | ✅ Encrypted in DB |
+| CI/CD integration | Manual | Automatic |
+
+---
+
+## 🚀 Future Enhancements
+
+1. **Sync from GitHub Secrets:** Import existing repository secrets automatically.
+2. **Audit Logging:** Track who updated which key and when.
+3. **Environment Profiles:** Support `dev`, `staging`, and `prod` profiles.
+4. **Shared Team Configs:** Allow workspace-wide tokens.
+5. **Auto Validation:** Run real-time validation on save.
+
+---
+
+## ✅ Implementation Task List
+
+| Step | Task | Status |
+|------|------|--------|
+| 1 | Create `ProjectConfig` table in Prisma | ☐ |
+| 2 | Build `/api/projects/config` CRUD endpoints | ☐ |
+| 3 | Add “Configuration” tab in Project Settings page | ☐ |
+| 4 | Implement `getProjectConfig()` resolver in backend | ☐ |
+| 5 | Replace static env reads with dynamic config loading | ☐ |
+| 6 | Add encryption/decryption for sensitive fields | ☐ |
+| 7 | Implement “Test Connection” feature for keys | ☐ |
+| 8 | Add masking and role-based access control (RBAC) | ☐ |
+| 9 | QA testing with multiple projects | ☐ |
+
+---
+
+## 📅 Next Milestone
+
+- Complete feature implementation and QA in staging.  
+- Validate that AI agent and GitHub integrations dynamically pull from database configs.  
+- Add audit log and encryption service.
+
+---
+
+**Owner:** `@junaidaziz`  
+**Feature:** `Dynamic Project Configuration`  
+**Status:** 🟡 In Progress  
+**Next Milestone:** Per-Project Environment Support & Key Encryption
+
