@@ -7,6 +7,7 @@ import {
   getConfigAccessLevel,
   logConfigAccess 
 } from '@/lib/rbac';
+import { getUserId } from '@/lib/auth-server';
 
 // Custom ProjectConfig interface to match actual usage
 interface ProjectConfig {
@@ -98,18 +99,11 @@ interface ConfigParams {
 export async function GET(request: NextRequest, { params }: ConfigParams) {
   const { id } = await params;
   try {
-    // TODO: Get actual user ID from session when auth is configured
-    let userId = request.headers.get('x-user-id') || 'anonymous';
-
-    // Development mode: If no user ID provided, check if project has an owner and use that
-    if (userId === 'anonymous' && process.env.NODE_ENV === 'development') {
-      const project = await prisma.project.findFirst({
-        where: { id: id }
-      });
-      if (project?.ownerId) {
-        userId = project.ownerId;
-        console.log(`Development mode: Using project owner ID ${userId} for authentication`);
-      }
+    // Get authenticated user ID (with development fallback)
+    const userId = await getUserId(request, id);
+    
+    if (!userId) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
     // Check user permissions for this project
@@ -188,18 +182,11 @@ export async function GET(request: NextRequest, { params }: ConfigParams) {
 export async function POST(request: NextRequest, { params }: ConfigParams) {
   const { id } = await params;
   try {
-    // TODO: Get actual user ID from session when auth is configured
-    let userId = request.headers.get('x-user-id') || 'anonymous';
-
-    // Development mode: If no user ID provided, check if project has an owner and use that
-    if (userId === 'anonymous' && process.env.NODE_ENV === 'development') {
-      const project = await prisma.project.findFirst({
-        where: { id: id }
-      });
-      if (project?.ownerId) {
-        userId = project.ownerId;
-        console.log(`Development mode: Using project owner ID ${userId} for authentication`);
-      }
+    // Get authenticated user ID (with development fallback)
+    const userId = await getUserId(request, id);
+    
+    if (!userId) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
     // Check user permissions for creating config
@@ -294,18 +281,11 @@ export async function POST(request: NextRequest, { params }: ConfigParams) {
 export async function PUT(request: NextRequest, { params }: ConfigParams) {
   const { id } = await params;
   try {
-    // TODO: Get actual user ID from session when auth is configured
-    let userId = request.headers.get('x-user-id') || 'anonymous';
-
-    // Development mode: If no user ID provided, check if project has an owner and use that
-    if (userId === 'anonymous' && process.env.NODE_ENV === 'development') {
-      const project = await prisma.project.findFirst({
-        where: { id: id }
-      });
-      if (project?.ownerId) {
-        userId = project.ownerId;
-        console.log(`Development mode: Using project owner ID ${userId} for authentication`);
-      }
+    // Get authenticated user ID (with development fallback)
+    const userId = await getUserId(request, id);
+    
+    if (!userId) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
     // Check user permissions for updating config
@@ -404,18 +384,11 @@ export async function PUT(request: NextRequest, { params }: ConfigParams) {
 export async function DELETE(request: NextRequest, { params }: ConfigParams) {
   const { id } = await params;
   try {
-    // TODO: Get actual user ID from session when auth is configured
-    let userId = request.headers.get('x-user-id') || 'anonymous';
-
-    // Development mode: If no user ID provided, check if project has an owner and use that
-    if (userId === 'anonymous' && process.env.NODE_ENV === 'development') {
-      const project = await prisma.project.findFirst({
-        where: { id: id }
-      });
-      if (project?.ownerId) {
-        userId = project.ownerId;
-        console.log(`Development mode: Using project owner ID ${userId} for authentication`);
-      }
+    // Get authenticated user ID (with development fallback)
+    const userId = await getUserId(request, id);
+    
+    if (!userId) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
     // Check user permissions for deleting config

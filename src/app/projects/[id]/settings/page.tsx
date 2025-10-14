@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { FullPageSpinner, ErrorBanner } from '../../../../components/ui';
 import { ProtectedRoute } from '../../../components/ProtectedRoute';
-import { useAuth } from '../../../contexts/AuthContext';
 
 interface Project {
   id: string;
@@ -16,8 +15,8 @@ interface Project {
 }
 
 interface ProjectConfig {
-  id?: number;
-  projectId: number;
+  id?: string;
+  projectId: string;
   vercelToken?: string;
   vercelProjectId?: string;
   vercelTeamId?: string;
@@ -107,11 +106,10 @@ const CONFIG_FIELDS: ConfigField[] = [
 function ProjectSettingsPageContent() {
   const params = useParams();
   const projectId = params.id as string;
-  const { user } = useAuth();
   
   const [project, setProject] = useState<Project | null>(null);
   const [config, setConfig] = useState<ProjectConfig>({
-    projectId: parseInt(projectId)
+    projectId: projectId
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -138,24 +136,17 @@ function ProjectSettingsPageContent() {
     const fetchConfig = async () => {
       try {
         setLoading(true);
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-        };
-        
-        // Add user ID header if authenticated
-        if (user?.id) {
-          headers['x-user-id'] = user.id;
-        }
-        
         const response = await fetch(`/api/projects/${projectId}/config`, {
-          headers
+          headers: {
+            'Content-Type': 'application/json',
+          }
         });
         if (response.ok) {
           const data = await response.json();
           setConfig(data);
         } else if (response.status === 404) {
           // Config doesn't exist yet, that's fine
-          setConfig({ projectId: parseInt(projectId) });
+          setConfig({ projectId: projectId });
         } else {
           throw new Error('Failed to fetch configuration');
         }
@@ -169,7 +160,7 @@ function ProjectSettingsPageContent() {
 
     fetchProject();
     fetchConfig();
-  }, [projectId, user]);
+  }, [projectId]);
 
   const handleConfigChange = (key: keyof ProjectConfig, value: string) => {
     setConfig(prev => ({
@@ -199,18 +190,11 @@ function ProjectSettingsPageContent() {
       setSuccess(null);
 
       const method = config.id ? 'PUT' : 'POST';
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      
-      // Add user ID header if authenticated
-      if (user?.id) {
-        headers['x-user-id'] = user.id;
-      }
-      
       const response = await fetch(`/api/projects/${projectId}/config`, {
         method,
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(config),
       });
 
@@ -234,18 +218,11 @@ function ProjectSettingsPageContent() {
       setTesting(true);
       setTestResults({});
 
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      
-      // Add user ID header if authenticated
-      if (user?.id) {
-        headers['x-user-id'] = user.id;
-      }
-
       const response = await fetch(`/api/projects/${projectId}/config/test`, {
         method: 'POST',
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(config),
       });
 
