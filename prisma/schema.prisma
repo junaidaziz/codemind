@@ -29,6 +29,9 @@ model User {
   organizationMemberships OrganizationMember[]
   projects                Project[]
   toolExecutions          ToolExecution[]
+  developerInsights       DeveloperInsights[]
+  activityLogs            ActivityLog[]
+  timeTracking            TimeTracking[]
 }
 
 model Project {
@@ -58,6 +61,9 @@ model Project {
   projectFiles      ProjectFile[]       @relation("ProjectFiles")
   pullRequests      PullRequest[]
   toolExecutions    ToolExecution[]
+  developerInsights DeveloperInsights[]
+  activityLogs      ActivityLog[]
+  timeTracking      TimeTracking[]
 
   @@index([organizationId])
 }
@@ -499,4 +505,118 @@ enum PullRequestState {
 enum IssueState {
   OPEN
   CLOSED
+}
+
+// Enhanced Analytics Models for Developer Insights Dashboard
+model DeveloperInsights {
+  id                    String   @id @default(cuid())
+  projectId             String
+  userId                String?
+  period                String   // "daily", "weekly", "monthly", "quarterly", "yearly"
+  periodStart           DateTime
+  periodEnd             DateTime
+  
+  // Core Metrics
+  totalAiFixes          Int      @default(0)
+  successfulFixes       Int      @default(0)
+  failedFixes           Int      @default(0)
+  successRate           Float    @default(0)
+  
+  // Time Savings
+  estimatedHoursSaved   Float    @default(0)
+  avgFixTimeMinutes     Int      @default(0)
+  totalFixTimeMinutes   Int      @default(0)
+  
+  // Repository Activity
+  totalCommits          Int      @default(0)
+  totalPRsCreated       Int      @default(0)
+  totalPRsMerged        Int      @default(0)
+  totalIssuesResolved   Int      @default(0)
+  
+  // Code Quality Metrics
+  linesOfCodeFixed      Int      @default(0)
+  bugsFixed             Int      @default(0)
+  securityIssuesFixed   Int      @default(0)
+  performanceImprovements Int    @default(0)
+  
+  // Efficiency Metrics  
+  avgCodeReviewTime     Int?     // minutes
+  prMergeRate           Float    @default(0)
+  rollbackRate          Float    @default(0)
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  project               Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user                  User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId, period, periodStart])
+  @@index([projectId, period, periodStart])
+  @@index([userId, period, periodStart])
+}
+
+model ActivityLog {
+  id            String           @id @default(cuid())
+  projectId     String
+  userId        String?
+  activityType  ActivityType
+  entityType    String           // "issue", "pr", "commit", "ai_fix"
+  entityId      String
+  description   String
+  metadata      String?          // JSON string for additional data
+  duration      Int?             // activity duration in minutes
+  impact        ActivityImpact   @default(LOW)
+  createdAt     DateTime         @default(now())
+  
+  project       Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user          User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@index([userId, createdAt])
+  @@index([activityType, createdAt])
+}
+
+model TimeTracking {
+  id              String   @id @default(cuid())
+  projectId       String
+  userId          String?
+  sessionId       String?  // Links to AI fix session
+  taskType        String   // "ai_fix", "code_review", "debugging", "feature_development"
+  startTime       DateTime
+  endTime         DateTime?
+  durationMinutes Int?
+  description     String?
+  tags            String[] @default([])
+  
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, startTime])
+  @@index([userId, startTime])
+  @@index([taskType, startTime])
+}
+
+enum ActivityType {
+  AI_FIX_STARTED
+  AI_FIX_COMPLETED
+  AI_FIX_FAILED
+  PR_CREATED
+  PR_MERGED
+  PR_CLOSED
+  ISSUE_OPENED
+  ISSUE_CLOSED
+  COMMIT_PUSHED
+  CODE_REVIEWED
+  DEPLOYMENT
+  BUILD_FAILED
+  BUILD_SUCCESS
+  TEST_FAILED
+  TEST_PASSED
+}
+
+enum ActivityImpact {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
 }

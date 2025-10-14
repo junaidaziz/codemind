@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { GitHubService } from './github-service';
+import { AnalyticsTracker } from './analytics-tracker';
 import prisma from '../app/lib/db';
 
 interface FixContext {
@@ -42,7 +43,19 @@ export class AIFixService {
    * Analyze an issue and generate AI fix suggestions
    */
   async analyzeIssue(issueId: string): Promise<FixSuggestion | null> {
+    const startTime = Date.now();
+    
     try {
+      // Track analytics event - AI fix started
+      await AnalyticsTracker.trackEvent({
+        eventType: 'ai_fix_started',
+        projectId: '', // Will be filled after we get the project
+        issueId,
+        metadata: {
+          timestamp: new Date(),
+        },
+      });
+
       // Get issue from database
       const issue = await prisma.issue.findUnique({
         where: { id: issueId },
@@ -80,10 +93,32 @@ export class AIFixService {
       // Generate fix suggestions using OpenAI
       const fixSuggestion = await this.generateFixSuggestion(context, owner, repo);
 
-      // Note: AI analysis complete (could store in AutoFixSession if needed)
+      // Track successful analysis
+      const timeTaken = (Date.now() - startTime) / 1000; // Convert to seconds
+      await AnalyticsTracker.trackAIFixSession({
+        projectId: issue.project.id,
+        issueId,
+        confidence: fixSuggestion?.confidence || 0,
+        timeTaken,
+        success: fixSuggestion !== null,
+        errorMessage: fixSuggestion === null ? 'Failed to generate fix suggestion' : undefined,
+      });
 
       return fixSuggestion;
     } catch (error) {
+      // Track failed analysis
+      const timeTaken = (Date.now() - startTime) / 1000;
+      await AnalyticsTracker.trackAIFixSession({
+        projectId: '', // May not have project info in error case
+        issueId,
+        confidence: 0,
+        timeTaken,
+        success: false,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+      }).catch(trackingError => {
+        console.warn('Failed to track analytics:', trackingError);
+      });
+
       console.error('Error analyzing issue:', error);
       throw new Error(`Failed to analyze issue: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -149,6 +184,20 @@ export class AIFixService {
         head: branchName,
         base: 'main',
         draft: fixSuggestion.confidence < 0.8, // Mark as draft if confidence is not very high
+      });
+
+      // Track PR creation event
+      await AnalyticsTracker.trackPullRequestEvent({
+        projectId: issue.project.id,
+        pullRequestId: pullRequest.number.toString(),
+        issueId,
+        eventType: 'pr_created',
+        metadata: {
+          confidence: fixSuggestion.confidence,
+          isDraft: fixSuggestion.confidence < 0.8,
+          prUrl: pullRequest.html_url,
+          title: fixSuggestion.prTitle,
+        },
       });
 
       // Note: AI fix PR created (reference stored in AutoFixSession if needed)

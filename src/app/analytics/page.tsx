@@ -1,7 +1,7 @@
 'use client';
 
 import React, { Suspense } from 'react';
-import AnalyticsDashboard from '../../components/AnalyticsDashboard';
+import DeveloperInsightsDashboard from '../../components/DeveloperInsightsDashboard';
 import { ErrorBoundary } from '../../components/ui/ErrorBoundary';
 import { Spinner } from '../../components/ui/Spinner';
 
@@ -52,11 +52,6 @@ const DashboardError = ({ error, resetError }: { error: Error; resetError: () =>
 
 // Main analytics page component
 export default function AnalyticsPage() {
-  const handleError = (error: Error) => {
-    console.error('Analytics dashboard error:', error);
-    // Could integrate with error tracking service here
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Page Header */}
@@ -81,10 +76,9 @@ export default function AnalyticsPage() {
       {/* Dashboard Content */}
       <ErrorBoundary fallback={DashboardError}>
         <Suspense fallback={<DashboardLoading />}>
-          <AnalyticsDashboard
-            refreshInterval={30000} // 30 seconds
-            onError={handleError}
-          />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <DeveloperInsightsDashboard projectId="1" />
+          </div>
         </Suspense>
       </ErrorBoundary>
 
