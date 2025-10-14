@@ -192,14 +192,14 @@ Sections:
 
 | Step | Task | Status |
 |------|------|--------|
-| 1 | Extend Prisma with Commit, Contributor, PR models | ☐ |
-| 2 | Add GitHub API integration for analytics data | ☐ |
-| 3 | Implement `/api/projects/:id/analytics` endpoint | ☐ |
-| 4 | Build dashboard UI with charts (commits, PRs, contributors) | ☐ |
-| 5 | Add contributor detail modal for deep insights | ☐ |
-| 6 | Add caching and webhook sync for real-time updates | ☐ |
-| 7 | Integrate AI metrics (AI-generated PRs & commits) | ☐ |
-| 8 | Add filters by date, branch, contributor | ☐ |
+| 1 | Extend Prisma with Commit, Contributor, PR models | ✅ |
+| 2 | Add GitHub API integration for analytics data | ✅ |
+| 3 | Implement `/api/projects/:id/analytics` endpoint | ✅ |
+| 4 | Build dashboard UI with charts (commits, PRs, contributors) | ✅ |
+| 5 | Add contributor detail modal for deep insights | ✅ |
+| 6 | Add caching and webhook sync for real-time updates | ✅ |
+| 7 | Integrate AI metrics (AI-generated PRs & commits) | ✅ |
+| 8 | Add filters by date, branch, contributor | ✅ |
 | 9 | Test with multiple projects & repos | ☐ |
 | 10 | Deploy to staging & verify analytics accuracy | ☐ |
 
@@ -368,13 +368,13 @@ Add a new **“Configuration”** tab on the Project Settings page.
 
 | Step | Task | Status |
 |------|------|--------|
-| 1 | Create `ProjectConfig` table in Prisma | ☐ |
-| 2 | Build `/api/projects/config` CRUD endpoints | ☐ |
-| 3 | Add “Configuration” tab in Project Settings page | ☐ |
-| 4 | Implement `getProjectConfig()` resolver in backend | ☐ |
-| 5 | Replace static env reads with dynamic config loading | ☐ |
-| 6 | Add encryption/decryption for sensitive fields | ☐ |
-| 7 | Implement “Test Connection” feature for keys | ☐ |
+| 1 | Create `ProjectConfig` table in Prisma | ✅ |
+| 2 | Build `/api/projects/config` CRUD endpoints | ✅ |
+| 3 | Add "Configuration" tab in Project Settings page | ✅ |
+| 4 | Implement `getProjectConfig()` resolver in backend | ✅ |
+| 5 | Replace static env reads with dynamic config loading | ✅ |
+| 6 | Add encryption/decryption for sensitive fields | ✅ |
+| 7 | Implement "Test Connection" feature for keys | ✅ |
 | 8 | Add masking and role-based access control (RBAC) | ☐ |
 | 9 | QA testing with multiple projects | ☐ |
 

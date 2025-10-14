@@ -4,6 +4,7 @@ import prisma from '../../../lib/db';
 import { GitHubService } from '../../../../lib/github-service';
 import { AIFixService } from '../../../../lib/ai-fix-service';
 import { createApiError, createApiSuccess } from '../../../../types';
+import { getGitHubToken, getOpenAIKey, getGitHubWebhookSecret } from '../../../../lib/config-helper';
 import crypto from 'crypto';
 
 // Verify GitHub webhook signature
@@ -55,10 +56,10 @@ async function handlePullRequestEvent(
   try {
     const { action, pull_request, repository } = eventData;
     
-    // Get GitHub token
-    const githubToken = process.env.GITHUB_TOKEN;
+    // Get GitHub token from project configuration
+    const githubToken = await getGitHubToken(projectId);
     if (!githubToken) {
-      throw new Error('GitHub token not configured');
+      throw new Error('GitHub token not configured for this project');
     }
 
     const githubService = new GitHubService(githubToken);
@@ -106,10 +107,10 @@ async function handleIssueEvent(
   try {
     const { action, issue, repository } = eventData;
     
-    // Get GitHub token
-    const githubToken = process.env.GITHUB_TOKEN;
+    // Get GitHub token from project configuration
+    const githubToken = await getGitHubToken(projectId);
     if (!githubToken) {
-      throw new Error('GitHub token not configured');
+      throw new Error('GitHub token not configured for this project');
     }
 
     const githubService = new GitHubService(githubToken);
@@ -140,7 +141,7 @@ async function handleIssueEvent(
         });
 
         if (dbIssue) {
-          const openaiApiKey = process.env.OPENAI_API_KEY;
+          const openaiApiKey = await getOpenAIKey(projectId);
           if (openaiApiKey) {
             const aiFixService = new AIFixService(openaiApiKey, githubToken);
             const fixResult = await aiFixService.generateAndApplyFix(dbIssue.id);
@@ -228,7 +229,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify webhook signature (optional for now)
-    const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET;
+    const webhookSecret = await getGitHubWebhookSecret(project.id);
     if (webhookSecret && githubSignature) {
       const isValid = await verifyGitHubSignature(body, githubSignature, webhookSecret);
       if (!isValid) {

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { FullPageSpinner, ErrorBanner } from '../../../components/ui';
 import { ProtectedRoute } from '../../components/ProtectedRoute';
 import { GitHubIntegration } from '../../../components/GitHubIntegration';
+import ProjectAnalyticsDashboard from '../../../components/ProjectAnalyticsDashboard';
 
 interface Project {
   id: string;
@@ -23,6 +24,7 @@ function ProjectDetailPageContent() {
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('overview');
 
   const fetchProject = useCallback(async () => {
     try {
@@ -146,84 +148,120 @@ function ProjectDetailPageContent() {
           />
         )}
 
-        {/* Project Overview */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <h2 className="text-xl font-semibold mb-4">Project Overview</h2>
-              
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Status:</span>
-                  <span className={getStatusBadge(project.status)}>
-                    {project.status}
-                  </span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Repository:</span>
-                  <a
-                    href={project.githubUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-mono"
-                  >
-                    {project.githubUrl.replace('https://github.com/', '')} ↗
-                  </a>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Last Indexed:</span>
-                  <span className="text-sm">{formatDate(project.lastIndexedAt)}</span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Created:</span>
-                  <span className="text-sm">{formatDate(project.createdAt)}</span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Updated:</span>
-                  <span className="text-sm">{formatDate(project.updatedAt)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-              
-              <div className="space-y-3">
-                <Link
-                  href={`/chat?project=${project.id}`}
-                  className="block w-full px-4 py-2 bg-blue-500 text-white text-center rounded-lg hover:bg-blue-600 transition-colors"
-                >
-                  💬 Start Chat
-                </Link>
-                
+        {/* Tab Navigation */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+          <div className="border-b border-gray-200 dark:border-gray-700">
+            <nav className="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+              {[
+                { id: 'overview', name: 'Overview', icon: '📊' },
+                { id: 'analytics', name: 'Analytics', icon: '📈' },
+                { id: 'integration', name: 'GitHub Integration', icon: '🔗' }
+              ].map((tab) => (
                 <button
-                  onClick={() => window.open(project.githubUrl, '_blank')}
-                  className="block w-full px-4 py-2 bg-gray-500 text-white text-center rounded-lg hover:bg-gray-600 transition-colors"
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`${
+                    activeTab === tab.id
+                      ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                  } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2`}
                 >
-                  🔗 View on GitHub
+                  <span>{tab.icon}</span>
+                  <span>{tab.name}</span>
                 </button>
-                
-                <Link
-                  href={`/projects/${project.id}/settings`}
-                  className="block w-full px-4 py-2 bg-purple-500 text-white text-center rounded-lg hover:bg-purple-600 transition-colors"
-                >
-                  ⚙️ Settings
-                </Link>
-              </div>
-            </div>
+              ))}
+            </nav>
           </div>
         </div>
 
-        {/* GitHub Integration Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <GitHubIntegration projectId={project.id} />
-        </div>
+        {/* Tab Content */}
+        {activeTab === 'overview' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h2 className="text-xl font-semibold mb-4">Project Overview</h2>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Status:</span>
+                    <span className={getStatusBadge(project.status)}>
+                      {project.status}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Repository:</span>
+                    <a
+                      href={project.githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-mono"
+                    >
+                      {project.githubUrl.replace('https://github.com/', '')} ↗
+                    </a>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Last Indexed:</span>
+                    <span className="text-sm">{formatDate(project.lastIndexedAt)}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Created:</span>
+                    <span className="text-sm">{formatDate(project.createdAt)}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Updated:</span>
+                    <span className="text-sm">{formatDate(project.updatedAt)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+                
+                <div className="space-y-3">
+                  <Link
+                    href={`/chat?project=${project.id}`}
+                    className="block w-full px-4 py-2 bg-blue-500 text-white text-center rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    💬 Start Chat
+                  </Link>
+                  
+                  <button
+                    onClick={() => window.open(project.githubUrl, '_blank')}
+                    className="block w-full px-4 py-2 bg-gray-500 text-white text-center rounded-lg hover:bg-gray-600 transition-colors"
+                  >
+                    🔗 View on GitHub
+                  </button>
+                  
+                  <Link
+                    href={`/projects/${project.id}/settings`}
+                    className="block w-full px-4 py-2 bg-purple-500 text-white text-center rounded-lg hover:bg-purple-600 transition-colors"
+                  >
+                    ⚙️ Settings
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'analytics' && (
+          <ProjectAnalyticsDashboard 
+            projectId={project.id}
+            isDarkMode={false} // You can get this from theme context if available
+          />
+        )}
+
+        {activeTab === 'integration' && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <GitHubIntegration projectId={project.id} />
+          </div>
+        )}
       </div>
     </div>
   );

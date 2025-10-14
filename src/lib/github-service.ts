@@ -357,6 +357,147 @@ export class GitHubService {
     }
   }
 
+  /**
+   * Fetch all commits for a repository and sync with database
+   */
+  async syncCommits(projectId: string, owner: string, repo: string, since?: Date) {
+    try {
+      const params: {
+        owner: string;
+        repo: string;
+        per_page: number;
+        since?: string;
+      } = {
+        owner,
+        repo,
+        per_page: 100,
+      };
+
+      if (since) {
+        params.since = since.toISOString();
+      }
+
+      const { data: commits } = await this.octokit.rest.repos.listCommits(params);
+
+      const syncResults = await Promise.allSettled(
+        commits.map(async (commit) => {
+          return await prisma.commit.upsert({
+            where: { 
+              sha: commit.sha
+            },
+            create: {
+              projectId,
+              sha: commit.sha,
+              message: commit.commit.message,
+              author: commit.author?.login || commit.commit.author?.name || 'unknown',
+              authorEmail: commit.commit.author?.email || '',
+              date: new Date(commit.commit.author?.date || new Date()),
+              url: commit.html_url,
+              additions: commit.stats?.additions || 0,
+              deletions: commit.stats?.deletions || 0,
+            },
+            update: {
+              message: commit.commit.message,
+              author: commit.author?.login || commit.commit.author?.name || 'unknown',
+              authorEmail: commit.commit.author?.email || '',
+              date: new Date(commit.commit.author?.date || new Date()),
+              additions: commit.stats?.additions || 0,
+              deletions: commit.stats?.deletions || 0,
+            },
+          });
+        })
+      );
+
+      const successful = syncResults.filter(result => result.status === 'fulfilled').length;
+      const failed = syncResults.filter(result => result.status === 'rejected').length;
+
+      return { successful, failed, total: commits.length };
+    } catch (error) {
+      console.error('Error syncing commits:', error);
+      throw new Error(`Failed to sync commits: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Fetch and sync contributors for a repository
+   */
+  async syncContributors(projectId: string, owner: string, repo: string) {
+    try {
+      const { data: contributors } = await this.octokit.rest.repos.listContributors({
+        owner,
+        repo,
+        per_page: 100,
+      });
+
+      const syncResults = await Promise.allSettled(
+        contributors.map(async (contributor) => {
+          return await prisma.contributor.upsert({
+            where: { 
+              projectId_username: {
+                projectId,
+                username: contributor.login || 'unknown'
+              }
+            },
+            create: {
+              projectId,
+              githubId: contributor.id?.toString(),
+              username: contributor.login || 'unknown',
+              avatarUrl: contributor.avatar_url || '',
+              name: contributor.name || contributor.login || 'unknown',
+              totalCommits: contributor.contributions || 0,
+            },
+            update: {
+              githubId: contributor.id?.toString(),
+              avatarUrl: contributor.avatar_url || '',
+              name: contributor.name || contributor.login || 'unknown',
+              totalCommits: contributor.contributions || 0,
+            },
+          });
+        })
+      );
+
+      const successful = syncResults.filter(result => result.status === 'fulfilled').length;
+      const failed = syncResults.filter(result => result.status === 'rejected').length;
+
+      return { successful, failed, total: contributors.length };
+    } catch (error) {
+      console.error('Error syncing contributors:', error);
+      throw new Error(`Failed to sync contributors: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Get repository statistics and insights
+   */
+  async getRepositoryStats(owner: string, repo: string) {
+    try {
+      const [repoData, languagesData, activityData] = await Promise.all([
+        this.octokit.rest.repos.get({ owner, repo }),
+        this.octokit.rest.repos.listLanguages({ owner, repo }),
+        this.octokit.rest.repos.getCommitActivityStats({ owner, repo })
+      ]);
+
+      return {
+        repository: {
+          name: repoData.data.name,
+          description: repoData.data.description,
+          stargazersCount: repoData.data.stargazers_count,
+          forksCount: repoData.data.forks_count,
+          openIssuesCount: repoData.data.open_issues_count,
+          defaultBranch: repoData.data.default_branch,
+          createdAt: new Date(repoData.data.created_at),
+          updatedAt: new Date(repoData.data.updated_at),
+          pushedAt: repoData.data.pushed_at ? new Date(repoData.data.pushed_at) : null,
+        },
+        languages: languagesData.data,
+        weeklyActivity: activityData.data || []
+      };
+    } catch (error) {
+      console.error('Error fetching repository stats:', error);
+      throw new Error(`Failed to fetch repository stats: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
   private mapPRState(state: string, mergedAt: string | null): PullRequestState {
     if (mergedAt) return PullRequestState.MERGED;
     return state === 'open' ? PullRequestState.OPEN : PullRequestState.CLOSED;

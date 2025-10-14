@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import prisma from '@/lib/db';
 import { logger } from '@/lib/logger';
+import { CacheService } from '@/lib/cache-service';
+import { getRealTimeAnalyticsService } from '@/lib/realtime-analytics';
 import { 
   createApiError,
   createApiSuccess 
@@ -205,6 +207,13 @@ async function processWebhookEvent(
         content: `GitHub Webhook: ${description}`,
       }
     });
+
+    // Invalidate analytics cache for this project since data may have changed
+    await CacheService.markProjectAsUpdated(projectId);
+    
+    // Notify real-time analytics service
+    const realTimeService = getRealTimeAnalyticsService();
+    await realTimeService.handleWebhookEvent(projectId, eventType, eventData);
 
     // Check if project should be reindexed
     const shouldReindex = shouldReindexProject(parsedEvent);

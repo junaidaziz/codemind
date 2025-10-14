@@ -1,4 +1,5 @@
 import prisma from '../app/lib/db';
+import { getRealTimeAnalyticsService } from './realtime-analytics';
 
 export interface AnalyticsEvent {
   eventType: 'ai_fix_started' | 'ai_fix_completed' | 'ai_fix_failed' | 'pr_created' | 'pr_merged' | 'pr_closed' | 'issue_resolved';
@@ -39,6 +40,16 @@ export class AnalyticsTracker {
 
       if (event.eventType === 'pr_merged') {
         await this.updateProjectMetrics(event.projectId, 'pr_merged', event.metadata || {});
+      }
+
+      // Trigger real-time updates for AI-related events
+      if (['ai_fix_started', 'ai_fix_completed', 'ai_fix_failed'].includes(event.eventType)) {
+        const realTimeService = getRealTimeAnalyticsService();
+        realTimeService.notifyAIMetricsUpdate(event.projectId, {
+          eventType: event.eventType,
+          metadata: event.metadata,
+          timestamp: new Date()
+        });
       }
 
       // Log the event for debugging

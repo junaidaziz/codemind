@@ -3,6 +3,7 @@ import { getAuthenticatedUser } from '../../../lib/auth-utils';
 // import { GitHubService } from '../../../../lib/github-service'; // Unused import
 import prisma from '../../../lib/db';
 import { createApiSuccess, createApiError } from '../../../../types';
+import { getGitHubToken } from '../../../../lib/config-helper';
 
 export async function GET(request: NextRequest) {
   try {
@@ -77,10 +78,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (sync) {
-      // Get user's GitHub token (you'll need to store this in the user profile or get from session)
-      const githubToken = process.env.GITHUB_TOKEN; // Fallback to app token
+      // Get GitHub token from project configuration
+      const githubToken = await getGitHubToken(projectId);
       if (!githubToken) {
-        return NextResponse.json(createApiError('GitHub token not configured', 'CONFIGURATION_ERROR'), { status: 500 });
+        return NextResponse.json(createApiError('GitHub token not configured for this project', 'CONFIGURATION_ERROR'), { status: 500 });
       }
 
       // const githubService = new GitHubService(githubToken); // Unused variable

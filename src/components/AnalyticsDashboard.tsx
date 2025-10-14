@@ -9,7 +9,7 @@ import {
   LineChartComponent, 
   AreaChartComponent, 
   BarChartComponent, 
-  PieChartComponent 
+  DoughnutChartComponent 
 } from './ChartComponents';
 
 // SystemAlert type based on the DashboardResponse alerts array
@@ -453,12 +453,11 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         </div>
         
         <div className="bg-white rounded-lg shadow-sm border p-6">
-          <PieChartComponent
+          <DoughnutChartComponent
             data={data.charts.projectUsage}
             title="Project Usage Distribution"
             height={300}
             showLabels={false}
-            showLegend={true}
           />
         </div>
         
