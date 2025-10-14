@@ -1,5 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from "../../../../lib/db";
+import prisma from '@/lib/db';
+
+// Custom ProjectConfig interface to match actual usage
+interface ProjectConfig {
+  id: string;
+  projectId: string;
+  configData: Record<string, unknown>;
+  encryptedFields: string[];
+  createdAt: Date;
+  updatedAt: Date;
+  // Configuration fields accessed in the code
+  vercelToken?: string;
+  vercelProjectId?: string;
+  vercelTeamId?: string;
+  openaiApiKey?: string;
+  githubAppId?: string;
+  githubPrivateKey?: string;
+  githubInstallationId?: string;
+  githubWebhookSecret?: string;
+  githubToken?: string;
+  isEncrypted?: boolean;
+}
+
+// Extend PrismaClient type to include projectConfig
+type PrismaWithProjectConfig = typeof prisma & {
+  projectConfig: {
+    findFirst: (args?: {
+      where?: { projectId?: string; id?: string };
+      select?: Record<string, boolean>;
+    }) => Promise<ProjectConfig | null>;
+    create: (args: {
+      data: {
+        projectId: string;
+        configData: Record<string, unknown>;
+        encryptedFields?: string[];
+      };
+    }) => Promise<ProjectConfig>;
+    upsert: (args: {
+      where: { projectId: string };
+      update: {
+        configData: Record<string, unknown>;
+        encryptedFields?: string[];
+      };
+      create: {
+        projectId: string;
+        configData: Record<string, unknown>;
+        encryptedFields?: string[];
+      };
+    }) => Promise<ProjectConfig>;
+    delete: (args: { where: { id: string } }) => Promise<ProjectConfig>;
+  };
+};
 // TODO: Add authentication when auth system is configured
 // import { getServerSession } from 'next-auth/next';
 // import { authOptions } from '../../../../../auth/[...nextauth]/route';
@@ -31,7 +82,7 @@ export async function GET(request: NextRequest, { params }: ConfigParams) {
     }
 
     // Get project configuration
-    const config = await prisma.projectConfig.findFirst({
+    const config = await (prisma as PrismaWithProjectConfig).projectConfig.findFirst({
       where: {
         projectId: id
       }
@@ -107,7 +158,7 @@ export async function POST(request: NextRequest, { params }: ConfigParams) {
     } = body;
 
     // Check if config already exists
-    const existingConfig = await prisma.projectConfig.findFirst({
+    const existingConfig = await (prisma as PrismaWithProjectConfig).projectConfig.findFirst({
       where: {
         projectId: id
       }
@@ -121,7 +172,7 @@ export async function POST(request: NextRequest, { params }: ConfigParams) {
 
     // Create new configuration
     // TODO: Implement encryption for sensitive fields
-    const config = await prisma.projectConfig.create({
+    const config = await (prisma as PrismaWithProjectConfig).projectConfig.create({
       data: {
         projectId: id,
         vercelToken: vercelToken || null,
@@ -201,7 +252,7 @@ export async function PUT(request: NextRequest, { params }: ConfigParams) {
 
     // Update existing configuration or create if doesn't exist
     // TODO: Implement encryption for sensitive fields
-    const config = await prisma.projectConfig.upsert({
+    const config = await (prisma as PrismaWithProjectConfig).projectConfig.upsert({
       where: {
         projectId: id
       },
@@ -282,7 +333,7 @@ export async function DELETE(request: NextRequest, { params }: ConfigParams) {
     }
 
     // Check if config exists
-    const existingConfig = await prisma.projectConfig.findFirst({
+    const existingConfig = await (prisma as PrismaWithProjectConfig).projectConfig.findFirst({
       where: {
         projectId: id
       }
@@ -295,7 +346,7 @@ export async function DELETE(request: NextRequest, { params }: ConfigParams) {
     }
 
     // Delete configuration
-    await prisma.projectConfig.delete({
+    await (prisma as PrismaWithProjectConfig).projectConfig.delete({
       where: {
         projectId: id
       }

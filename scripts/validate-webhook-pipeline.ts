@@ -47,7 +47,33 @@ Error: Invalid API key provided for Supabase client
 };
 
 // Sample webhook events for testing
-const TEST_WEBHOOK_EVENTS = {
+type TestWorkflowRunEvent = {
+  action: 'completed';
+  workflow_run: {
+    id: number;
+    status: string;
+    conclusion: string;
+    repository: {
+      html_url: string;
+      full_name: string;
+    };
+  };
+};
+
+type TestCheckSuiteEvent = {
+  action: 'completed';
+  check_suite: {
+    id: number;
+    status: string;
+    conclusion: string;
+    repository: {
+      html_url: string;
+      full_name: string;
+    };
+  };
+};
+
+const TEST_WEBHOOK_EVENTS: Record<string, TestWorkflowRunEvent | TestCheckSuiteEvent> = {
   workflow_run_failure: {
     action: 'completed',
     workflow_run: {
@@ -99,7 +125,7 @@ async function testLogAnalysis() {
         const issue = result.issues[0];
         console.log(`   Type: ${issue.type}`);
         console.log(`   Severity: ${issue.severity}`);
-        console.log(`   Description: ${issue.description}`);
+        console.log(`   Message: ${issue.message}`);
         
         if (issue.suggestion) {
           console.log(`   Suggestion: ${issue.suggestion.substring(0, 60)}...`);
@@ -109,7 +135,7 @@ async function testLogAnalysis() {
       console.log('');
       
     } catch (error) {
-      console.error(`❌ Failed to analyze ${errorType}:`, error.message);
+      console.error(`❌ Failed to analyze ${errorType}:`, error instanceof Error ? error.message : String(error));
     }
   }
 }
@@ -170,14 +196,14 @@ function testWebhookEventValidation() {
       console.log(`Testing ${eventType} event structure:`);
       
       // Basic validation - check required fields exist
-      if (eventType.includes('workflow_run')) {
+      if (eventType.includes('workflow_run') && 'workflow_run' in eventData) {
         const wr = eventData.workflow_run;
         console.log(`✅ Workflow Run ID: ${wr.id}`);
         console.log(`✅ Status: ${wr.status}, Conclusion: ${wr.conclusion}`);
         console.log(`✅ Repository: ${wr.repository.html_url}`);
       }
       
-      if (eventType.includes('check_suite')) {
+      if (eventType.includes('check_suite') && 'check_suite' in eventData) {
         const cs = eventData.check_suite;
         console.log(`✅ Check Suite ID: ${cs.id}`);
         console.log(`✅ Status: ${cs.status}, Conclusion: ${cs.conclusion}`);
@@ -187,7 +213,7 @@ function testWebhookEventValidation() {
       console.log('');
       
     } catch (error) {
-      console.error(`❌ Invalid ${eventType} structure:`, error.message);
+      console.error(`❌ Invalid ${eventType} structure:`, error instanceof Error ? error.message : String(error));
     }
   }
 }
@@ -199,8 +225,6 @@ function testGitHubAPIConfig() {
   console.log('🐙 Testing GitHub API Configuration...\n');
   
   try {
-    const { Octokit } = require('@octokit/rest');
-    
     // Test GitHub App configuration
     const appId = process.env.GITHUB_APP_ID;
     const privateKey = process.env.GITHUB_PRIVATE_KEY;
@@ -227,7 +251,7 @@ function testGitHubAPIConfig() {
     console.log('');
     
   } catch (error) {
-    console.error('❌ GitHub API configuration error:', error.message);
+    console.error('❌ GitHub API configuration error:', error instanceof Error ? error.message : String(error));
   }
 }
 
@@ -283,7 +307,7 @@ async function main() {
 }
 
 // Run validation if this script is executed directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
 }
 

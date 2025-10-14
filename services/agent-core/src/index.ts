@@ -1,4 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
+import { Server } from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -18,6 +19,11 @@ import {
   AgentHealthSchema
 } from './lib/types.js';
 
+// Extend Request interface to include requestId
+interface RequestWithId extends Request {
+  requestId?: string;
+}
+
 // Server metrics
 let totalRequests = 0;
 let activeConnections = 0;
@@ -28,7 +34,7 @@ const startTime = Date.now();
  */
 class AgentServer {
   private app: express.Application;
-  private server: any = null;
+  private server: Server | null = null;
 
   constructor() {
     this.app = express();

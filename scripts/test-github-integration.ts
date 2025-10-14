@@ -21,14 +21,14 @@ interface TestResult {
   name: string;
   success: boolean;
   message: string;
-  data?: any;
+  data?: unknown;
   error?: string;
 }
 
 class GitHubIntegrationTester {
   private results: TestResult[] = [];
 
-  private async logResult(name: string, success: boolean, message: string, data?: any, error?: string) {
+  private async logResult(name: string, success: boolean, message: string, data?: unknown, error?: string) {
     const result: TestResult = { name, success, message, data, error };
     this.results.push(result);
     
@@ -42,7 +42,7 @@ class GitHubIntegrationTester {
     }
   }
 
-  private async makeApiCall(endpoint: string, method: 'GET' | 'POST' = 'GET', body?: any): Promise<any> {
+  private async makeApiCall(endpoint: string, method: 'GET' | 'POST' = 'GET', body?: unknown): Promise<unknown> {
     const url = `${TEST_CONFIG.baseUrl}${endpoint}`;
     
     const response = await fetch(url, {
@@ -100,17 +100,24 @@ class GitHubIntegrationTester {
         },
       });
 
-      // Create a test project
-      const testProject = await prisma.project.upsert({
+      // Create a test project - first try to find existing, then create if needed
+      const existingProject = await prisma.project.findFirst({
         where: { githubUrl: `https://github.com/${TEST_CONFIG.owner}/${TEST_CONFIG.repo}` },
-        update: {},
-        create: {
-          name: 'Test CodeMind Project',
-          githubUrl: `https://github.com/${TEST_CONFIG.owner}/${TEST_CONFIG.repo}`,
-          ownerId: testUser.id,
-          status: 'active',
-        },
       });
+
+      let testProject;
+      if (existingProject) {
+        testProject = existingProject;
+      } else {
+        testProject = await prisma.project.create({
+          data: {
+            name: 'Test CodeMind Project',
+            githubUrl: `https://github.com/${TEST_CONFIG.owner}/${TEST_CONFIG.repo}`,
+            ownerId: testUser.id,
+            status: 'active',
+          },
+        });
+      }
 
       await this.logResult(
         'Create Test Project',
@@ -167,13 +174,13 @@ class GitHubIntegrationTester {
 
   async testPullRequestsEndpoint() {
     try {
-      const data = await this.makeApiCall('/api/github/pull-requests');
+      const data = await this.makeApiCall('/api/github/pull-requests') as { pullRequests?: unknown[] } | null;
       
       await this.logResult(
         'Pull Requests API',
         true,
         `Successfully fetched pull requests`,
-        { count: data.pullRequests?.length || 0 }
+        { count: data?.pullRequests?.length || 0 }
       );
       return data;
     } catch (error) {
@@ -190,13 +197,13 @@ class GitHubIntegrationTester {
 
   async testIssuesEndpoint() {
     try {
-      const data = await this.makeApiCall('/api/github/issues');
+      const data = await this.makeApiCall('/api/github/issues') as { issues?: unknown[] } | null;
       
       await this.logResult(
         'Issues API',
         true,
         `Successfully fetched issues`,
-        { count: data.issues?.length || 0 }
+        { count: data?.issues?.length || 0 }
       );
       return data;
     } catch (error) {
@@ -291,7 +298,7 @@ class GitHubIntegrationTester {
     const envVarsOk = await this.testGitHubEnvironmentVariables();
 
     // Test 3: Create test project
-    const projectData = await this.createTestProject();
+    await this.testCreateTestProject();
 
     // Only run API tests if environment is properly configured
     if (envVarsOk) {
