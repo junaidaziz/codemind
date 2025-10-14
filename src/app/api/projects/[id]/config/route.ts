@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { 
+  getUserProjectRole, 
+  hasPermission, 
+  FieldMasker, 
+  getConfigAccessLevel,
+  logConfigAccess 
+} from '@/lib/rbac';
 
 // Custom ProjectConfig interface to match actual usage
 interface ProjectConfig {
@@ -64,17 +71,19 @@ interface ConfigParams {
 export async function GET(request: NextRequest, { params }: ConfigParams) {
   const { id } = await params;
   try {
-    // TODO: Add authentication when auth system is configured
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
+    // TODO: Get actual user ID from session when auth is configured
+    const userId = request.headers.get('x-user-id') || 'anonymous';
 
-    // Verify project exists and user has access (TODO: Add user access verification when auth is configured)
+    // Check user permissions for this project
+    const accessLevel = await getConfigAccessLevel(userId, id);
+    
+    if (!accessLevel.canRead) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    }
+
+    // Verify project exists
     const project = await prisma.project.findFirst({
-      where: {
-        id: id
-      }
+      where: { id: id }
     });
 
     if (!project) {
@@ -83,9 +92,7 @@ export async function GET(request: NextRequest, { params }: ConfigParams) {
 
     // Get project configuration
     const config = await (prisma as PrismaWithProjectConfig).projectConfig.findFirst({
-      where: {
-        projectId: id
-      }
+      where: { projectId: id }
     });
 
     if (!config) {
@@ -95,23 +102,39 @@ export async function GET(request: NextRequest, { params }: ConfigParams) {
       }, { status: 404 });
     }
 
-    // Return config with sensitive fields masked
-    const maskedConfig = {
+    // Get user role for field masking
+    const userRole = await getUserProjectRole(userId, id);
+
+    // Apply field masking based on user role
+    const responseConfig = {
       id: config.id,
       projectId: config.projectId,
-      vercelToken: config.vercelToken ? maskSensitiveValue(config.vercelToken) : null,
+      vercelToken: FieldMasker.maskField('vercelToken', config.vercelToken),
       vercelProjectId: config.vercelProjectId,
       vercelTeamId: config.vercelTeamId,
-      openaiApiKey: config.openaiApiKey ? maskSensitiveValue(config.openaiApiKey) : null,
+      openaiApiKey: FieldMasker.maskField('openaiApiKey', config.openaiApiKey),
       githubAppId: config.githubAppId,
-      githubPrivateKey: config.githubPrivateKey ? maskSensitiveValue(config.githubPrivateKey) : null,
+      githubPrivateKey: FieldMasker.maskField('githubPrivateKey', config.githubPrivateKey),
       githubInstallationId: config.githubInstallationId,
-      githubWebhookSecret: config.githubWebhookSecret ? maskSensitiveValue(config.githubWebhookSecret) : null,
-      githubToken: config.githubToken ? maskSensitiveValue(config.githubToken) : null,
+      githubWebhookSecret: FieldMasker.maskField('githubWebhookSecret', config.githubWebhookSecret),
+      githubToken: FieldMasker.maskField('githubToken', config.githubToken),
       isEncrypted: config.isEncrypted,
       createdAt: config.createdAt,
       updatedAt: config.updatedAt
     };
+
+    // Apply role-based masking
+    const maskedConfig = FieldMasker.maskSensitiveFields(responseConfig, userRole);
+
+    // Log access
+    await logConfigAccess({
+      userId,
+      projectId: id,
+      action: 'view',
+      timestamp: new Date(),
+      userAgent: request.headers.get('user-agent') || undefined,
+      ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined
+    });
 
     return NextResponse.json(maskedConfig);
 
@@ -127,17 +150,19 @@ export async function GET(request: NextRequest, { params }: ConfigParams) {
 export async function POST(request: NextRequest, { params }: ConfigParams) {
   const { id } = await params;
   try {
-    // TODO: Add authentication when auth system is configured
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
+    // TODO: Get actual user ID from session when auth is configured
+    const userId = request.headers.get('x-user-id') || 'anonymous';
 
-    // Verify project exists and user has access (TODO: Add user access verification when auth is configured)
+    // Check user permissions for creating config
+    const accessLevel = await getConfigAccessLevel(userId, id);
+    
+    if (!accessLevel.canWrite) {
+      return NextResponse.json({ error: 'Insufficient permissions to create configuration' }, { status: 403 });
+    }
+
+    // Verify project exists
     const project = await prisma.project.findFirst({
-      where: {
-        id: id
-      }
+      where: { id: id }
     });
 
     if (!project) {

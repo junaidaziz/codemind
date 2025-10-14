@@ -200,8 +200,8 @@ Sections:
 | 6 | Add caching and webhook sync for real-time updates | ✅ |
 | 7 | Integrate AI metrics (AI-generated PRs & commits) | ✅ |
 | 8 | Add filters by date, branch, contributor | ✅ |
-| 9 | Test with multiple projects & repos | ☐ |
-| 10 | Deploy to staging & verify analytics accuracy | ☐ |
+| 9 | Test with multiple projects & repos | ✅ |
+| 10 | Deploy to staging & verify analytics accuracy | ✅ |
 
 ---
 
@@ -375,8 +375,8 @@ Add a new **“Configuration”** tab on the Project Settings page.
 | 5 | Replace static env reads with dynamic config loading | ✅ |
 | 6 | Add encryption/decryption for sensitive fields | ✅ |
 | 7 | Implement "Test Connection" feature for keys | ✅ |
-| 8 | Add masking and role-based access control (RBAC) | ☐ |
-| 9 | QA testing with multiple projects | ☐ |
+| 8 | Add masking and role-based access control (RBAC) | ✅ |
+| 9 | QA testing with multiple projects | ✅ |
 
 ---
 
