@@ -83,7 +83,8 @@ export class GitHubService {
    */
   async syncIssues(projectId: string, owner: string, repo: string) {
     try {
-      const { data: issues } = await this.octokit.rest.issues.list({
+      // Use manual request to ensure correct endpoint: GET /repos/{owner}/{repo}/issues
+      const { data: issues } = await this.octokit.request('GET /repos/{owner}/{repo}/issues', {
         owner,
         repo,
         state: 'all',
