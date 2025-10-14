@@ -3,10 +3,11 @@
  * Comprehensive test suite for the complete auto-fix workflow
  */
 
-import { describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals'
-import { GitHubAutoFixService } from '../lib/autoFix'
-import { LogAnalysisService } from '../lib/analyzeLogs'
-import prisma from '../app/lib/db'
+import { describe, test, expect, beforeEach, afterEach } from '@jest/globals'
+// import { beforeAll, afterAll } from '@jest/globals' // Unused imports
+// import { GitHubAutoFixService } from '../lib/autoFix' // Unused import
+// import { LogAnalysisService } from '../lib/analyzeLogs' // Unused import
+// import prisma from '../app/lib/db' // Unused import
 
 describe('Auto Fix System Integration', () => {
   let testProjectId: string

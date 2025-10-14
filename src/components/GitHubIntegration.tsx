@@ -35,7 +35,7 @@ interface Issue {
   author: string;
   authorAvatar?: string;
   labels: Label[];
-  assignees: any[];
+  assignees: Array<{ login: string; avatar_url?: string }>;
   aiAnalyzed: boolean;
   aiSummary?: string;
   aiFixAttempt?: string;
@@ -78,7 +78,8 @@ export function GitHubIntegration({ projectId }: GitHubIntegrationProps) {
   useEffect(() => {
     loadIssues();
     loadPullRequests();
-  }, [projectId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]); // Dependencies managed manually to avoid stale closures
 
   const loadIssues = async () => {
     setLoading(true);
@@ -189,7 +190,7 @@ export function GitHubIntegration({ projectId }: GitHubIntegrationProps) {
         throw new Error(errorData.error || 'Failed to analyze issue');
       }
 
-      const data = await response.json();
+      await response.json(); // Success response
       toast({
         title: 'Analysis Complete',
         description: 'Issue analyzed successfully with AI',
@@ -230,7 +231,7 @@ export function GitHubIntegration({ projectId }: GitHubIntegrationProps) {
         throw new Error(errorData.error || 'Failed to generate fix');
       }
 
-      const data = await response.json();
+      await response.json(); // Success response
       toast({
         title: 'AI Fix Generated',
         description: 'Pull request created with AI-generated fix',

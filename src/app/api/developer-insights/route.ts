@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     // Fetch analytics data
     const [
       developerInsights,
-      autoFixMetrics,
+      // autoFixMetrics, // Unused variable - commented out
       activityLogs,
       pullRequests,
       issues,
@@ -67,15 +67,15 @@ export async function GET(request: NextRequest) {
         orderBy: { periodStart: 'asc' }
       }),
 
-      // Auto fix metrics
-      prisma.autoFixMetrics.findMany({
-        where: {
-          projectId,
-          periodStart: { gte: periodStartDate },
-          periodEnd: { lte: periodEndDate }
-        },
-        orderBy: { periodStart: 'asc' }
-      }),
+      // Auto fix metrics - commented out as unused
+      // prisma.autoFixMetrics.findMany({
+      //   where: {
+      //     projectId,
+      //     periodStart: { gte: periodStartDate },
+      //     periodEnd: { lte: periodEndDate }
+      //   },
+      //   orderBy: { periodStart: 'asc' }
+      // }),
 
       // Recent activity logs
       prisma.activityLog.findMany({

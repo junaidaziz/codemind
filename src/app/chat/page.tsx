@@ -34,7 +34,7 @@ function ChatPageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string>('');
-  const [isRestoringSession, setIsRestoringSession] = useState(false);
+  const [isRestoringSession] = useState(false); // Keep for UI consistency, always false since restore function is disabled
   const [showCollaborationPanel, setShowCollaborationPanel] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -113,29 +113,30 @@ function ChatPageContent() {
     return null;
   }, [getStorageKey]);
 
-  const restoreSessionFromAPI = useCallback(async (sessionId: string) => {
-    try {
-      setIsRestoringSession(true);
-      const response = await fetch(`/api/chat/sessions/${sessionId}`);
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success && result.data.messages) {
-          const apiMessages: Message[] = result.data.messages.map((msg: { id: string; role: string; content: string; createdAt: string }) => ({
-            id: msg.id,
-            role: msg.role,
-            content: msg.content,
-            createdAt: msg.createdAt
-          }));
-          return apiMessages;
-        }
-      }
-    } catch (error) {
-      console.warn('Failed to restore session from API:', error);
-    } finally {
-      setIsRestoringSession(false);
-    }
-    return null;
-  }, []);
+  // Unused function - commented out to fix linting warnings
+  // const restoreSessionFromAPI = useCallback(async (sessionId: string) => {
+  //   try {
+  //     setIsRestoringSession(true);
+  //     const response = await fetch(`/api/chat/sessions/${sessionId}`);
+  //     if (response.ok) {
+  //       const result = await response.json();
+  //       if (result.success && result.data.messages) {
+  //         const apiMessages: Message[] = result.data.messages.map((msg: { id: string; role: string; content: string; createdAt: string }) => ({
+  //           id: msg.id,
+  //           role: msg.role,
+  //           content: msg.content,
+  //           createdAt: msg.createdAt
+  //         }));
+  //         return apiMessages;
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.warn('Failed to restore session from API:', error);
+  //   } finally {
+  //     setIsRestoringSession(false);
+  //   }
+  //   return null;
+  // }, []);
 
   // Fetch projects on component mount
   useEffect(() => {

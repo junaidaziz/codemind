@@ -216,7 +216,7 @@ export class RepositoryScanner {
         lastModified: stat.mtime,
         content,
         lines,
-        language: this.determineLanguage(extension, relativePath),
+        language: this.determineLanguage(extension),
       };
 
       files.push(scannedFile);
@@ -314,7 +314,8 @@ export class RepositoryScanner {
   /**
    * Determine programming language
    */
-  private determineLanguage(extension: string, relativePath: string): string {
+  private determineLanguage(extension: string): string {
+    // relativePath parameter was unused and removed
     switch (extension) {
       case '.ts':
       case '.tsx':

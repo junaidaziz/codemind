@@ -27,10 +27,30 @@ async function verifyGitHubSignature(
   );
 }
 
+// Define common repository type
+interface RepositoryInfo {
+  owner: { login: string };
+  name: string;
+  html_url?: string;
+}
+
+// Define types for webhook events
+interface PullRequestWebhookEvent {
+  action: string;
+  pull_request: {
+    id: number;
+    number: number;
+    title: string;
+    body: string;
+    state: string;
+  };
+  repository: RepositoryInfo;
+}
+
 // Handle pull request webhook events
 async function handlePullRequestEvent(
   projectId: string,
-  eventData: any
+  eventData: PullRequestWebhookEvent
 ): Promise<{ success: boolean; message: string }> {
   try {
     const { action, pull_request, repository } = eventData;
@@ -64,10 +84,24 @@ async function handlePullRequestEvent(
   }
 }
 
+// Define types for issue webhook events
+interface IssueWebhookEvent {
+  action: string;
+  issue: {
+    id: number;
+    number: number;
+    title: string;
+    body: string;
+    state: string;
+    labels?: Array<{ name: string; color: string }>;
+  };
+  repository: RepositoryInfo;
+}
+
 // Handle issue webhook events
 async function handleIssueEvent(
   projectId: string,
-  eventData: any
+  eventData: IssueWebhookEvent
 ): Promise<{ success: boolean; message: string }> {
   try {
     const { action, issue, repository } = eventData;
@@ -89,7 +123,7 @@ async function handleIssueEvent(
     console.log(`Synced ${syncResult.successful} issues, ${syncResult.failed} failed`);
 
     // Check if issue was labeled with 'ai-fix' for auto-resolution
-    const labels = issue.labels?.map((label: any) => 
+    const labels = issue.labels?.map((label: string | { name: string }) => 
       typeof label === 'string' ? label : label.name
     ) || [];
 
@@ -152,10 +186,10 @@ export async function POST(req: NextRequest) {
 
     // Get raw body for signature validation
     const body = await req.text();
-    let eventData: any;
+    let eventData: PullRequestWebhookEvent | IssueWebhookEvent;
     
     try {
-      eventData = JSON.parse(body);
+      eventData = JSON.parse(body) as PullRequestWebhookEvent | IssueWebhookEvent;
     } catch {
       return NextResponse.json(
         createApiError('Invalid JSON payload', 'INVALID_PAYLOAD'),
@@ -211,11 +245,11 @@ export async function POST(req: NextRequest) {
     // Process specific events for PR/Issue management
     switch (githubEvent) {
       case 'pull_request':
-        result = await handlePullRequestEvent(project.id, eventData);
+        result = await handlePullRequestEvent(project.id, eventData as PullRequestWebhookEvent);
         break;
       
       case 'issues':
-        result = await handleIssueEvent(project.id, eventData);
+        result = await handleIssueEvent(project.id, eventData as IssueWebhookEvent);
         break;
       
       default:

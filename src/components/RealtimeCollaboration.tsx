@@ -26,9 +26,9 @@ export const RealtimeCollaborationPanel: React.FC<RealtimeCollaborationPanelProp
   onUserSelect,
   showTypingIndicators = true,
   maxParticipants = 10,
-}) => {
+  }) => {
   const {
-    isConnected,
+    // isConnected, // Unused variable
     isConnecting,
     connectionStatus,
     participants,

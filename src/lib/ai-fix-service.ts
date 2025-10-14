@@ -79,7 +79,7 @@ export class AIFixService {
         issueTitle: issue.title,
         issueBody: issue.body || '',
         labels: Array.isArray(issue.labels) 
-          ? (issue.labels as any[]).map(label => typeof label === 'string' ? label : label.name)
+          ? (issue.labels as Array<string | { name: string }>).map(label => typeof label === 'string' ? label : label.name)
           : [],
         repository: {
           owner,
@@ -88,7 +88,7 @@ export class AIFixService {
       };
 
       // Identify relevant files based on issue content
-      context.relatedFiles = await this.identifyRelatedFiles(context, owner, repo);
+      context.relatedFiles = await this.identifyRelatedFiles(context);
 
       // Generate fix suggestions using OpenAI
       const fixSuggestion = await this.generateFixSuggestion(context, owner, repo);
@@ -224,7 +224,8 @@ export class AIFixService {
     }
   }
 
-  private async identifyRelatedFiles(context: FixContext, owner: string, repo: string): Promise<string[]> {
+  private async identifyRelatedFiles(context: FixContext): Promise<string[]> {
+    // Note: owner and repo parameters were unused and removed
     const relatedFiles: string[] = [];
 
     // Use AI to identify potentially relevant files based on issue content
@@ -269,7 +270,7 @@ export class AIFixService {
           path: filePath,
           content: fileContent.content,
         });
-      } catch (error) {
+      } catch {
         console.log(`Could not fetch file ${filePath}, skipping...`);
       }
     }

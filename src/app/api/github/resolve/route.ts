@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '../../../lib/auth-utils';
-import { AIFixService } from '../../../../lib/ai-fix-service';
-import prisma from '../../../lib/db';
-import { createApiSuccess, createApiError } from '../../../../types';
+// import { AIFixService } from '../../../../lib/ai-fix-service'; // Unused import
+// import prisma from '../../../lib/db'; // Unused import
+import { createApiError } from '../../../../types';
+// import { createApiSuccess } from '../../../../types'; // Unused import
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +13,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { issueId, action } = body;
+    const { issueId } = body;
+    // const { issueId, action } = body; // 'action' is unused
 
     if (!issueId) {
       return NextResponse.json(createApiError('Issue ID is required', 'VALIDATION_ERROR'), { status: 400 });

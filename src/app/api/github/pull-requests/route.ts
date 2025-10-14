@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '../../../lib/auth-utils';
-import { GitHubService } from '../../../../lib/github-service';
+// import { GitHubService } from '../../../../lib/github-service'; // Unused import
 import prisma from '../../../lib/db';
 import { createApiSuccess, createApiError } from '../../../../types';
 
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     // });
 
     // Return empty array for now until schema is migrated
-    const pullRequests: any[] = [];
+    const pullRequests: Array<Record<string, unknown>> = [];
 
     return NextResponse.json(createApiSuccess({ pullRequests }));
   } catch (error) {
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(createApiError('GitHub token not configured', 'CONFIGURATION_ERROR'), { status: 500 });
       }
 
-      const githubService = new GitHubService(githubToken);
+      // const githubService = new GitHubService(githubToken); // Unused variable
 
       // Extract owner and repo from GitHub URL
       const repoMatch = project.githubUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
@@ -91,8 +91,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(createApiError('Invalid GitHub URL format', 'VALIDATION_ERROR'), { status: 400 });
       }
 
-      const [, owner, repo] = repoMatch;
-      const repoName = repo.replace('.git', '');
+      // const [, owner, repo] = repoMatch; // Unused variables
+      // const repoName = repo.replace('.git', ''); // Unused variable
 
       // Sync pull requests (temporarily disabled due to schema migration pending)
       // const syncResult = await githubService.syncPullRequests(projectId, owner, repoName);

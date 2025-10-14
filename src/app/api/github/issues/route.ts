@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '../../../lib/auth-utils';
-import { GitHubService } from '../../../../lib/github-service';
+// import { GitHubService } from '../../../../lib/github-service'; // Unused import
 import prisma from '../../../lib/db';
 import { createApiSuccess, createApiError } from '../../../../types';
 
