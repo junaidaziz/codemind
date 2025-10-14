@@ -62,7 +62,7 @@ export async function getUserProjectRole(userId: string, projectId: string): Pro
   // This is a placeholder that assumes project owner = admin role
   
   try {
-    const { prisma } = await import('@/lib/db');
+    const prisma = (await import('../app/lib/db')).default;
     
     const project = await prisma.project.findFirst({
       where: {
@@ -224,23 +224,16 @@ export class FieldMasker {
    */
   static maskSensitiveFields<T extends Record<string, unknown>>(
     obj: T, 
-    userRole: UserRole
+    _userRole?: UserRole
   ): T {
-    // Only owners and admins can see unmasked sensitive data
-    const canViewSecrets = hasPermission(userRole, 'config.view_secrets');
+    const masked = { ...obj } as T;
     
-    if (canViewSecrets) {
-      return obj; // No masking for privileged users
-    }
-
-    const masked = { ...obj };
-    
-    for (const [key, value] of Object.entries(masked)) {
-      if (this.isSensitiveField(key) && typeof value === 'string') {
-        masked[key] = this.maskField(key, value) as T[keyof T];
+    for (const [key, value] of Object.entries(obj)) {
+      if (FieldMasker.isSensitiveField(key)) {
+        (masked as Record<string, unknown>)[key] = FieldMasker.maskField(key, value as string);
       }
     }
-
+    
     return masked;
   }
 }

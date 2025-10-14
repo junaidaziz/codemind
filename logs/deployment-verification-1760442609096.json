@@ -1,0 +1,83 @@
+{
+  "environment": "Local Development",
+  "baseUrl": "http://localhost:3000",
+  "totalTests": 7,
+  "passedTests": 0,
+  "failedTests": 7,
+  "successRate": 0,
+  "executionTime": 14159,
+  "results": [
+    {
+      "name": "Home Page",
+      "success": false,
+      "message": "Request failed",
+      "data": {
+        "error": "",
+        "responseTime": 4
+      },
+      "timestamp": "2025-10-14T11:49:56.955Z"
+    },
+    {
+      "name": "Health Check API",
+      "success": false,
+      "message": "Request failed",
+      "data": {
+        "error": "",
+        "responseTime": 3
+      },
+      "timestamp": "2025-10-14T11:49:58.981Z"
+    },
+    {
+      "name": "Projects API",
+      "success": false,
+      "message": "Request failed",
+      "data": {
+        "error": "",
+        "responseTime": 2
+      },
+      "timestamp": "2025-10-14T11:50:01.042Z"
+    },
+    {
+      "name": "Database Connection",
+      "success": false,
+      "message": "Database test failed",
+      "data": {
+        "error": "",
+        "responseTime": 5
+      },
+      "timestamp": "2025-10-14T11:50:03.054Z"
+    },
+    {
+      "name": "Home Page Load Time",
+      "success": false,
+      "message": "Performance test failed",
+      "data": {
+        "error": "",
+        "responseTime": 2,
+        "threshold": 3000
+      },
+      "timestamp": "2025-10-14T11:50:05.066Z"
+    },
+    {
+      "name": "API Response Time",
+      "success": false,
+      "message": "Performance test failed",
+      "data": {
+        "error": "",
+        "responseTime": 2,
+        "threshold": 2000
+      },
+      "timestamp": "2025-10-14T11:50:07.072Z"
+    },
+    {
+      "name": "Application Configuration",
+      "success": false,
+      "message": "Configuration test failed",
+      "data": {
+        "error": ""
+      },
+      "timestamp": "2025-10-14T11:50:09.094Z"
+    }
+  ],
+  "healthy": false
+}

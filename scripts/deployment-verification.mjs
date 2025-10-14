@@ -7,8 +7,8 @@
  * in staging/production environments by testing critical endpoints and features.
  */
 
-const https = require('https');
-const http = require('http');
+import https from 'https';
+import http from 'http';
 
 // Configuration for different environments
 const ENVIRONMENTS = {
@@ -445,7 +445,7 @@ class DeploymentVerifier {
       });
     }
     
-    console.log('\n='.repeat(80));
+    console.log('\n' + '='.repeat(80));
     
     const deploymentStatus = failedTests === 0 ? '🟢 DEPLOYMENT HEALTHY' : '🔴 DEPLOYMENT ISSUES';
     console.log(`\n${deploymentStatus}\n`);
@@ -481,16 +481,16 @@ class DeploymentVerifier {
       const report = this.generateReport();
       
       // Save report
-      const fs = require('fs');
-      const path = require('path');
+      const fs = await import('fs');
+      const path = await import('path');
       
       const reportDir = './logs';
-      if (!fs.existsSync(reportDir)) {
-        fs.mkdirSync(reportDir, { recursive: true });
+      if (!fs.default.existsSync(reportDir)) {
+        fs.default.mkdirSync(reportDir, { recursive: true });
       }
       
-      const reportFile = path.join(reportDir, `deployment-verification-${Date.now()}.json`);
-      fs.writeFileSync(reportFile, JSON.stringify(report, null, 2));
+      const reportFile = path.default.join(reportDir, `deployment-verification-${Date.now()}.json`);
+      fs.default.writeFileSync(reportFile, JSON.stringify(report, null, 2));
       
       console.log(`📄 Report saved to: ${reportFile}`);
       
@@ -525,9 +525,9 @@ async function main() {
 }
 
 // Export for use as module
-module.exports = { DeploymentVerifier, ENVIRONMENTS };
+export { DeploymentVerifier, ENVIRONMENTS };
 
 // Run if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
 }

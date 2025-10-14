@@ -104,7 +104,7 @@ run_deployment_verification() {
     local env=${1:-local}
     log_info "Running deployment verification for: $env"
     
-    node scripts/deployment-verification.js $env
+    node scripts/deployment-verification.mjs $env
     
     if [ $? -eq 0 ]; then
         log_success "Deployment verification passed for $env"
