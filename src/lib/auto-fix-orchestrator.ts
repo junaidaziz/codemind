@@ -621,6 +621,9 @@ import type { ValidationSummary } from './validation-runner';
 export async function applyAutoFix(sessionId: string, { simulate = true }: { simulate?: boolean } = {}): Promise<ApplyResult & { validation?: ValidationSummary }> {
   const session = await prisma.autoFixSession.findUnique({ where: { id: sessionId } });
   if (!session) throw new Error('Session not found');
+  if (session.status === 'CANCELLED') {
+    throw new Error('Cannot apply a cancelled AutoFix session');
+  }
   const patchesRaw = safeJson<StoredPatchMeta[]>(session.fixesGenerated);
   if (!patchesRaw || !patchesRaw.length) throw new Error('No generated patch to apply');
   // Run validation (simulation for now) across all files
@@ -768,25 +771,35 @@ export async function regenerateAutoFix(sessionId: string): Promise<{ sessionId:
   if (['COMPLETED','CANCELLED'].includes(session.status)) {
     throw new Error(`Cannot regenerate a session in status ${session.status}`);
   }
-  // Clear generated fixes & revert status
+  // Determine regeneration count from analysisResult
+  let regenCount = 0;
+  try {
+    const match = session.analysisResult?.match(/Regenerations:\s*(\d+)/);
+    if (match) regenCount = parseInt(match[1], 10);
+  } catch { regenCount = 0; }
+  regenCount += 1;
+  if (regenCount > 3) {
+    throw new Error('Regeneration limit exceeded (max 3)');
+  }
+  const cleanedAnalysis = session.analysisResult ? session.analysisResult.replace(/Regenerations:\s*\d+/,'').trim() : '';
+  const newAnalysis = [cleanedAnalysis, `Regenerations: ${regenCount}`].filter(Boolean).join('\n');
   await prisma.autoFixSession.update({
     where: { id: session.id },
-    data: {
-      fixesGenerated: null,
-      status: 'ANALYZING',
-    },
+    data: { fixesGenerated: null, status: 'ANALYZING', analysisResult: newAnalysis },
   });
   try {
     await prisma.activityLog.create({
       data: {
         projectId: session.projectId,
         userId: session.userId,
-        activityType: 'AI_FIX_STARTED',
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore: enum value added pending Prisma client regeneration
+  activityType: 'AI_FIX_REGENERATED',
         entityType: 'ai_fix',
         entityId: session.id,
         description: 'AutoFix session regenerated (cleared patches)',
         impact: 'LOW',
-        metadata: JSON.stringify({ sessionId: session.id, action: 'regenerate' }),
+        metadata: JSON.stringify({ sessionId: session.id, action: 'regenerate', regenCount }),
       },
     });
   } catch { /* ignore */ }
@@ -808,7 +821,9 @@ export async function cancelAutoFix(sessionId: string): Promise<{ sessionId: str
       data: {
         projectId: session.projectId,
         userId: session.userId,
-        activityType: 'AI_FIX_FAILED',
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore: enum value added pending Prisma client regeneration
+  activityType: 'AI_FIX_CANCELLED',
         entityType: 'ai_fix',
         entityId: session.id,
         description: 'AutoFix session cancelled by user',
