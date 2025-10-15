@@ -1,3 +1,22 @@
+# 🔍 Vercel Build Failure Analysis
+
+**Generated on:** 2025-10-15 06:47:43 UTC
+**Deployment ID:** 
+**Repository:** junaidaziz/codemind
+**Branch:** main
+**Commit:** e99127f468bb01b3be4079025dcc40aed90e4a36
+
+## ❌ Build Failure Summary
+Build failed due to a TypeScript error in db-utils.ts.
+
+## 🔍 Root Cause Analysis
+Unknown cause
+
+## 🛠️ Suggested Fix
+See analysis for details
+
+## 📊 Full Analysis
+```json
 {
   "deployment": {
     "uid": "dpl_9DFquPpkAPLxpZfZrubZVWoX2hak",
@@ -58,3 +77,7 @@
   },
   "timestamp": "2025-10-15T06:47:43.278Z"
 }
+```
+
+---
+*This analysis was generated automatically by our AI-powered build failure analyzer.*
