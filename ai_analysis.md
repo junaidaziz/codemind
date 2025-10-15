@@ -1,3 +1,22 @@
+# 🔍 Vercel Build Failure Analysis
+
+**Generated on:** 2025-10-15 06:32:15 UTC
+**Deployment ID:** 
+**Repository:** junaidaziz/codemind
+**Branch:** main
+**Commit:** 482e19456742912425574aaa3470a4d58833c836
+
+## ❌ Build Failure Summary
+Build failed due to TypeScript type incompatibility in route handler.
+
+## 🔍 Root Cause Analysis
+Unknown cause
+
+## 🛠️ Suggested Fix
+See analysis for details
+
+## 📊 Full Analysis
+```json
 {
   "deployment": {
     "uid": "dpl_FutnCVz5CrvKWW9tQBkjrKP2rz7j",
@@ -58,3 +77,7 @@
   },
   "timestamp": "2025-10-15T06:32:15.726Z"
 }
+```
+
+---
+*This analysis was generated automatically by our AI-powered build failure analyzer.*
