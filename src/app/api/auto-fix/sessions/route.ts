@@ -31,17 +31,33 @@ export async function GET(req: NextRequest) {
 
 
     // Get sessions with pagination
-    const [sessions, total] = await Promise.all([
+    const [rawSessions, total] = await Promise.all([
       prisma.autoFixSession.findMany({
         where,
-        orderBy: {
-          createdAt: 'desc'
-        },
+        orderBy: { createdAt: 'desc' },
         skip: offset,
         take: limit
       }),
       prisma.autoFixSession.count({ where })
     ])
+
+    // Attach diff stats summary if present in fixesGenerated
+    const sessions = rawSessions.map(s => {
+      let diffStats: { totalHunks: number; totalBytes: number; truncated: boolean } | undefined;
+      try {
+        if (s.fixesGenerated) {
+          const patches = JSON.parse(s.fixesGenerated) as Array<{ stats?: { hunks: number; bytes: number; truncated: boolean } }>;
+          const withStats = patches.filter(p => p.stats);
+          if (withStats.length) {
+            const totalHunks = withStats.reduce((acc,p)=>acc + (p.stats?.hunks||0),0);
+            const totalBytes = withStats.reduce((acc,p)=>acc + (p.stats?.bytes||0),0);
+            const truncated = withStats.some(p=>p.stats?.truncated);
+            diffStats = { totalHunks, totalBytes, truncated };
+          }
+        }
+      } catch { /* ignore parse errors */ }
+      return { ...s, diffStats };
+    });
 
     return NextResponse.json({
       sessions,

@@ -381,6 +381,9 @@ export default function AutoFixDashboard() {
                     Result
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Diff
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -430,6 +433,11 @@ export default function AutoFixDashboard() {
                       ) : (
                         <span className="text-gray-500 text-sm">In progress</span>
                       )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {session.diffStats ? (
+                        <span className="text-xs px-2 py-1 rounded bg-blue-50 text-blue-700 border border-blue-200 font-mono" title={`Bytes: ${session.diffStats.totalBytes}`}>Δ {session.diffStats.totalHunks}h{session.diffStats.truncated ? '+' : ''}</span>
+                      ) : <span className="text-gray-300 text-xs">—</span>}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       {session.result?.prUrl && (

@@ -16,6 +16,7 @@ interface AutoFixSession {
   projectId: string
   status: string
   createdAt: string
+  diffStats?: { totalHunks: number; totalBytes: number; truncated: boolean }
 }
 
 export default function SimpleAutoFixDashboard() {
@@ -247,6 +248,9 @@ export default function SimpleAutoFixDashboard() {
                         {session.status}
                       </span>
                       <div className="mt-2 flex gap-2 justify-end">
+                        {session.diffStats && (
+                          <span className="text-xs px-2 py-1 rounded bg-blue-50 text-blue-700 border border-blue-200 font-mono" title={`Bytes: ${session.diffStats.totalBytes}`}>Δ {session.diffStats.totalHunks}h{session.diffStats.truncated ? '+' : ''}</span>
+                        )}
                         <button
                           disabled={session.status.toLowerCase() === 'cancelled' || session.status.toLowerCase() === 'completed'}
                           onClick={async () => {
