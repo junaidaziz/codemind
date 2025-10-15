@@ -1,9 +1,24 @@
 import { NextResponse } from 'next/server';
+import db from '@/app/lib/db';
+
+/**
+ * Check database connectivity
+ */
+async function checkDatabase(): Promise<boolean> {
+  try {
+    // Simple query to test database connection
+    await db.$queryRaw`SELECT 1`;
+    return true;
+  } catch (error) {
+    console.error('Database health check failed:', error);
+    return false;
+  }
+}
 
 export async function GET(): Promise<Response> {
   try {
     // Check database connection
-    // const dbHealth = await checkDatabase();
+    const dbHealth = await checkDatabase();
     
     // Check external services
     // const openaiHealth = await checkOpenAI();
@@ -18,7 +33,7 @@ export async function GET(): Promise<Response> {
       environment: process.env.NODE_ENV || 'development',
       uptime: process.uptime(),
       services: {
-        database: 'healthy', // dbHealth ? 'healthy' : 'unhealthy',
+        database: dbHealth ? 'healthy' : 'unhealthy',
         openai: 'healthy', // openaiHealth ? 'healthy' : 'unhealthy',
         redis: 'healthy', // redisHealth ? 'healthy' : 'unhealthy',
       },
