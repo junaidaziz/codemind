@@ -306,7 +306,6 @@ export async function retrieveRelevantChunks(
           startLine: true,
           endLine: true,
           content: true,
-          embedding: true,
         },
         take: limit,
         skip: offset,

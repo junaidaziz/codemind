@@ -151,68 +151,92 @@ async function validateProjectAccess(projectId: string, userId?: string): Promis
 /**
  * Create auto-fix session record
  */
+type TriggerInput = 'manual' | 'webhook' | 'ci_failure';
+type TriggerEnum = 'MANUAL' | 'WEBHOOK' | 'CI_FAILURE';
+
+function mapTrigger(t: TriggerInput): TriggerEnum {
+  switch (t) {
+    case 'manual': return 'MANUAL';
+    case 'webhook': return 'WEBHOOK';
+    case 'ci_failure': return 'CI_FAILURE';
+  }
+}
+
 async function createAutoFixSession(
   projectId: string,
   userId: string | undefined,
   issues: unknown[],
-  status: 'pending' | 'analyzing' | 'fixing' | 'creating_pr' | 'completed' | 'failed'
+  triggerType: TriggerInput
 ): Promise<string> {
   try {
-    // For now, create a simple message record to track the session
-    // TODO: Create proper AutoFixSession table in future migration
-    const session = await prisma.message.create({
+    const session = await prisma.autoFixSession.create({
       data: {
-        sessionId: `autofix-${projectId}-${Date.now()}`,
-        role: 'system',
-        content: JSON.stringify({
-          type: 'auto_fix_session',
-          projectId,
-          userId,
-          issues,
-          status,
-          createdAt: new Date(),
-        }),
-      },
+        projectId,
+        userId: userId || null,
+        status: 'ANALYZING',
+  triggerType: mapTrigger(triggerType),
+        issuesDetected: JSON.stringify(issues || []),
+        analysisResult: 'Analyzing build / log content...'
+      }
     });
-
-    return session.sessionId;
-  } catch {
-    logger.error('Failed to create auto-fix session', {
-      projectId,
-      userId,
-      issuesCount: Array.isArray(issues) ? issues.length : 0,
-    });
-
-    // Return a fallback session ID
-    return `autofix-${projectId}-${Date.now()}`;
+    // Activity log
+    await prisma.activityLog.create({
+      data: {
+        projectId,
+        userId: userId || null,
+        activityType: 'AI_FIX_STARTED',
+        entityType: 'ai_fix',
+        entityId: session.id,
+        description: `AutoFix session started (trigger=${triggerType})`,
+        impact: 'LOW',
+        metadata: JSON.stringify({ triggerType })
+      }
+    }).catch(()=>{});
+    return session.id;
+  } catch (e) {
+    logger.error('Failed to create AutoFixSession', { projectId, error: (e as Error).message });
+    throw e;
   }
 }
 
 /**
  * Update auto-fix session status
  */
-async function updateAutoFixSession(
+interface AnalysisShape { summary?: string; recommendedActions?: string[]; [k: string]: unknown }
+interface AutoFixResultShape { prUrl?: string; branchName?: string; commitSha?: string; filesChanged?: string[]; error?: string; success?: boolean; message?: string }
+
+async function finalizeAutoFixSession(
   sessionId: string,
-  status: 'pending' | 'analyzing' | 'fixing' | 'creating_pr' | 'completed' | 'failed',
-  result?: unknown
-): Promise<void> {
+  success: boolean,
+  analysis: AnalysisShape,
+  autoFixResult?: AutoFixResultShape
+) {
   try {
-    await prisma.message.updateMany({
-      where: { sessionId },
+    await prisma.autoFixSession.update({
+      where: { id: sessionId },
       data: {
-        content: JSON.stringify({
-          type: 'auto_fix_session',
-          status,
-          result,
-          updatedAt: new Date(),
-        }),
-      },
+        status: success ? 'COMPLETED' : 'FAILED',
+        analysisResult: JSON.stringify({ summary: analysis?.summary, recommended: analysis?.recommendedActions }),
+        fixesGenerated: autoFixResult ? JSON.stringify(autoFixResult.filesChanged || []) : undefined,
+        completedAt: new Date(),
+        prUrl: autoFixResult?.prUrl || undefined,
+        branchName: autoFixResult?.branchName || undefined,
+        commitSha: autoFixResult?.commitSha || undefined,
+      }
     });
-  } catch {
-    logger.warn('Failed to update auto-fix session', {
-      sessionId,
-      status,
-    });
+    await prisma.activityLog.create({
+      data: {
+        projectId: (await prisma.autoFixSession.findUnique({ where: { id: sessionId }, select: { projectId: true } }))!.projectId,
+        activityType: success ? 'AI_FIX_COMPLETED' : 'AI_FIX_FAILED',
+        entityType: 'ai_fix',
+        entityId: sessionId,
+        description: success ? 'AutoFix session completed' : 'AutoFix session failed',
+        impact: success ? 'LOW' : 'MEDIUM',
+        metadata: JSON.stringify({ prUrl: autoFixResult?.prUrl })
+      }
+    }).catch(()=>{});
+  } catch (e) {
+    logger.warn('Failed to finalize AutoFixSession', { sessionId, error: (e as Error).message });
   }
 }
 
@@ -245,11 +269,10 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse<A
     }
 
     // Create auto-fix session
-    const sessionId = await createAutoFixSession(projectId, userId, [], 'analyzing');
+  const sessionId = await createAutoFixSession(projectId, userId, [], triggerType);
 
     try {
-      // Update session status
-      await updateAutoFixSession(sessionId, 'analyzing');
+  // (status already ANALYZING in real session)
 
       // Configure auto-fix service with options
       getAutoFixService(options);
@@ -264,11 +287,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse<A
       );
 
       // Update session status based on result
-      const finalStatus = autoFixResult?.success ? 'completed' : 'failed';
-      await updateAutoFixSession(sessionId, finalStatus, {
-        analysis,
-        autoFixResult,
-      });
+      await finalizeAutoFixSession(sessionId, !!autoFixResult?.success, analysis, autoFixResult);
 
       // Update project status if auto-fix was successful
       if (autoFixResult?.success) {
@@ -314,11 +333,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse<A
       return NextResponse.json(createApiSuccess(response));
 
     } catch (processingError) {
-      // Update session with error
-      await updateAutoFixSession(sessionId, 'failed', {
-        error: (processingError as Error).message,
-      });
-
+      await finalizeAutoFixSession(sessionId, false, { summary: 'Processing error' }, { error: (processingError as Error).message });
       throw processingError;
     }
 
@@ -417,11 +432,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse<ApiResponse<Ma
       return NextResponse.json(createApiSuccess(response));
 
     } catch (processingError) {
-      // Update session with error
-      await updateAutoFixSession(sessionId, 'failed', {
-        error: (processingError as Error).message,
-      });
-
+      await finalizeAutoFixSession(sessionId, false, { summary: 'Processing error' }, { error: (processingError as Error).message });
       throw processingError;
     }
 

@@ -88,21 +88,73 @@ export async function GET(request: NextRequest, { params }: AnalyticsParams) {
     };
 
     // Verify project exists (TODO: Add user access verification when auth is configured)
-    const project = await prisma.project.findFirst({
-      where: {
-        id: id
-      },
+    // We explicitly select only the fields we need so that if new columns (e.g. AI fields)
+    // have pending migrations that are not yet applied in the current database, Prisma
+    // will not attempt to select them and trigger a P2022 (missing column) error.
+    let project = await prisma.project.findFirst({
+      where: { id },
       include: {
         pullRequests: {
           where: prFilters,
-          orderBy: { createdAt: 'desc' }
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            number: true,
+            title: true,
+            state: true,
+            createdAt: true,
+            updatedAt: true,
+            mergedAt: true,
+            authorLogin: true,
+            additions: true,
+            deletions: true
+          }
         },
         issues: {
           where: issueFilters,
-          orderBy: { createdAt: 'desc' }
+            orderBy: { createdAt: 'desc' },
+            select: {
+              id: true,
+              number: true,
+              title: true,
+              body: true,
+              state: true,
+              htmlUrl: true,
+              authorLogin: true,
+              createdAt: true,
+              updatedAt: true,
+              closedAt: true,
+              labels: true,
+              assignees: true
+            }
         }
       }
     });
+
+    // Defensive fallback: if we still encounter a missing-column error (e.g. during hot reload race)
+    // we retry with an even more minimal selection.
+    if (!project) {
+      try {
+        project = await prisma.project.findFirst({
+          where: { id },
+          include: {
+            pullRequests: {
+              where: prFilters,
+              orderBy: { createdAt: 'desc' },
+              select: { id: true, state: true, createdAt: true, updatedAt: true, mergedAt: true }
+            },
+            issues: {
+              where: issueFilters,
+              orderBy: { createdAt: 'desc' },
+              select: { id: true, state: true, createdAt: true, updatedAt: true }
+            }
+          }
+        });
+      } catch (secondaryErr) {
+        // Allow outer catch to handle
+        throw secondaryErr;
+      }
+    }
 
     if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });

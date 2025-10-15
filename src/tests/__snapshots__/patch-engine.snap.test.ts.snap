@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Diff snapshots multi distant edits snapshot 1`] = `
+"--- a/snapshot.ts
++++ b/snapshot.ts
+@@ -3,4 +3,4 @@
+ L1
+-L2
++L2_mod
+ L3
+ L5
+@@ -12,4 +12,4 @@
+ L10
+-L11
++L11_mod
+ L12
+ L14"
+`;
+
+exports[`Diff snapshots single insertion snapshot 1`] = `
+"--- a/snapshot.ts
++++ b/snapshot.ts
+@@ -2,2 +2,3 @@
+ a
++X
+ b"
+`;
