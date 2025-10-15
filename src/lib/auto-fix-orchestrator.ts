@@ -792,9 +792,7 @@ export async function regenerateAutoFix(sessionId: string): Promise<{ sessionId:
       data: {
         projectId: session.projectId,
         userId: session.userId,
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore: enum value added pending Prisma client regeneration
-  activityType: 'AI_FIX_REGENERATED',
+        activityType: 'AI_FIX_REGENERATED',
         entityType: 'ai_fix',
         entityId: session.id,
         description: 'AutoFix session regenerated (cleared patches)',
@@ -821,9 +819,7 @@ export async function cancelAutoFix(sessionId: string): Promise<{ sessionId: str
       data: {
         projectId: session.projectId,
         userId: session.userId,
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore: enum value added pending Prisma client regeneration
-  activityType: 'AI_FIX_CANCELLED',
+        activityType: 'AI_FIX_CANCELLED',
         entityType: 'ai_fix',
         entityId: session.id,
         description: 'AutoFix session cancelled by user',
