@@ -72,38 +72,70 @@ Automate the full lifecycle of a code fix:
 
 ## 🧩 Phased Implementation Plan
 
-### **Phase 1 — Command Parsing & Session Creation**
-- [ ] Detect chat commands `/fix` or “fix issue #N”
-- [ ] Create new `AutoFixSession` (status = `PENDING`)
-- [ ] Respond in chat: “AI Fix session started for issue #N”
-- [ ] Log activity event
+### Pending Roadmap (Open Items Only)
 
-### **Phase 2 — Analysis & Plan**
-- [ ] Retrieve issue details (title, description)
-- [ ] Retrieve relevant code chunks (via embeddings + keyword search)
-- [ ] Generate fix plan (no patch yet)
-- [ ] Update session status → `ANALYZING`
-- [ ] Return summary to chat: “Plan generated — Proceed?”
+#### Phase 2 — Analysis & Plan (Remaining)
+- [ ] Integrate vector similarity retrieval
+- [ ] Add explicit user confirmation / proceed gating (refine existing commands)
+- [ ] Activity logging & metrics for analysis phase
 
-### **Phase 3 — Patch Generation**
-- [ ] On approval → prompt LLM to create unified diff (single-file first)
-- [ ] Validate diff format
-- [ ] Store diff in `AutoFixResult`
-- [ ] Display diff preview in chat (Proceed / Cancel)
+#### Phase 3 — Patch Generation, Validation & Apply (Remaining)
+- [ ] Real apply hardening (branch/PR only if validation passes & token present)
+- [ ] Activity logging for APPLY_COMPLETED / APPLY_FAILED with validation summary
+- [ ] LLM diff generation (replace stubs with real model-driven edits)
+- [ ] Regenerate / cancel commands
+- [ ] Enhanced validation: real ESLint, TypeScript compile, focused Jest subset
+- [ ] Documentation refinement (detailed validation pipeline, failure states)
 
-### **Phase 4 — Apply & Validate**
-- [ ] Apply patch in ephemeral git workspace
-- [ ] Run `lint`, `typecheck`, and small test subset
-- [ ] On success → commit + push new branch
-- [ ] Create pull request via GitHub API
-- [ ] Update session status → `COMPLETED`
-- [ ] On failure → attach logs and retry up to 2 times
+#### Safety & Limits
+- [ ] Patch size limit (lines + bytes)
+- [ ] Per-file LOC delta threshold
+- [ ] Allowed path filters & risk classification
 
-### **Phase 5 — Policy & Automation**
+#### Workflow Reliability
+- [ ] Ephemeral git workspace apply (sandbox before branch commit)
+- [ ] Retry logic (configurable attempts) with backoff for transient failures
+
+#### Phase 5 — Policy & Automation
 - [ ] Implement `AutoFixConfig.requireApproval`
-- [ ] Allow auto-proceed for low-risk categories (lint/style fixes)
-- [ ] Integrate CI test results to trigger new fixes automatically
-- [ ] Add rate limiting per project
+- [ ] Auto-proceed for low-risk categories (style, comment)
+- [ ] CI failure triggers automatic session creation
+- [ ] Rate limiting per project
+
+#### Supporting Modules (Unbuilt / Partial)
+- [ ] `patch-engine.ts` advanced diff (multi-hunk, conflict detection)
+- [ ] `git-workspace.ts` sandbox clone & branch ops
+- [ ] `validation-runner.ts` real execution (currently simulated only)
+- [ ] `github-service.ts` robust PR metadata (labels, draft toggle, reviewers)
+- [ ] `activity-log.ts` structured lifecycle events
+
+#### Validation Strategy (Open)
+- [ ] Change impact graph to select minimal test subset
+- [ ] Attach validation logs/artifacts to session
+- [ ] Abort if patch exceeds size/risk threshold
+- [ ] Dry-run toggle (diff only)
+- [ ] Tag AI PRs with `ai-fix` label
+
+#### Metrics & Observability
+- [ ] Track token usage per stage
+- [ ] Success rate & MTTR dashboards
+- [ ] Correlation ID in all logs (session.id)
+- [ ] Transition logging: ANALYZING → FIXING → CREATING_PR → COMPLETED/FAILED
+
+#### Feature Flags / Env (Planned / Enforcement Pending)
+- AUTOFIX_MULTI_MAX_FILES (implemented)
+- AUTOFIX_MULTI_MAX_LOC_DELTA (implemented)
+- AUTOFIX_LLM_ENABLED (planned for real LLM calls)
+- [ ] Flag to enable real validation (e.g., AUTOFIX_REAL_VALIDATION)
+- [ ] Risk threshold flag (e.g., AUTOFIX_MAX_LOC_PCT)
+
+#### Immediate Focus Candidates
+- [ ] Real LLM wiring
+- [ ] Validation hardening
+- [ ] Activity logging (apply + validation)
+- [ ] Regenerate / cancel commands
+
+<!-- Completed items pruned for clarity. -->
 
 ---
 
@@ -114,8 +146,8 @@ Automate the full lifecycle of a code fix:
 | `patch-engine.ts` | Apply unified diffs safely | ☐ |
 | `git-workspace.ts` | Clone, branch, commit, push | ☐ |
 | `validation-runner.ts` | Lint, typecheck, test subset | ☐ |
-| `auto-fix-orchestrator.ts` | Coordinate workflow | ☐ |
-| `chat-commands.ts` | Parse chat commands | ☐ |
+| `auto-fix-orchestrator.ts` | Coordinate workflow | 🟡 (Phase 2 partial) |
+| `chat-commands.ts` | Parse chat commands | ✅ (in agent router) |
 | `github-service.ts` | Create pull requests | ☐ |
 | `activity-log.ts` | Log workflow events | ☐ |
 
@@ -168,19 +200,18 @@ Automate the full lifecycle of a code fix:
 
 ---
 
-## 📅 Next Milestones
+## 📅 Milestones (Open Only)
 
-| Milestone | Focus | ETA |
-|------------|--------|-----|
-| `AutoFix Phase 1` | Command detection & session creation | ✅ Immediate |
-| `AutoFix Phase 2` | Analysis + plan summary | 🔜 Next |
-| `AutoFix Phase 3` | Patch & diff preview | ☐ Planned |
-| `AutoFix Phase 4` | Apply, validate & PR | ☐ Planned |
-| `AutoFix Phase 5` | Metrics & continuous improvement | ☐ Final Stage |
+| Milestone | Focus |
+|-----------|-------|
+| Phase 2 Remainder | Vector similarity & analytics logging |
+| Phase 3 Remainder | Real apply + validation + LLM diffs |
+| Phase 4 | Full automation (validated PRs) |
+| Phase 5 | Metrics, policies, continuous improvement |
 
 ---
 
 **Owner:** `@junaidaziz`  
 **Feature:** `Automatic AI Code Fix Orchestration`  
 **Status:** 🟡 In Progress  
-**Next Immediate Task:** Implement **Phase 1 — Command Parsing & Session Creation**
+**Next Immediate Task (choose one):** Real LLM wiring OR Validation hardening OR Activity logging OR Regenerate/Cancel commands
