@@ -6,7 +6,10 @@ generator client {
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
-  extensions = [uuid_ossp(map: "uuid-ossp", schema: "extensions")]
+  extensions = [
+    uuid_ossp(map: "uuid-ossp", schema: "extensions"),
+    vector(map: "vector")
+  ]
 }
 
 model User {
@@ -115,7 +118,8 @@ model CodeChunk {
   endLine       Int
   content       String
   tokenCount    Int
-  embedding     String?
+  // pgvector column (1536 dims). Stored as real vector after migration.
+  embedding     Unsupported("vector(1536)")?
   updatedAt     DateTime     @updatedAt
   projectFileId String?
   projectFile   ProjectFile? @relation("FileChunks", fields: [projectFileId], references: [id])

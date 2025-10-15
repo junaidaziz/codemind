@@ -93,6 +93,13 @@ export async function insertEmbeddingsBatch(
     return;
   }
 
+  // Validate embedding dimensions (expected 1536). If mismatch, log and skip vector usage for those entries.
+  const EXPECTED_DIM = 1536;
+  const invalidDims = chunks.filter(c => c.embedding.length !== EXPECTED_DIM).length;
+  if (invalidDims) {
+    logger.warn('One or more embeddings have unexpected dimension; they will be padded/truncated', { invalidDims, expected: EXPECTED_DIM });
+  }
+
   return withDatabaseTiming('insertEmbeddingsBatch', async () => {
     logger.info('Starting batch insert', { 
       projectId, 
@@ -110,6 +117,15 @@ export async function insertEmbeddingsBatch(
         const params: unknown[] = [];
 
         for (const chunk of batch) {
+          let embeddingArray = chunk.embedding;
+          if (embeddingArray.length !== EXPECTED_DIM) {
+            if (embeddingArray.length > EXPECTED_DIM) {
+              embeddingArray = embeddingArray.slice(0, EXPECTED_DIM);
+            } else {
+              embeddingArray = embeddingArray.concat(new Array(EXPECTED_DIM - embeddingArray.length).fill(0));
+            }
+          }
+          const vectorLiteral = `[${embeddingArray.join(',')}]`;
           values.push(`(
             gen_random_uuid(),
             $${params.length + 1},  -- projectId
@@ -120,7 +136,7 @@ export async function insertEmbeddingsBatch(
             $${params.length + 6},  -- endLine
             $${params.length + 7},  -- content
             $${params.length + 8},  -- tokenCount
-            $${params.length + 9},  -- embedding as JSON string (temporary)
+            $${params.length + 9}::vector,  -- embedding vector
             NOW()
           )`);
 
@@ -133,7 +149,7 @@ export async function insertEmbeddingsBatch(
             chunk.endLine,
             chunk.content,
             chunk.tokenCount,
-            JSON.stringify(chunk.embedding) // Store as JSON string temporarily
+            vectorLiteral
           );
         }
 
@@ -190,6 +206,18 @@ export async function retrieveRelevantChunks(
       minSimilarity,
       embeddingLength: queryEmbedding.length,
     });
+
+    if (process.env.VECTOR_DISABLED === '1' || process.env.VECTOR_DISABLED === 'true') {
+      logger.info('Vector search disabled via VECTOR_DISABLED env flag; using fallback', { projectId });
+      const chunks = await prisma.codeChunk.findMany({
+        where: { projectId },
+        select: { id: true, path: true, language: true, startLine: true, endLine: true, content: true },
+        take: limit,
+        skip: offset,
+        orderBy: { updatedAt: 'desc' },
+      });
+      return chunks.map((c, idx) => ({ ...c, similarity: Math.max(minSimilarity, 1 - idx * 0.05) }));
+    }
 
     const canVector = await checkVectorCapability();
 
