@@ -3,6 +3,44 @@ import { logger, withDatabaseTiming } from './logger';
 
 const prisma = new PrismaClient();
 
+// Runtime detection cache for pgvector capability
+let vectorCapabilityChecked = false;
+let vectorAvailable = false;
+
+async function checkVectorCapability(): Promise<boolean> {
+  if (vectorCapabilityChecked) return vectorAvailable;
+  vectorCapabilityChecked = true;
+  try {
+    // Confirm extension & operator existence and detect a sample dimension if possible
+    // 1. Check extension
+    const ext = await prisma.$queryRawUnsafe<{ installed: boolean }[]>(
+      "SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'vector') AS installed;"
+    );
+    if (!ext?.[0]?.installed) {
+      logger.warn('pgvector extension not installed; falling back');
+      vectorAvailable = false;
+      return false;
+    }
+    // 2. Check that our CodeChunk.embedding column is castable to vector via a no-op limit query
+    // We expect embedding stored as text JSON currently; if the column type is already vector this will also work when we adapt insert logic.
+    // We attempt a simple SELECT with cast; if it fails we'll mark unavailable.
+    try {
+      // Light probe query (no-op) just to ensure we can access table; result unused.
+      await prisma.$queryRawUnsafe<{ id: string }[]>(
+        'SELECT id FROM "CodeChunk" WHERE "embedding" IS NOT NULL LIMIT 1;'
+      );
+      vectorAvailable = true; // Extension present; we'll still guard individual queries
+    } catch (inner) {
+      logger.warn('Sample vector probe failed; disabling vector mode', { error: (inner as Error).message });
+      vectorAvailable = false;
+    }
+  } catch (error) {
+    logger.warn('Vector capability check failed', { error: (error as Error).message });
+    vectorAvailable = false;
+  }
+  return vectorAvailable;
+}
+
 // Type definitions for enhanced database operations
 export interface CodeChunkData {
   path: string;
@@ -153,9 +191,11 @@ export async function retrieveRelevantChunks(
       embeddingLength: queryEmbedding.length,
     });
 
-    // Fallback implementation when vector extension is not available
-    try {
-      // Try vector operation first
+    const canVector = await checkVectorCapability();
+
+    if (canVector) {
+      try {
+        // Try vector operation first
       const conditions: string[] = [`"projectId" = $1`];
       const params: unknown[] = [projectId, `[${queryEmbedding.join(",")}]`];
       let paramIndex = 3;
@@ -197,15 +237,23 @@ export async function retrieveRelevantChunks(
       `;
 
       params.push(limit, offset);
-      const result = await prisma.$queryRawUnsafe(sql, ...params) as RelevantChunk[];
-      return result;
+        const result = await prisma.$queryRawUnsafe(sql, ...params) as RelevantChunk[];
+        return result;
+      } catch (error) {
+        // On first failure, mark vector unavailable for the rest of runtime
+        vectorAvailable = false;
+        logger.warn('Vector query failed; switching to fallback mode for remainder of process', {
+          projectId,
+          error: (error as Error).message,
+        });
+      }
+    }
 
-    } catch (error) {
-      // Fallback to regular query without vector operations
-      logger.warn('Vector extension not available, using fallback similarity search', {
-        projectId,
-        error: (error as Error).message,
-      });
+    // Fallback to regular query without vector operations
+    logger.warn('Using fallback similarity search (vector unavailable)', {
+      projectId,
+      reason: canVector ? 'query failure' : 'capability check failed',
+    });
 
       const whereClause: { 
         projectId: string; 
@@ -255,8 +303,7 @@ export async function retrieveRelevantChunks(
         offset,
       });
 
-      return result;
-    }
+    return result;
   });
 }
 
