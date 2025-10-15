@@ -1,6 +1,6 @@
 import { AgentServiceClient, AgentRequest, AgentResponse, AgentStreamChunk } from './agent-service-client';
 import { createEnhancedRAGChain, AgentCommand } from '../app/lib/langchain-agent';
-import { parseFixCommand, startAutoFix } from './auto-fix-orchestrator';
+import { parseFixCommand, startAutoFix, generatePatchPlan, generateMultiPatchPlan, generateLLMPatchPlan, generateLLMMultiPatchPlan, applyAutoFix, regenerateAutoFix, cancelAutoFix } from './auto-fix-orchestrator';
 import { env } from '../types/env';
 import { logger } from '../app/lib/logger';
 
@@ -124,23 +124,29 @@ export class AgentRouter {
       message: request.message,
     };
 
-    // Detect /fix style command before default RAG processing
-    const fixCmd = parseFixCommand(request.message || request.command || '');
+    // Detect AutoFix commands before default RAG processing
+    const messageText = request.message || request.command || '';
+    const fixCmd = parseFixCommand(messageText);
+  const proceedMatch = messageText.trim().match(/^proceed\s+autofix\s+([a-zA-Z0-9_-]+)(\s+multi|\s+llm|\s+multi-llm)?$/i);
+  const applyMatch = messageText.trim().match(/^apply\s+autofix\s+([a-zA-Z0-9_-]+)(\s+real)?$/i);
+  const regenerateMatch = messageText.trim().match(/^regenerate\s+autofix\s+([a-zA-Z0-9_-]+)$/i);
+  const cancelMatch = messageText.trim().match(/^cancel\s+autofix\s+([a-zA-Z0-9_-]+)$/i);
+
     if (fixCmd) {
       try {
         const plan = await startAutoFix({
           projectId: request.projectId,
-            userId: request.userId,
-            issueNumber: fixCmd.issueNumber,
+          userId: request.userId,
+          issueNumber: fixCmd.issueNumber,
         });
         return {
           id: crypto.randomUUID(),
-          requestId: request.id,
-          response: `🔧 AutoFix session started (id: ${plan.sessionId})${plan.issueId ? ` for issue ${fixCmd.issueNumber}` : ''}.\nSteps:\n- ${plan.steps.join('\n- ')}\n\n(Phase 1 stub – patch generation not yet implemented)`,
-          toolsUsed: [],
-          executionTimeMs: Date.now() - startTime,
-          tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
-          metadata: { command: request.command, projectId: request.projectId, userId: request.userId, modelUsed: 'gpt-4o-mini', intermediateSteps: 0, memorySize: 0, sessionId: plan.sessionId },
+            requestId: request.id,
+            response: `🔧 AutoFix session started (id: ${plan.sessionId})${plan.issueId ? ` for issue ${fixCmd.issueNumber}` : ''}.\n${plan.summary}\n\nSteps:\n- ${plan.steps.join('\n- ')}\n\nUse: 'proceed autofix ${plan.sessionId}' to generate patch.`,
+            toolsUsed: [],
+            executionTimeMs: Date.now() - startTime,
+            tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+            metadata: { command: request.command, projectId: request.projectId, userId: request.userId, modelUsed: 'gpt-4o-mini', intermediateSteps: 0, memorySize: 0, sessionId: plan.sessionId },
         };
       } catch (e) {
         return {
@@ -151,6 +157,152 @@ export class AgentRouter {
           executionTimeMs: Date.now() - startTime,
           tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
           metadata: { command: request.command, projectId: request.projectId, userId: request.userId, modelUsed: 'gpt-4o-mini', intermediateSteps: 0, memorySize: 0 },
+        };
+      }
+    }
+
+    if (proceedMatch) {
+      const sessionId = proceedMatch[1];
+      const modeToken = proceedMatch[2]?.trim();
+      const multi = modeToken === 'multi' || modeToken === 'multi-llm';
+      const llm = modeToken === 'llm' || modeToken === 'multi-llm';
+      try {
+        if (multi && llm) {
+          const res = await generateLLMMultiPatchPlan(sessionId);
+          const preview = res.patches.map(p => `- ${p.filePath}`).join('\n');
+          return {
+            id: crypto.randomUUID(),
+            requestId: request.id,
+            response: `🧠🧩 LLM multi-file patch plan generated for session ${sessionId}. Files:\n${preview}\n\nUse: 'apply autofix ${sessionId}' to validate & apply.`,
+            toolsUsed: [],
+            executionTimeMs: Date.now() - startTime,
+            tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+            metadata: { command: request.command, projectId: request.projectId, userId: request.userId, modelUsed: 'gpt-4o-mini', intermediateSteps: 0, memorySize: 0, sessionId },
+          };
+        } else if (multi) {
+          const res = await generateMultiPatchPlan(sessionId);
+          const preview = res.patches.map(p => `- ${p.filePath} (+${p.linesAdded} LOC)`).join('\n');
+          return {
+            id: crypto.randomUUID(),
+            requestId: request.id,
+            response: `🧩 Multi-file patch plan generated for session ${sessionId}. Files:\n${preview}\n\nUse: 'apply autofix ${sessionId}' to validate & apply (simulation by default).`,
+            toolsUsed: [],
+            executionTimeMs: Date.now() - startTime,
+            tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+            metadata: { command: request.command, projectId: request.projectId, userId: request.userId, modelUsed: 'gpt-4o-mini', intermediateSteps: 0, memorySize: 0, sessionId },
+          };
+        } else if (llm) {
+          const patch = await generateLLMPatchPlan(sessionId);
+          return {
+            id: crypto.randomUUID(),
+            requestId: request.id,
+            response: `🧠 LLM patch plan generated for session ${sessionId}.\nFile: ${patch.filePath}\nDiff:\n${patch.diff}\n\nUse: 'apply autofix ${sessionId}' to validate & apply.`,
+            toolsUsed: [],
+            executionTimeMs: Date.now() - startTime,
+            tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+            metadata: { command: request.command, projectId: request.projectId, userId: request.userId, modelUsed: 'gpt-4o-mini', intermediateSteps: 0, memorySize: 0, sessionId },
+          };
+        } else {
+          const patch = await generatePatchPlan(sessionId);
+          return {
+            id: crypto.randomUUID(),
+            requestId: request.id,
+            response: `🧩 Patch plan generated for session ${sessionId}.\nFile: ${patch.filePath}\nDiff Preview:\n\n${patch.diff.substring(0, 1200)}\n\nUse: 'apply autofix ${sessionId}' to validate & (optionally) apply.`,
+            toolsUsed: [],
+            executionTimeMs: Date.now() - startTime,
+            tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+            metadata: { command: request.command, projectId: request.projectId, userId: request.userId, modelUsed: 'gpt-4o-mini', intermediateSteps: 0, memorySize: 0, sessionId },
+          };
+        }
+      } catch (e) {
+        return {
+          id: crypto.randomUUID(),
+          requestId: request.id,
+          response: `Failed to generate patch: ${e instanceof Error ? e.message : 'Unknown error'}`,
+          toolsUsed: [],
+          executionTimeMs: Date.now() - startTime,
+          tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+          metadata: { command: request.command, projectId: request.projectId, userId: request.userId, modelUsed: 'gpt-4o-mini', intermediateSteps: 0, memorySize: 0 },
+        };
+      }
+    }
+
+    if (applyMatch) {
+      const sessionId = applyMatch[1];
+      const realFlag = !!applyMatch[2];
+      try {
+        const res = await applyAutoFix(sessionId, { simulate: !realFlag });
+        const statusLine = res.validation ? ` Validation: ${res.validation.allPassed ? 'passed' : 'failed'}.` : '';
+        return {
+          id: crypto.randomUUID(),
+          requestId: request.id,
+          response: `🚀 AutoFix session ${sessionId} applied ${res.simulated ? '(simulation)' : ''}${res.prUrl ? `\nPR: ${res.prUrl}` : ''}${statusLine}`,
+          toolsUsed: [],
+          executionTimeMs: Date.now() - startTime,
+          tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+          metadata: { command: request.command, projectId: request.projectId, userId: request.userId, modelUsed: 'gpt-4o-mini', intermediateSteps: 0, memorySize: 0, sessionId },
+        };
+      } catch (e) {
+        return {
+          id: crypto.randomUUID(),
+          requestId: request.id,
+          response: `Apply failed: ${e instanceof Error ? e.message : 'Unknown error'}`,
+          toolsUsed: [],
+          executionTimeMs: Date.now() - startTime,
+          tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+          metadata: { command: request.command, projectId: request.projectId, userId: request.userId, modelUsed: 'gpt-4o-mini', intermediateSteps: 0, memorySize: 0, sessionId },
+        };
+      }
+    }
+
+    if (regenerateMatch) {
+      const sessionId = regenerateMatch[1];
+      try {
+        const regen = await regenerateAutoFix(sessionId);
+        return {
+          id: crypto.randomUUID(),
+          requestId: request.id,
+          response: `♻️ AutoFix session ${sessionId} regenerated. Status: ${regen.status}. Use 'proceed autofix ${sessionId}' again to produce a new patch plan.`,
+          toolsUsed: [],
+          executionTimeMs: Date.now() - startTime,
+          tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+          metadata: { command: request.command, projectId: request.projectId, userId: request.userId, modelUsed: 'gpt-4o-mini', intermediateSteps: 0, memorySize: 0, sessionId },
+        };
+      } catch (e) {
+        return {
+          id: crypto.randomUUID(),
+          requestId: request.id,
+          response: `Regenerate failed: ${e instanceof Error ? e.message : 'Unknown error'}`,
+          toolsUsed: [],
+          executionTimeMs: Date.now() - startTime,
+          tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+          metadata: { command: request.command, projectId: request.projectId, userId: request.userId, modelUsed: 'gpt-4o-mini', intermediateSteps: 0, memorySize: 0, sessionId },
+        };
+      }
+    }
+
+    if (cancelMatch) {
+      const sessionId = cancelMatch[1];
+      try {
+        const cancelled = await cancelAutoFix(sessionId);
+        return {
+          id: crypto.randomUUID(),
+          requestId: request.id,
+          response: `⛔ AutoFix session ${sessionId} ${cancelled.status.toLowerCase()}.`,
+          toolsUsed: [],
+          executionTimeMs: Date.now() - startTime,
+          tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+          metadata: { command: request.command, projectId: request.projectId, userId: request.userId, modelUsed: 'gpt-4o-mini', intermediateSteps: 0, memorySize: 0, sessionId },
+        };
+      } catch (e) {
+        return {
+          id: crypto.randomUUID(),
+          requestId: request.id,
+          response: `Cancel failed: ${e instanceof Error ? e.message : 'Unknown error'}`,
+          toolsUsed: [],
+          executionTimeMs: Date.now() - startTime,
+          tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+          metadata: { command: request.command, projectId: request.projectId, userId: request.userId, modelUsed: 'gpt-4o-mini', intermediateSteps: 0, memorySize: 0, sessionId },
         };
       }
     }
