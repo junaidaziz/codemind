@@ -275,22 +275,29 @@ export async function generatePatchPlan(sessionId: string): Promise<PatchGenerat
     updatedContent: patch.updatedContent,
     originalPreview: patch.originalContent.slice(0, 400),
     timestamp: Date.now(),
+    stats: {
+      hunks: (patch.unifiedDiff.match(/^@@/gm) || []).length,
+      bytes: patch.unifiedDiff.length,
+      truncated: /Diff truncated/.test(patch.unifiedDiff)
+    }
   };
   // Log diff metrics (hunks & bytes) for analytics
   try {
-    const hunkCount = (patch.unifiedDiff.match(/^@@/gm) || []).length;
-    await prisma.activityLog.create({
-      data: {
-        projectId: session.projectId,
-        userId: session.userId,
-        activityType: 'AI_FIX_STARTED',
-        entityType: 'ai_fix',
-        entityId: session.id,
-        description: 'Diff metrics recorded for initial patch',
-        impact: 'LOW',
-        metadata: JSON.stringify({ sessionId: session.id, file: targetPath, bytes: patch.unifiedDiff.length, hunks: hunkCount }),
-      }
-    });
+    if (!/ \(no changes\)$/.test(patch.unifiedDiff)) {
+      const hunkCount = storedPatch.stats.hunks;
+      await prisma.activityLog.create({
+        data: {
+          projectId: session.projectId,
+          userId: session.userId,
+          activityType: 'AI_FIX_DIFF_METRICS',
+          entityType: 'ai_fix',
+          entityId: session.id,
+          description: 'Diff metrics recorded for initial patch',
+          impact: 'LOW',
+          metadata: JSON.stringify({ sessionId: session.id, file: targetPath, bytes: storedPatch.stats.bytes, hunks: hunkCount, truncated: storedPatch.stats.truncated }),
+        }
+      });
+    }
   } catch { /* ignore metrics log errors */ }
   await prisma.autoFixSession.update({
     where: { id: session.id },
@@ -605,22 +612,29 @@ export async function generateMultiPatchPlan(sessionId: string, desiredCount = 3
       updatedContent: patch.updatedContent,
       originalPreview: patch.originalContent.slice(0, 400),
       timestamp: Date.now(),
+      stats: {
+        hunks: (patch.unifiedDiff.match(/^@@/gm) || []).length,
+        bytes: patch.unifiedDiff.length,
+        truncated: /Diff truncated/.test(patch.unifiedDiff)
+      }
     });
     // Per-file diff metrics log (best-effort)
     try {
-      const hunkCount = (patch.unifiedDiff.match(/^@@/gm) || []).length;
-      await prisma.activityLog.create({
-        data: {
-          projectId: session.projectId,
-          userId: session.userId,
-          activityType: 'AI_FIX_STARTED',
-          entityType: 'ai_fix',
-          entityId: session.id,
-          description: 'Diff metrics recorded for multi-file patch',
-          impact: 'LOW',
-          metadata: JSON.stringify({ sessionId: session.id, file: f.path, bytes: patch.unifiedDiff.length, hunks: hunkCount }),
-        },
-      });
+      if (!/ \(no changes\)$/.test(patch.unifiedDiff)) {
+        const hunkCount = (patch.unifiedDiff.match(/^@@/gm) || []).length;
+        await prisma.activityLog.create({
+          data: {
+            projectId: session.projectId,
+            userId: session.userId,
+            activityType: 'AI_FIX_DIFF_METRICS',
+            entityType: 'ai_fix',
+            entityId: session.id,
+            description: 'Diff metrics recorded for multi-file patch',
+            impact: 'LOW',
+            metadata: JSON.stringify({ sessionId: session.id, file: f.path, bytes: patch.unifiedDiff.length, hunks: hunkCount, truncated: /Diff truncated/.test(patch.unifiedDiff) }),
+          },
+        });
+      }
     } catch { /* swallow */ }
   }
 
