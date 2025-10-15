@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUserId } from '../../../../lib/auth-server';
 import prisma from '../../../lib/db';
 import { createApiError, createApiSuccess } from '../../../../types';
-import { markIssueAnalyzed, markIssueFix, serializeIssueWithAI } from '../../../../lib/ai-state';
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,13 +39,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(createApiError('Issue not found or access denied', 'RESOURCE_NOT_FOUND'), { status: 404 });
     }
 
-    // Simulate AI work (placeholder until real AI pipeline wired)
+    // Helper to persist AI field changes without relying on generated type for new columns yet
+    async function persistIssueAI(issueId: string, data: { aiAnalyzed?: boolean; aiAnalyzedAt?: Date; aiSummary?: string; aiFixPrUrl?: string }) {
+      const sets: string[] = [];
+  // Use unknown[] to avoid eslint any rule; parameters forwarded to queryRawUnsafe
+  const params: unknown[] = [];
+      let idx = 1;
+      if (typeof data.aiAnalyzed === 'boolean') { sets.push(`"aiAnalyzed" = $${idx++}`); params.push(data.aiAnalyzed); }
+      if (data.aiAnalyzedAt) { sets.push(`"aiAnalyzedAt" = $${idx++}`); params.push(data.aiAnalyzedAt); }
+      if (typeof data.aiSummary === 'string') { sets.push(`"aiSummary" = $${idx++}`); params.push(data.aiSummary); }
+      if (typeof data.aiFixPrUrl === 'string') { sets.push(`"aiFixPrUrl" = $${idx++}`); params.push(data.aiFixPrUrl); }
+      if (!sets.length) return prisma.issue.findUnique({ where: { id: issueId } });
+      params.push(issueId);
+      const sql = `UPDATE "Issue" SET ${sets.join(', ')} WHERE "id" = $${idx} RETURNING *;`;
+      const rows = await prisma.$queryRawUnsafe<Array<Record<string, unknown>>>(sql, ...params);
+      return rows[0] as unknown as typeof issue; // narrow for downstream usage
+    }
+
+    // Simulated AI work now persisted (raw SQL path for forward compatibility until prisma generate is run)
     if (action === 'analyze') {
       const fakeSummary = `AI summary generated at ${new Date().toISOString()} for issue #${issue.number}`;
-      markIssueAnalyzed(issue.id, fakeSummary);
+      const updated = await persistIssueAI(issue.id, {
+        aiAnalyzed: true,
+        aiAnalyzedAt: new Date(),
+        aiSummary: fakeSummary,
+      });
       return NextResponse.json(createApiSuccess({
         message: 'Issue analyzed successfully',
-        issue: serializeIssueWithAI({ id: issue.id }),
+        issue: updated,
       }));
     }
 
@@ -63,10 +83,14 @@ export async function POST(request: NextRequest) {
       }
       const randomPrNumber = Math.floor(Math.random() * 5000) || 1;
       const prUrl = `https://github.com/${owner}/${repo}/pull/${randomPrNumber}`;
-      markIssueFix(issue.id, prUrl);
+      const updated = await persistIssueAI(issue.id, {
+        aiAnalyzed: true,
+        aiAnalyzedAt: new Date(),
+        aiFixPrUrl: prUrl,
+      });
       return NextResponse.json(createApiSuccess({
         message: 'AI fix simulated and PR link generated',
-        issue: serializeIssueWithAI({ id: issue.id }),
+        issue: updated,
       }));
     }
 

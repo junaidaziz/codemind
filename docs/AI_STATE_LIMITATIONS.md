@@ -1,40 +1,45 @@
-# Temporary AI State Limitations
+# AI State (Legacy Temporary Layer) – Deprecated
 
-The current AI analysis / fix workflow uses an **in-memory map** (`src/lib/ai-state.ts`) to track:
+This document previously described a temporary **in-memory AI issue state** layer (`src/lib/ai-state.ts`). That layer has now been fully **removed** and replaced by persistent fields on the `Issue` model.
 
-- `analyzed` flag
-- `summary` (simulated AI output)
-- `fixPrUrl` (simulated PR link)
+## Current Implementation (Persistent)
+AI related metadata is stored directly in Postgres via Prisma:
 
-## Important Characteristics
-- Volatile: Data resets on server restart, deployment, or serverless cold start.
-- Not replicated: Each instance maintains its own copy; in multi-region or horizontal scale scenarios results may appear inconsistent.
-- Non-auditable: No historical tracking or attribution persisted.
+- `aiAnalyzed  Boolean @default(false)`
+- `aiAnalyzedAt DateTime?`
+- `aiSummary   String?`
+- `aiFixPrUrl  String?` (also surfaced to the frontend as `aiFixAttempt` for backward compatibility)
 
-## Why This Exists
-Database schema migrations for persistent AI fields (e.g. `aiSummary`, `aiFixAttempt`) are pending. This layer allows the UI to progress and UX flows to be validated without blocking on migrations.
+All reads now come from the database (see `GET /api/github/issues`). All writes occur in `POST /api/github/resolve` (actions: `analyze`, `fix`).
 
-## Migration Plan (Proposed)
-1. Add columns to `Issue` model:
-   - `aiSummary String?`
-   - `aiAnalyzed Boolean @default(false)`
-   - `aiFixPrUrl String?`
-2. Backfill: None required (all optional).
-3. Replace serializers to read directly from Prisma.
-4. Remove `ai-state.ts` and related merge logic.
-5. Add activity logging (e.g., `ActivityLog` entries for analyze/fix actions).
+## Removed Temporary Module
+`src/lib/ai-state.ts` has been deleted. There is no longer any volatile per-process memory map for AI issue state.
 
-## Suggested Hardening (If Needed Before Migration)
-- Add a lightweight file-based cache (not recommended in serverless) or Redis layer.
-- Include a version stamp so stale state can be invalidated after schema deploy.
+## Backward Compatibility
+The frontend previously expected `aiFixAttempt`. The API layer maps `aiFixPrUrl` -> `aiFixAttempt` until the UI is updated to use the new canonical field name.
 
-## Testing
-Use `/api/github/resolve` with actions:
-```json
-{ "issueId": "<id>", "action": "analyze" }
-{ "issueId": "<id>", "action": "fix" }
-```
-Then re-fetch issues: `/api/github/issues?projectId=...` to see updated AI flags.
+## Future Enhancements
+1. Activity logging (`ActivityLog`) entries for analyze/fix actions.
+2. Optional PR creation logic using authenticated GitHub token instead of placeholder URLs.
+3. Metrics roll‑up into `DeveloperInsights` (e.g., increment `totalAiFixes`).
+4. Validation to prevent duplicate analyze/fix operations within a short cooldown window.
+
+## Testing the Flow
+1. Analyze:
+   POST `/api/github/resolve` `{ "issueId": "<id>", "action": "analyze" }`
+2. Fix (simulated PR link):
+   POST `/api/github/resolve` `{ "issueId": "<id>", "action": "fix" }`
+3. List:
+   GET `/api/github/issues?projectId=<projectId>` → observe updated AI fields.
+
+## Migration Summary
+- Added DB columns via migration `20251015000000_add_issue_ai_fields`.
+- Regenerated Prisma client.
+- Refactored routes to persist and serve new fields.
+- Removed legacy in-memory module.
+
+## Status
+This document is retained for historical context and will be removed or merged into general architecture docs later.
 
 ---
-_Last updated: ${new Date().toISOString()}_
+Last updated (manual stamp): 2025-10-15

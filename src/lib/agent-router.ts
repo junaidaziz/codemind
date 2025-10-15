@@ -1,5 +1,6 @@
 import { AgentServiceClient, AgentRequest, AgentResponse, AgentStreamChunk } from './agent-service-client';
 import { createEnhancedRAGChain, AgentCommand } from '../app/lib/langchain-agent';
+import { parseFixCommand, startAutoFix } from './auto-fix-orchestrator';
 import { env } from '../types/env';
 import { logger } from '../app/lib/logger';
 
@@ -122,6 +123,37 @@ export class AgentRouter {
       context: request.context,
       message: request.message,
     };
+
+    // Detect /fix style command before default RAG processing
+    const fixCmd = parseFixCommand(request.message || request.command || '');
+    if (fixCmd) {
+      try {
+        const plan = await startAutoFix({
+          projectId: request.projectId,
+            userId: request.userId,
+            issueNumber: fixCmd.issueNumber,
+        });
+        return {
+          id: crypto.randomUUID(),
+          requestId: request.id,
+          response: `🔧 AutoFix session started (id: ${plan.sessionId})${plan.issueId ? ` for issue ${fixCmd.issueNumber}` : ''}.\nSteps:\n- ${plan.steps.join('\n- ')}\n\n(Phase 1 stub – patch generation not yet implemented)`,
+          toolsUsed: [],
+          executionTimeMs: Date.now() - startTime,
+          tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+          metadata: { command: request.command, projectId: request.projectId, userId: request.userId, modelUsed: 'gpt-4o-mini', intermediateSteps: 0, memorySize: 0, sessionId: plan.sessionId },
+        };
+      } catch (e) {
+        return {
+          id: crypto.randomUUID(),
+          requestId: request.id,
+          response: `AutoFix initialization failed: ${e instanceof Error ? e.message : 'Unknown error'}`,
+          toolsUsed: [],
+          executionTimeMs: Date.now() - startTime,
+          tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+          metadata: { command: request.command, projectId: request.projectId, userId: request.userId, modelUsed: 'gpt-4o-mini', intermediateSteps: 0, memorySize: 0 },
+        };
+      }
+    }
 
     // Create enhanced RAG chain
     const chain = await createEnhancedRAGChain(

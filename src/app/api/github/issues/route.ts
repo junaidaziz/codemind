@@ -4,7 +4,6 @@ import { getUserId } from '../../../../lib/auth-server';
 import prisma from '../../../lib/db';
 import { createApiSuccess, createApiError } from '../../../../types';
 import { getGitHubToken } from '../../../../lib/config-helper';
-import { serializeIssueWithAI } from '../../../../lib/ai-state';
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,7 +30,13 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const enhanced = issues.map(serializeIssueWithAI);
+    // Define shape with backward compatible field
+    type IssueWithCompatibility = typeof issues[number] & { aiFixAttempt?: string | null };
+    const enhanced: IssueWithCompatibility[] = issues.map(issue => {
+      // Prefer new persistent field aiFixPrUrl; fall back to legacy aiFixAttempt if it somehow exists
+      const aiFixAttempt = (issue as unknown as { aiFixPrUrl?: string | null }).aiFixPrUrl ?? (issue as unknown as { aiFixAttempt?: string | null }).aiFixAttempt ?? null;
+      return { ...issue, aiFixAttempt };
+    });
     return NextResponse.json(createApiSuccess({
       issues: enhanced,
       count: enhanced.length,

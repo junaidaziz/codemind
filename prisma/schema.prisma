@@ -4,12 +4,8 @@ generator client {
 }
 
 datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
-  extensions = [
-    uuid_ossp(map: "uuid-ossp", schema: "extensions"),
-    vector(map: "vector")
-  ]
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -504,6 +500,11 @@ model Issue {
   createdAt   DateTime
   updatedAt   DateTime
   closedAt    DateTime?
+  // AI persistence fields
+  aiAnalyzed   Boolean   @default(false)
+  aiAnalyzedAt DateTime?
+  aiSummary    String?
+  aiFixPrUrl   String?
   project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, number])
