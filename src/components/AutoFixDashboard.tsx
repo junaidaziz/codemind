@@ -442,12 +442,36 @@ export default function AutoFixDashboard() {
                           View PR
                         </a>
                       )}
-                      <button
-                        onClick={() => {/* TODO: Implement session details */}}
-                        className="text-gray-600 hover:text-gray-900"
-                      >
-                        Details
-                      </button>
+                      <div className="inline-flex items-center gap-2">
+                        <button
+                          onClick={() => {/* TODO: Implement session details */}}
+                          className="text-gray-600 hover:text-gray-900"
+                        >
+                          Details
+                        </button>
+                        <button
+                          disabled={['cancelled','completed'].includes(session.status)}
+                          onClick={async () => {
+                            await fetch(`/api/auto-fix/session/${session.id}/regenerate`, { method: 'POST' });
+                            fetchDashboardData();
+                          }}
+                          className="text-gray-600 hover:text-gray-900 disabled:opacity-40"
+                          title="Regenerate"
+                        >
+                          ♻️
+                        </button>
+                        <button
+                          disabled={['cancelled','completed'].includes(session.status)}
+                          onClick={async () => {
+                            await fetch(`/api/auto-fix/session/${session.id}/cancel`, { method: 'POST' });
+                            fetchDashboardData();
+                          }}
+                          className="text-red-600 hover:text-red-800 disabled:opacity-40"
+                          title="Cancel"
+                        >
+                          ⛔
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

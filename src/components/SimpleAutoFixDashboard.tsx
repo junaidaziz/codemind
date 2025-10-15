@@ -246,6 +246,28 @@ export default function SimpleAutoFixDashboard() {
                       `}>
                         {session.status}
                       </span>
+                      <div className="mt-2 flex gap-2 justify-end">
+                        <button
+                          disabled={session.status.toLowerCase() === 'cancelled' || session.status.toLowerCase() === 'completed'}
+                          onClick={async () => {
+                            await fetch(`/api/auto-fix/session/${session.id}/regenerate`, { method: 'POST' });
+                            fetchData();
+                          }}
+                          className="text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-100 disabled:opacity-40"
+                        >
+                          Regenerate
+                        </button>
+                        <button
+                          disabled={session.status.toLowerCase() === 'cancelled' || session.status.toLowerCase() === 'completed'}
+                          onClick={async () => {
+                            await fetch(`/api/auto-fix/session/${session.id}/cancel`, { method: 'POST' });
+                            fetchData();
+                          }}
+                          className="text-xs px-2 py-1 rounded border border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-40"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
