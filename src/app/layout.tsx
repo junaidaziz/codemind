@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "./ui-consistency.css";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AppHeader } from "./components/AppHeader";
 import { ErrorBoundary } from "../components/ui";
+import { ToastProvider } from "../components/ui/toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,10 +33,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ErrorBoundary>
-          <AuthProvider>
-            <AppHeader />
-            {children}
-          </AuthProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <AppHeader />
+              {children}
+            </AuthProvider>
+          </ToastProvider>
         </ErrorBoundary>
       </body>
     </html>
