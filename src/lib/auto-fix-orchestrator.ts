@@ -421,7 +421,7 @@ Respond with only updated file content inside <file>...</file>.`;
     },
   });
 
-  const storedPatch = [{
+  const storedPatch: StoredPatchMeta[] = [{
     filePath: targetPath,
     diff,
     updatedContent,
@@ -545,7 +545,7 @@ export async function generateMultiPatchPlan(sessionId: string, desiredCount = 3
   if (files.length < 2) throw new Error('Not enough candidate files for multi-file planning');
 
   const generated: Array<{ filePath: string; diff: string; resultId: string; linesAdded: number }> = [];
-  const patchStore: Array<{ filePath: string; diff: string; updatedContent: string; originalPreview?: string; timestamp: number }> = [];
+  const patchStore: StoredPatchMeta[] = [];
   const maxTotalLocDelta = parseInt(process.env.AUTOFIX_MULTI_MAX_LOC_DELTA || '400', 10) || 400;
   let cumulativeAdded = 0;
   for (const f of files.slice(0, targetCount)) {
@@ -661,7 +661,7 @@ function safeJson<T>(val: unknown): T | null {
   return null;
 }
 
-interface StoredPatchMeta { filePath: string; diff: string; updatedContent: string; originalPreview?: string; timestamp: number }
+interface StoredPatchMeta { filePath: string; diff: string; updatedContent: string; originalPreview?: string; timestamp: number; stats?: { hunks: number; bytes: number; truncated: boolean }; meta?: Record<string, unknown> }
 
 import type { ValidationSummary } from './validation-runner';
 export async function applyAutoFix(sessionId: string, { simulate = true }: { simulate?: boolean } = {}): Promise<ApplyResult & { validation?: ValidationSummary }> {

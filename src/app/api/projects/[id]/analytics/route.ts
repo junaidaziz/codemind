@@ -91,7 +91,11 @@ export async function GET(request: NextRequest, { params }: AnalyticsParams) {
     // We explicitly select only the fields we need so that if new columns (e.g. AI fields)
     // have pending migrations that are not yet applied in the current database, Prisma
     // will not attempt to select them and trigger a P2022 (missing column) error.
-    let project = await prisma.project.findFirst({
+  // Allow fallback minimal selection: define flexible shape
+  type PRMinimal = { id: string; state: string; createdAt: Date; updatedAt: Date; mergedAt: Date | null; number?: number; title?: string; authorLogin?: string; additions?: number | null; deletions?: number | null };
+  type IssueMinimal = { id: string; state: string; createdAt: Date; updatedAt: Date; number?: number; title?: string; body?: string | null; htmlUrl?: string; authorLogin?: string; closedAt?: Date | null; labels?: string[]; assignees?: string[] };
+  interface ProjectShape { pullRequests: PRMinimal[]; issues: IssueMinimal[] }
+  let project: ProjectShape | null = await prisma.project.findFirst({
       where: { id },
       include: {
         pullRequests: {

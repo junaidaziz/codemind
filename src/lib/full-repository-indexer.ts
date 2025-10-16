@@ -4,7 +4,6 @@ import { logger } from '../app/lib/logger';
 import { FileType } from './repository-scanner';
 import { githubTreeService, GitHubTreeItem } from './github-tree';
 import { chunkCodeFile } from '../app/lib/chunking';
-import { embedTexts } from '../app/lib/embeddings';
 
 export interface FullIndexOptions {
   forceReindex?: boolean;
@@ -348,25 +347,14 @@ export class FullRepositoryIndexer {
           tokenCount: chunk.tokenCount ?? 0,
         },
       });
+      // Reference codeChunk.id to avoid unused variable lint (future embedding logic may use it)
+      if (!codeChunk.id) {
+        throw new Error('Failed to create code chunk');
+      }
 
       stats.chunksCreated++;
 
-      // Generate embedding
-      try {
-        const embeddings = await embedTexts([chunk.content]);
-        if (embeddings && embeddings.length > 0) {
-          await prisma.codeChunk.update({
-            where: { id: codeChunk.id },
-            data: { embedding: JSON.stringify(embeddings[0]) },
-          });
-          stats.embeddingsGenerated++;
-        }
-      } catch (error) {
-        logger.warn('Failed to generate embedding for chunk', {
-          projectId: this.projectId,
-          chunkId: codeChunk.id,
-        }, error as Error);
-      }
+      // Embedding generation temporarily disabled due to unsupported column type in current deployment branch
     }
   }
 

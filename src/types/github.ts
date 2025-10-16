@@ -540,6 +540,7 @@ export const AutoFixSessionSchema = z.object({
   issues: z.array(DetectedIssueSchema),
   fixes: z.array(FileChangeSchema),
   result: AutoFixResultSchema.optional(),
+  diffStats: z.object({ totalHunks: z.number(), totalBytes: z.number(), truncated: z.boolean().optional() }).optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
   approvedAt: z.date().optional(),

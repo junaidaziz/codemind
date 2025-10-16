@@ -388,13 +388,10 @@ export async function PUT(req: NextRequest): Promise<NextResponse<ApiResponse<Ma
       );
     }
 
-    // Create auto-fix session
-    const sessionId = await createAutoFixSession(projectId, userId, issues, 'fixing');
+    // Create auto-fix session (manual trigger)
+    const sessionId = await createAutoFixSession(projectId, userId, issues, 'manual');
 
     try {
-      // Update session status
-      await updateAutoFixSession(sessionId, 'fixing');
-
       // Apply manual fixes using auto-fix service
       const autoFixService = getAutoFixService();
       const result = await autoFixService.applyAutoFix(
@@ -405,9 +402,13 @@ export async function PUT(req: NextRequest): Promise<NextResponse<ApiResponse<Ma
         userId
       );
 
-      // Update session status
-      const finalStatus = result.success ? 'completed' : 'failed';
-      await updateAutoFixSession(sessionId, finalStatus, result);
+      // Finalize session directly (no separate update phases for manual path)
+      await finalizeAutoFixSession(
+        sessionId,
+        !!result.success,
+        { summary: 'Manual fix applied' },
+        result
+      );
 
       const processingTime = Date.now() - startTime;
 

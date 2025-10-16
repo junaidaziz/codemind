@@ -17,7 +17,7 @@ export function buildHeaderCommentPatch(filePath: string, source: string): Simpl
   const header = `// AI: AutoFix header inserted for initial patch planning\n`;
   const updated = header + source;
   const context = parseInt(process.env.AUTOFIX_DIFF_CONTEXT || '', 10);
-  const diff = createUnifiedDiff(filePath, source, updated, isNaN(context) ? 3 : Math.max(0, context));
+  const diff = createUnifiedDiffForTest(filePath, source, updated, isNaN(context) ? 3 : Math.max(0, context));
   return { filePath, originalContent: source, updatedContent: updated, unifiedDiff: diff };
 }
 
