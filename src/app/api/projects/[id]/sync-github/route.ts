@@ -50,7 +50,8 @@ export async function POST(request: NextRequest, { params }: SyncParams) {
     
     if (!githubToken) {
       return NextResponse.json({ 
-        error: 'GitHub access token not configured for this project. Please configure GitHub credentials in project settings.' 
+        error: 'GitHub access token not configured', 
+        details: 'Please configure GitHub credentials in project settings or set GITHUB_TOKEN environment variable.' 
       }, { status: 400 });
     }
 

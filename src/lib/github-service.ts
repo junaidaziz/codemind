@@ -378,41 +378,56 @@ export class GitHubService {
         params.since = since.toISOString();
       }
 
-      const { data: commits } = await this.octokit.rest.repos.listCommits(params);
+      try {
+        const { data: commits } = await this.octokit.rest.repos.listCommits(params);
 
-      const syncResults = await Promise.allSettled(
-        commits.map(async (commit) => {
-          return await prisma.commit.upsert({
-            where: { 
-              sha: commit.sha
-            },
-            create: {
-              projectId,
-              sha: commit.sha,
-              message: commit.commit.message,
-              author: commit.author?.login || commit.commit.author?.name || 'unknown',
-              authorEmail: commit.commit.author?.email || '',
-              date: new Date(commit.commit.author?.date || new Date()),
-              url: commit.html_url,
-              additions: commit.stats?.additions || 0,
-              deletions: commit.stats?.deletions || 0,
-            },
-            update: {
-              message: commit.commit.message,
-              author: commit.author?.login || commit.commit.author?.name || 'unknown',
-              authorEmail: commit.commit.author?.email || '',
-              date: new Date(commit.commit.author?.date || new Date()),
-              additions: commit.stats?.additions || 0,
-              deletions: commit.stats?.deletions || 0,
-            },
-          });
-        })
-      );
+        const syncResults = await Promise.allSettled(
+          commits.map(async (commit) => {
+            return await prisma.commit.upsert({
+              where: { 
+                sha: commit.sha
+              },
+              create: {
+                projectId,
+                sha: commit.sha,
+                message: commit.commit.message,
+                author: commit.author?.login || commit.commit.author?.name || 'unknown',
+                authorEmail: commit.commit.author?.email || '',
+                date: new Date(commit.commit.author?.date || new Date()),
+                url: commit.html_url,
+                additions: commit.stats?.additions || 0,
+                deletions: commit.stats?.deletions || 0,
+              },
+              update: {
+                message: commit.commit.message,
+                author: commit.author?.login || commit.commit.author?.name || 'unknown',
+                authorEmail: commit.commit.author?.email || '',
+                date: new Date(commit.commit.author?.date || new Date()),
+                additions: commit.stats?.additions || 0,
+                deletions: commit.stats?.deletions || 0,
+              },
+            });
+          })
+        );
 
-      const successful = syncResults.filter(result => result.status === 'fulfilled').length;
-      const failed = syncResults.filter(result => result.status === 'rejected').length;
+        const successful = syncResults.filter(result => result.status === 'fulfilled').length;
+        const failed = syncResults.filter(result => result.status === 'rejected').length;
 
-      return { successful, failed, total: commits.length };
+        return { successful, failed, total: commits.length };
+      } catch (apiError: unknown) {
+        // Provide more helpful error messages based on the error type
+        if (apiError && typeof apiError === 'object' && 'status' in apiError) {
+          const status = (apiError as { status: number }).status;
+          if (status === 404) {
+            throw new Error(`Repository not found or not accessible: ${owner}/${repo}. Please check the repository exists and your GitHub token has access.`);
+          } else if (status === 401) {
+            throw new Error('GitHub authentication failed. Please check your GitHub token is valid and has the required permissions (repo scope).');
+          } else if (status === 403) {
+            throw new Error('GitHub API rate limit exceeded or access forbidden. Please try again later or check token permissions.');
+          }
+        }
+        throw apiError;
+      }
     } catch (error) {
       console.error('Error syncing commits:', error);
       throw new Error(`Failed to sync commits: ${error instanceof Error ? error.message : 'Unknown error'}`);
