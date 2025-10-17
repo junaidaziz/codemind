@@ -17,10 +17,14 @@
 2. **Vercel Integration Testing** 🧪
    - [x] ✅ Generate and configure VERCEL_WEBHOOK_SECRET
    - [x] ✅ Test log fetcher script successfully - 3 failed deployments found
-   - [ ] Configure Vercel webhook in dashboard (see VERCEL_WEBHOOK_SETUP.md)
+   - [x] ✅ Create webhook configuration script (scripts/configure-vercel-webhook.js)
+   - [x] ✅ Verify no existing webhooks configured
+   - [ ] 🎯 **NEXT:** Get Vercel deployment URL and run webhook configuration
    - [ ] Add VERCEL_WEBHOOK_SECRET to Vercel environment variables
+   - [ ] Deploy webhook handler to production
    - [ ] Test webhook with failed deployment scenario
    - [ ] Verify auto-fix triggering works end-to-end
+   - **Guide:** See NEXT_STEPS.md for detailed instructions
 
 3. **Deployment Monitoring** 📊
    - [ ] Configure Slack/Discord webhook for notifications
