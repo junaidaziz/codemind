@@ -702,6 +702,15 @@ model ProjectConfig {
   githubInstallationId  String?
   githubWebhookSecret   String?
   githubToken           String?
+  // Jira Integration
+  jiraApiToken          String?
+  jiraEmail             String?
+  jiraDomain            String?  // e.g., "yourcompany.atlassian.net"
+  jiraProjectKey        String?  // e.g., "PROJ"
+  // Trello Integration
+  trelloApiKey          String?
+  trelloToken           String?
+  trelloBoardId         String?
   encryptionSalt        String?  // For encrypting sensitive data
   isEncrypted           Boolean  @default(false)
   createdAt             DateTime @default(now())
