@@ -9,10 +9,12 @@
 
 1. **CI/CD Pipeline Verification** 🔄
    - [x] ✅ Create test PR to verify GitHub Actions workflow (test/ci-cd-verification branch created)
+   - [x] ✅ Create PR instructions (.github/PR_INSTRUCTIONS.md)
+   - [ ] 🎯 **MANUAL:** Create PR at https://github.com/junaidaziz/codemind/compare/main...test/ci-cd-verification
    - [ ] Confirm all jobs execute (quality, test, e2e, build, deploy)
    - [ ] Verify Codecov coverage uploads
    - [ ] Validate staging deployment automation
-   - **Note:** Check workflow status at https://github.com/junaidaziz/codemind/actions
+   - **Note:** Workflow only triggers on PR to main (not on push to feature branch)
 
 2. **Vercel Integration Testing** 🧪
    - [x] ✅ Generate and configure VERCEL_WEBHOOK_SECRET
