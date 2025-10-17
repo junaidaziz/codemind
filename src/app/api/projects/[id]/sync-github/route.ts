@@ -24,11 +24,22 @@ export async function POST(request: NextRequest, { params }: SyncParams) {
     // }
 
     // Verify project exists (TODO: Add user access verification when auth is configured)
-    const project = await prisma.project.findFirst({
-      where: {
-        id: id
-      }
-    });
+    let project;
+    try {
+      project = await prisma.project.findFirst({
+        where: {
+          id: id
+        }
+      });
+    } catch (dbError) {
+      const error = dbError as { message?: string };
+      console.error('Database connection error:', error);
+      return NextResponse.json({ 
+        error: 'Database connection failed', 
+        details: 'Unable to connect to the database. Please check your database connection and try again.',
+        technicalDetails: error.message 
+      }, { status: 503 });
+    }
 
     if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });

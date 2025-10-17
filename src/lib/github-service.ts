@@ -447,28 +447,63 @@ export class GitHubService {
 
       const syncResults = await Promise.allSettled(
         contributors.map(async (contributor) => {
-          return await prisma.contributor.upsert({
-            where: { 
-              projectId_username: {
-                projectId,
-                username: contributor.login || 'unknown'
+          try {
+            // First check if contributor exists for this project
+            const existing = await prisma.contributor.findUnique({
+              where: { 
+                projectId_username: {
+                  projectId,
+                  username: contributor.login || 'unknown'
+                }
               }
-            },
-            create: {
-              projectId,
-              githubId: contributor.id?.toString(),
-              username: contributor.login || 'unknown',
-              avatarUrl: contributor.avatar_url || '',
-              name: contributor.name || contributor.login || 'unknown',
-              totalCommits: contributor.contributions || 0,
-            },
-            update: {
-              githubId: contributor.id?.toString(),
-              avatarUrl: contributor.avatar_url || '',
-              name: contributor.name || contributor.login || 'unknown',
-              totalCommits: contributor.contributions || 0,
-            },
-          });
+            });
+
+            if (existing) {
+              // Update existing contributor
+              return await prisma.contributor.update({
+                where: { 
+                  projectId_username: {
+                    projectId,
+                    username: contributor.login || 'unknown'
+                  }
+                },
+                data: {
+                  avatarUrl: contributor.avatar_url || '',
+                  name: contributor.name || contributor.login || 'unknown',
+                  totalCommits: contributor.contributions || 0,
+                }
+              });
+            } else {
+              // Create new contributor (githubId might already exist for another project)
+              return await prisma.contributor.create({
+                data: {
+                  projectId,
+                  githubId: contributor.id?.toString(),
+                  username: contributor.login || 'unknown',
+                  avatarUrl: contributor.avatar_url || '',
+                  name: contributor.name || contributor.login || 'unknown',
+                  totalCommits: contributor.contributions || 0,
+                }
+              });
+            }
+          } catch (error) {
+            // If githubId conflict, try without githubId (allow null for duplicates)
+            const err = error as { code?: string };
+            if (err.code === 'P2002') {
+              console.warn(`Duplicate githubId for user ${contributor.login}, creating without githubId`);
+              return await prisma.contributor.create({
+                data: {
+                  projectId,
+                  githubId: null, // Set to null to avoid unique constraint
+                  username: contributor.login || 'unknown',
+                  avatarUrl: contributor.avatar_url || '',
+                  name: contributor.name || contributor.login || 'unknown',
+                  totalCommits: contributor.contributions || 0,
+                }
+              });
+            }
+            throw error;
+          }
         })
       );
 
