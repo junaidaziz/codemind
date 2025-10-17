@@ -1,3 +1,22 @@
+# 🔍 Vercel Build Failure Analysis
+
+**Generated on:** 2025-10-17 05:37:53 UTC
+**Deployment ID:** 
+**Repository:** junaidaziz/codemind
+**Branch:** main
+**Commit:** c97c53cf0b52e48aac7f72c11923de67473f1e95
+
+## ❌ Build Failure Summary
+Build failed due to TypeScript errors and ESLint warnings.
+
+## 🔍 Root Cause Analysis
+Unknown cause
+
+## 🛠️ Suggested Fix
+See analysis for details
+
+## 📊 Full Analysis
+```json
 {
   "deployment": {
     "uid": "dpl_4hG3CnhGkJ1FCCbEdgh9Leny5y68",
@@ -58,3 +77,7 @@
   },
   "timestamp": "2025-10-17T05:37:53.198Z"
 }
+```
+
+---
+*This analysis was generated automatically by our AI-powered build failure analyzer.*
