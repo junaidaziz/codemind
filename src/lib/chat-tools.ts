@@ -250,6 +250,138 @@ export const assignGitHubIssueTool: ChatTool = {
 };
 
 /**
+ * Tool: Create GitHub Pull Request
+ */
+export const createGitHubPullRequestTool: ChatTool = {
+  name: 'create_github_pull_request',
+  description: 'Create a pull request on GitHub. Use this when user wants to create a PR to merge changes from one branch to another.',
+  parameters: {
+    type: 'object',
+    properties: {
+      title: {
+        type: 'string',
+        description: 'The title of the pull request'
+      },
+      body: {
+        type: 'string',
+        description: 'The description of the pull request (supports Markdown)'
+      },
+      head: {
+        type: 'string',
+        description: 'The name of the branch where your changes are (e.g., "feature/new-feature")'
+      },
+      base: {
+        type: 'string',
+        description: 'The name of the branch you want to merge into (e.g., "main" or "develop")'
+      },
+      draft: {
+        type: 'string',
+        description: 'Create as draft PR (true/false, default: false)'
+      },
+      reviewers: {
+        type: 'string',
+        description: 'Comma-separated GitHub usernames to request review from (optional)'
+      }
+    },
+    required: ['title', 'body', 'head', 'base']
+  },
+  execute: async (params, context) => {
+    const { title, body, head, base, draft, reviewers } = params;
+    
+    // Validate required parameters
+    if (!title || !body || !head || !base) {
+      throw new Error('Title, body, head, and base branches are required');
+    }
+    
+    // Get project details
+    const project = await prisma.project.findUnique({
+      where: { id: context.projectId }
+    });
+
+    if (!project) {
+      throw new Error('Project not found');
+    }
+
+    // Parse GitHub URL
+    const match = project.githubUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+    if (!match) {
+      throw new Error('Invalid GitHub URL');
+    }
+
+    const [, owner, repo] = match;
+    const cleanRepo = repo.replace(/\.git$/, '');
+
+    // Get GitHub token
+    const token = await getGitHubToken(context.projectId);
+    if (!token) {
+      throw new Error('GitHub token not configured. Please add it in project settings.');
+    }
+
+    const octokit = new Octokit({ auth: token });
+
+    // Create the pull request
+    const { data: pr } = await octokit.rest.pulls.create({
+      owner,
+      repo: cleanRepo,
+      title,
+      body,
+      head,
+      base,
+      draft: draft === 'true'
+    });
+
+    // Add reviewers if provided
+    if (reviewers) {
+      const reviewersList = reviewers.split(',').map((r: string) => r.trim());
+      try {
+        await octokit.rest.pulls.requestReviewers({
+          owner,
+          repo: cleanRepo,
+          pull_number: pr.number,
+          reviewers: reviewersList
+        });
+      } catch (error) {
+        console.error('Failed to add reviewers:', error);
+        // Don't fail the whole operation if reviewers can't be added
+      }
+    }
+
+    // Store PR in database
+    await prisma.pullRequest.create({
+      data: {
+        projectId: context.projectId,
+        number: pr.number,
+        title: pr.title,
+        body: pr.body || '',
+        state: pr.state === 'open' ? 'OPEN' : 'CLOSED',
+        htmlUrl: pr.html_url,
+        headBranch: pr.head.ref,
+        baseBranch: pr.base.ref,
+        authorLogin: pr.user?.login || 'unknown',
+        authorUrl: pr.user?.html_url || '',
+        draft: pr.draft || false,
+        createdAt: new Date(pr.created_at),
+        updatedAt: new Date(pr.updated_at)
+      }
+    });
+
+    return {
+      success: true,
+      pullRequest: {
+        number: pr.number,
+        title: pr.title,
+        url: pr.html_url,
+        state: pr.state,
+        draft: pr.draft,
+        head: pr.head.ref,
+        base: pr.base.ref
+      },
+      message: `Successfully created ${pr.draft ? 'draft ' : ''}pull request #${pr.number}: ${pr.title}`
+    };
+  }
+};
+
+/**
  * Tool: List GitHub Issues
  */
 export const listGitHubIssuesTool: ChatTool = {
@@ -485,6 +617,7 @@ export const fetchTrelloCardsTool: ChatTool = {
 export const chatTools: ChatTool[] = [
   createGitHubIssueTool,
   assignGitHubIssueTool,
+  createGitHubPullRequestTool,
   listGitHubIssuesTool,
   // fetchJiraIssuesTool,  // Commented out until DB migration complete
   // fetchTrelloCardsTool  // Commented out until DB migration complete

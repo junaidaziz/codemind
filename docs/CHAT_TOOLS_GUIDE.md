@@ -41,7 +41,28 @@ Assign issues to contributors via chat.
 
 ---
 
-### 3. **List GitHub Issues**
+### 3. **Create GitHub Pull Requests** 🆕
+Create pull requests to merge branches directly from chat.
+
+**Examples:**
+```
+"Create a PR to merge feature/dark-mode into main with title 'Add dark mode support'"
+
+"Make a pull request from fix/login-bug to develop titled 'Fix OAuth login issue'"
+
+"Create a draft PR from feature/new-ui to main and request review from alice"
+```
+
+**What it does:**
+- Creates PR on GitHub
+- Stores it in CodeMind database
+- Optionally creates as draft
+- Optionally requests reviewers
+- Returns PR number and URL
+
+---
+
+### 4. **List GitHub Issues**
 View and filter issues from your repository.
 
 **Examples:**
@@ -60,7 +81,7 @@ View and filter issues from your repository.
 
 ---
 
-### 4. **Fetch Jira Issues**
+### 5. **Fetch Jira Issues**
 Pull issues from your Jira board.
 
 **Examples:**
@@ -77,25 +98,31 @@ Pull issues from your Jira board.
 - Fetches issues based on JQL query
 - Displays status, assignee, priority
 
+**Note:** Requires Jira credentials configured in project settings and database migration.
+
 ---
 
-### 5. **Fetch Trello Cards**
-Get cards from your Trello boards.
+### 6. **Fetch Trello Cards**
+Pull cards from your Trello board.
 
 **Examples:**
 ```
-"Show me Trello cards"
+"Fetch Trello cards from board ABC123"
 
-"Get cards from 'To Do' list"
+"Show Trello cards in 'To Do' list"
 
-"Fetch my Trello tasks"
+"Get all cards from Trello"
 ```
 
 **What it does:**
 - Connects to Trello API
-- Fetches cards from board
-- Filters by list if specified
-- Shows card name, description, due dates
+- Fetches cards from specified board
+- Can filter by list name
+- Shows card details, labels, members
+
+**Note:** Requires Trello credentials configured in project settings and database migration.
+
+---
 
 ---
 
