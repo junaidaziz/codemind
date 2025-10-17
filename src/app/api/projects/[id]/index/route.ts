@@ -39,18 +39,22 @@ export async function POST(
       data: { status: "indexing" }
     });
 
-    const octokit = new Octokit();
+    // ✅ Initialize Octokit with authentication
+    const octokit = new Octokit({
+      auth: process.env.GITHUB_TOKEN
+    });
+    
     const repoPath = project.githubUrl.replace("https://github.com/", "");
     const [owner, repo] = repoPath.split("/");
 
-    // ✅ First, get the branch reference to get the commit SHA
-    const { data: ref } = await octokit.git.getRef({
+    // ✅ Get the default branch reference to get the commit SHA
+    const { data: branch } = await octokit.repos.getBranch({
       owner,
       repo,
-      ref: `heads/${project.defaultBranch}`
+      branch: project.defaultBranch
     });
     
-    const commitSha = ref.object.sha;
+    const commitSha = branch.commit.sha;
 
     // ✅ Fetch repo tree (recursive) using commit SHA
     const { data: tree } = await octokit.git.getTree({
