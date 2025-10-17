@@ -382,6 +382,220 @@ export const createGitHubPullRequestTool: ChatTool = {
 };
 
 /**
+ * Tool: List GitHub Pull Requests
+ */
+export const listGitHubPullRequestsTool: ChatTool = {
+  name: 'list_github_pull_requests',
+  description: 'List pull requests from the GitHub repository. Use this to show open/closed/merged PRs, filter by author, or search for specific PRs.',
+  parameters: {
+    type: 'object',
+    properties: {
+      state: {
+        type: 'string',
+        description: 'Filter by state',
+        enum: ['open', 'closed', 'merged', 'all']
+      },
+      author: {
+        type: 'string',
+        description: 'Filter by author username'
+      },
+      limit: {
+        type: 'string',
+        description: 'Maximum number of PRs to return (default: 10)'
+      }
+    },
+    required: []
+  },
+  execute: async (params, context) => {
+    const { state = 'open', author, limit = '10' } = params;
+    
+    const whereClause: Record<string, unknown> = {
+      projectId: context.projectId,
+    };
+
+    // Filter by state
+    if (state === 'merged') {
+      whereClause.mergedAt = { not: null };
+    } else if (state !== 'all') {
+      whereClause.state = state === 'open' ? 'OPEN' : 'CLOSED';
+      if (state === 'closed') {
+        whereClause.mergedAt = null; // Closed but not merged
+      }
+    }
+
+    // Filter by author
+    if (author) {
+      whereClause.authorLogin = author;
+    }
+
+    const pullRequests = await prisma.pullRequest.findMany({
+      where: whereClause,
+      orderBy: { createdAt: 'desc' },
+      take: parseInt(limit)
+    });
+
+    return {
+      success: true,
+      pullRequests: pullRequests.map(pr => ({
+        number: pr.number,
+        title: pr.title,
+        state: pr.state,
+        merged: pr.mergedAt !== null,
+        draft: pr.draft,
+        author: pr.authorLogin,
+        headBranch: pr.headBranch,
+        baseBranch: pr.baseBranch,
+        url: pr.htmlUrl,
+        createdAt: pr.createdAt,
+        mergedAt: pr.mergedAt
+      })),
+      count: pullRequests.length,
+      message: `Found ${pullRequests.length} pull request(s)`
+    };
+  }
+};
+
+/**
+ * Tool: Merge GitHub Pull Request
+ */
+export const mergeGitHubPullRequestTool: ChatTool = {
+  name: 'merge_github_pull_request',
+  description: 'Merge a pull request on GitHub. Use this when user wants to merge an approved PR.',
+  parameters: {
+    type: 'object',
+    properties: {
+      prNumber: {
+        type: 'string',
+        description: 'The pull request number (e.g., "42")'
+      },
+      mergeMethod: {
+        type: 'string',
+        description: 'How to merge the PR',
+        enum: ['merge', 'squash', 'rebase']
+      },
+      commitMessage: {
+        type: 'string',
+        description: 'Custom commit message for the merge (optional)'
+      }
+    },
+    required: ['prNumber']
+  },
+  execute: async (params, context) => {
+    const { prNumber, mergeMethod = 'merge', commitMessage } = params;
+    
+    // Validate required parameters
+    if (!prNumber) {
+      throw new Error('PR number is required');
+    }
+    
+    // Get project details
+    const project = await prisma.project.findUnique({
+      where: { id: context.projectId }
+    });
+
+    if (!project) {
+      throw new Error('Project not found');
+    }
+
+    // Parse GitHub URL
+    const match = project.githubUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+    if (!match) {
+      throw new Error('Invalid GitHub URL');
+    }
+
+    const [, owner, repo] = match;
+    const cleanRepo = repo.replace(/\.git$/, '');
+
+    // Get GitHub token
+    const token = await getGitHubToken(context.projectId);
+    if (!token) {
+      throw new Error('GitHub token not configured. Please add it in project settings.');
+    }
+
+    const octokit = new Octokit({ auth: token });
+
+    // Get PR details first to check if it's mergeable
+    const { data: pr } = await octokit.rest.pulls.get({
+      owner,
+      repo: cleanRepo,
+      pull_number: parseInt(prNumber)
+    });
+
+    // Check if PR is already merged
+    if (pr.merged) {
+      return {
+        success: false,
+        message: `Pull request #${prNumber} is already merged`
+      };
+    }
+
+    // Check if PR is closed without merging
+    if (pr.state === 'closed') {
+      return {
+        success: false,
+        message: `Pull request #${prNumber} is closed and cannot be merged`
+      };
+    }
+
+    // Check if PR is mergeable
+    if (pr.mergeable === false) {
+      return {
+        success: false,
+        message: `Pull request #${prNumber} has conflicts and cannot be merged. Please resolve conflicts first.`,
+        conflicts: true
+      };
+    }
+
+    // Merge the PR
+    const mergeData: {
+      owner: string;
+      repo: string;
+      pull_number: number;
+      merge_method?: 'merge' | 'squash' | 'rebase';
+      commit_title?: string;
+      commit_message?: string;
+    } = {
+      owner,
+      repo: cleanRepo,
+      pull_number: parseInt(prNumber)
+    };
+
+    if (mergeMethod && ['merge', 'squash', 'rebase'].includes(mergeMethod)) {
+      mergeData.merge_method = mergeMethod as 'merge' | 'squash' | 'rebase';
+    }
+
+    if (commitMessage) {
+      mergeData.commit_message = commitMessage;
+    }
+
+    const { data: mergeResult } = await octokit.rest.pulls.merge(mergeData);
+
+    // Update PR in database
+    await prisma.pullRequest.updateMany({
+      where: {
+        projectId: context.projectId,
+        number: parseInt(prNumber)
+      },
+      data: {
+        state: 'CLOSED',
+        mergedAt: new Date(),
+        updatedAt: new Date()
+      }
+    });
+
+    return {
+      success: true,
+      merge: {
+        sha: mergeResult.sha,
+        merged: mergeResult.merged,
+        message: mergeResult.message
+      },
+      message: `Successfully merged pull request #${prNumber} using ${mergeMethod} method`
+    };
+  }
+};
+
+/**
  * Tool: List GitHub Issues
  */
 export const listGitHubIssuesTool: ChatTool = {
@@ -618,6 +832,8 @@ export const chatTools: ChatTool[] = [
   createGitHubIssueTool,
   assignGitHubIssueTool,
   createGitHubPullRequestTool,
+  listGitHubPullRequestsTool,
+  mergeGitHubPullRequestTool,
   listGitHubIssuesTool,
   // fetchJiraIssuesTool,  // Commented out until DB migration complete
   // fetchTrelloCardsTool  // Commented out until DB migration complete

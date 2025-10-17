@@ -62,7 +62,49 @@ Create pull requests to merge branches directly from chat.
 
 ---
 
-### 4. **List GitHub Issues**
+### 4. **List Pull Requests** 🆕
+View and filter pull requests from your repository.
+
+**Examples:**
+```
+"Show me all open pull requests"
+
+"List merged PRs"
+
+"Show PRs by alice"
+
+"List all closed but not merged PRs"
+```
+
+**What it does:**
+- Fetches PRs from database
+- Filters by state (open, closed, merged, all)
+- Filters by author
+- Shows PR details (number, title, branches, merged status, etc.)
+
+---
+
+### 5. **Merge Pull Requests** 🆕
+Merge approved pull requests with different merge strategies.
+
+**Examples:**
+```
+"Merge PR #42"
+
+"Merge pull request #15 using squash method"
+
+"Merge PR #8 with rebase and custom message 'Release v2.0'"
+```
+
+**What it does:**
+- Checks if PR is mergeable (no conflicts)
+- Supports merge methods: merge, squash, rebase
+- Updates PR status in database
+- Returns merge confirmation with SHA
+
+---
+
+### 6. **List GitHub Issues**
 View and filter issues from your repository.
 
 **Examples:**
@@ -81,7 +123,7 @@ View and filter issues from your repository.
 
 ---
 
-### 5. **Fetch Jira Issues**
+### 7. **Fetch Jira Issues**
 Pull issues from your Jira board.
 
 **Examples:**
@@ -102,7 +144,7 @@ Pull issues from your Jira board.
 
 ---
 
-### 6. **Fetch Trello Cards**
+### 8. **Fetch Trello Cards**
 Pull cards from your Trello board.
 
 **Examples:**

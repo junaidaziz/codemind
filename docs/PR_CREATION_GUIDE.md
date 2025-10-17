@@ -152,11 +152,14 @@ Once the PR is created, you can:
 
 ---
 
+## 🎉 Now Available
+
+- ✅ **List and filter pull requests** - View PRs by state, author, merged status
+- ✅ **Merge PRs via chat** - Merge with different methods (merge, squash, rebase)
+
 ## 🚀 Coming Soon
 
-- List and filter pull requests
 - Update PR details (title, description)
-- Merge PRs via chat
 - Add labels to PRs
 - Comment on PRs
 - Request additional reviewers
