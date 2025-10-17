@@ -43,11 +43,20 @@ export async function POST(
     const repoPath = project.githubUrl.replace("https://github.com/", "");
     const [owner, repo] = repoPath.split("/");
 
-    // ✅ Fetch repo tree (recursive)
+    // ✅ First, get the branch reference to get the commit SHA
+    const { data: ref } = await octokit.git.getRef({
+      owner,
+      repo,
+      ref: `heads/${project.defaultBranch}`
+    });
+    
+    const commitSha = ref.object.sha;
+
+    // ✅ Fetch repo tree (recursive) using commit SHA
     const { data: tree } = await octokit.git.getTree({
       owner,
       repo,
-      tree_sha: project.defaultBranch,
+      tree_sha: commitSha,
       recursive: "true"
     });
 
