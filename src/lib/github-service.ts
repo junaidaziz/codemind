@@ -474,11 +474,19 @@ export class GitHubService {
                 }
               });
             } else {
-              // Create new contributor (githubId might already exist for another project)
+              // Check if githubId already exists in another project
+              const existingGithubId = contributor.id?.toString() 
+                ? await prisma.contributor.findUnique({
+                    where: { githubId: contributor.id.toString() }
+                  })
+                : null;
+
+              // Create new contributor
               return await prisma.contributor.create({
                 data: {
                   projectId,
-                  githubId: contributor.id?.toString(),
+                  // Only set githubId if it doesn't exist elsewhere
+                  githubId: existingGithubId ? null : contributor.id?.toString(),
                   username: contributor.login || 'unknown',
                   avatarUrl: contributor.avatar_url || '',
                   name: contributor.name || contributor.login || 'unknown',
@@ -487,21 +495,7 @@ export class GitHubService {
               });
             }
           } catch (error) {
-            // If githubId conflict, try without githubId (allow null for duplicates)
-            const err = error as { code?: string };
-            if (err.code === 'P2002') {
-              console.warn(`Duplicate githubId for user ${contributor.login}, creating without githubId`);
-              return await prisma.contributor.create({
-                data: {
-                  projectId,
-                  githubId: null, // Set to null to avoid unique constraint
-                  username: contributor.login || 'unknown',
-                  avatarUrl: contributor.avatar_url || '',
-                  name: contributor.name || contributor.login || 'unknown',
-                  totalCommits: contributor.contributions || 0,
-                }
-              });
-            }
+            console.error(`Error syncing contributor ${contributor.login}:`, error);
             throw error;
           }
         })
