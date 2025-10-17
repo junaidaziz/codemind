@@ -596,6 +596,196 @@ export const mergeGitHubPullRequestTool: ChatTool = {
 };
 
 /**
+ * Tool: Add Comment to PR or Issue
+ */
+export const addCommentTool: ChatTool = {
+  name: 'add_comment',
+  description: 'Add a comment to a GitHub pull request or issue. Use this when user wants to comment on a PR or issue.',
+  parameters: {
+    type: 'object',
+    properties: {
+      number: {
+        type: 'string',
+        description: 'The PR or issue number (e.g., "42")'
+      },
+      comment: {
+        type: 'string',
+        description: 'The comment text (supports Markdown)'
+      },
+      type: {
+        type: 'string',
+        description: 'Whether this is a PR or issue',
+        enum: ['pr', 'issue']
+      }
+    },
+    required: ['number', 'comment', 'type']
+  },
+  execute: async (params, context) => {
+    const { number, comment, type } = params;
+    
+    // Validate required parameters
+    if (!number || !comment || !type) {
+      throw new Error('Number, comment, and type are required');
+    }
+    
+    // Get project details
+    const project = await prisma.project.findUnique({
+      where: { id: context.projectId }
+    });
+
+    if (!project) {
+      throw new Error('Project not found');
+    }
+
+    // Parse GitHub URL
+    const match = project.githubUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+    if (!match) {
+      throw new Error('Invalid GitHub URL');
+    }
+
+    const [, owner, repo] = match;
+    const cleanRepo = repo.replace(/\.git$/, '');
+
+    // Get GitHub token
+    const token = await getGitHubToken(context.projectId);
+    if (!token) {
+      throw new Error('GitHub token not configured. Please add it in project settings.');
+    }
+
+    const octokit = new Octokit({ auth: token });
+
+    // Add comment (same API for both PRs and issues)
+    const { data: commentData } = await octokit.rest.issues.createComment({
+      owner,
+      repo: cleanRepo,
+      issue_number: parseInt(number),
+      body: comment
+    });
+
+    return {
+      success: true,
+      comment: {
+        id: commentData.id,
+        url: commentData.html_url,
+        body: commentData.body
+      },
+      message: `Successfully added comment to ${type} #${number}`
+    };
+  }
+};
+
+/**
+ * Tool: Add Labels to PR or Issue
+ */
+export const addLabelsTool: ChatTool = {
+  name: 'add_labels',
+  description: 'Add labels to a GitHub pull request or issue. Use this to categorize PRs/issues.',
+  parameters: {
+    type: 'object',
+    properties: {
+      number: {
+        type: 'string',
+        description: 'The PR or issue number (e.g., "42")'
+      },
+      labels: {
+        type: 'string',
+        description: 'Comma-separated labels to add (e.g., "bug,priority:high")'
+      },
+      type: {
+        type: 'string',
+        description: 'Whether this is a PR or issue',
+        enum: ['pr', 'issue']
+      }
+    },
+    required: ['number', 'labels', 'type']
+  },
+  execute: async (params, context) => {
+    const { number, labels, type } = params;
+    
+    // Validate required parameters
+    if (!number || !labels || !type) {
+      throw new Error('Number, labels, and type are required');
+    }
+    
+    // Get project details
+    const project = await prisma.project.findUnique({
+      where: { id: context.projectId }
+    });
+
+    if (!project) {
+      throw new Error('Project not found');
+    }
+
+    // Parse GitHub URL
+    const match = project.githubUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+    if (!match) {
+      throw new Error('Invalid GitHub URL');
+    }
+
+    const [, owner, repo] = match;
+    const cleanRepo = repo.replace(/\.git$/, '');
+
+    // Get GitHub token
+    const token = await getGitHubToken(context.projectId);
+    if (!token) {
+      throw new Error('GitHub token not configured. Please add it in project settings.');
+    }
+
+    const octokit = new Octokit({ auth: token });
+
+    // Parse labels
+    const labelsList = labels.split(',').map((l: string) => l.trim());
+
+    // Add labels (same API for both PRs and issues)
+    await octokit.rest.issues.addLabels({
+      owner,
+      repo: cleanRepo,
+      issue_number: parseInt(number),
+      labels: labelsList
+    });
+
+    // Get updated item to sync labels
+    const { data: updatedItem } = await octokit.rest.issues.get({
+      owner,
+      repo: cleanRepo,
+      issue_number: parseInt(number)
+    });
+
+    // Update in database
+    const updateData = {
+      labels: updatedItem.labels.map((l) => 
+        typeof l === 'string' ? l : (l.name ?? '')
+      ).filter((name) => name !== ''),
+      updatedAt: new Date()
+    };
+
+    if (type === 'pr') {
+      await prisma.pullRequest.updateMany({
+        where: {
+          projectId: context.projectId,
+          number: parseInt(number)
+        },
+        data: updateData
+      });
+    } else {
+      await prisma.issue.updateMany({
+        where: {
+          projectId: context.projectId,
+          number: parseInt(number)
+        },
+        data: updateData
+      });
+    }
+
+    return {
+      success: true,
+      labels: labelsList,
+      message: `Successfully added labels to ${type} #${number}: ${labelsList.join(', ')}`
+    };
+  }
+};
+
+/**
  * Tool: List GitHub Issues
  */
 export const listGitHubIssuesTool: ChatTool = {
@@ -834,6 +1024,8 @@ export const chatTools: ChatTool[] = [
   createGitHubPullRequestTool,
   listGitHubPullRequestsTool,
   mergeGitHubPullRequestTool,
+  addCommentTool,
+  addLabelsTool,
   listGitHubIssuesTool,
   // fetchJiraIssuesTool,  // Commented out until DB migration complete
   // fetchTrelloCardsTool  // Commented out until DB migration complete
