@@ -205,9 +205,15 @@ function ProjectSettingsPageContent() {
       const savedConfig = await response.json();
       setConfig(savedConfig);
       setSuccess('Configuration saved successfully');
+      
+      // Scroll to top to show success message
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       console.error('Error saving config:', err);
       setError('Failed to save configuration');
+      
+      // Scroll to top to show error message
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setSaving(false);
     }
@@ -283,7 +289,7 @@ function ProjectSettingsPageContent() {
             </div>
             <div className="flex items-center gap-3">
               <Link
-                href={`/projects/${project.id}`}
+                href={`/projects/${projectId}`}
                 className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
               >
                 ← Back to Project
@@ -292,24 +298,34 @@ function ProjectSettingsPageContent() {
           </div>
         </div>
 
-        {/* Status Messages */}
-        {error && (
-          <ErrorBanner
-            message={error}
-            type="error"
-            onDismiss={() => setError(null)}
-            className="mb-6"
-          />
-        )}
-        
-        {success && (
-          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6">
-            <div className="flex items-center">
-              <div className="text-green-600 dark:text-green-400 mr-3">✅</div>
-              <div className="text-green-800 dark:text-green-200">{success}</div>
+        {/* Status Messages - Fixed position at top */}
+        <div className="sticky top-0 z-50 mb-6">
+          {error && (
+            <ErrorBanner
+              message={error}
+              type="error"
+              onDismiss={() => setError(null)}
+              className="mb-2"
+            />
+          )}
+          
+          {success && (
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 shadow-lg animate-slide-down">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="text-green-600 dark:text-green-400 mr-3 text-xl">✅</div>
+                  <div className="text-green-800 dark:text-green-200 font-medium">{success}</div>
+                </div>
+                <button
+                  onClick={() => setSuccess(null)}
+                  className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Tabs */}
         <div className="border-b border-gray-200 dark:border-gray-700 mb-8">
