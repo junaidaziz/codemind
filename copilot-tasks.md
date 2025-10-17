@@ -7,7 +7,10 @@
 
 **Status:** 🎉 **ALL AUTOMATED WORK COMPLETE** - Only manual configuration steps remain
 
-### 📋 Pending Tasks (Manual Configuration Required)
+### � Quick Start
+**Ready to finish setup?** → See **[QUICK_START_GUIDE.md](./QUICK_START_GUIDE.md)** for step-by-step instructions (20 minutes)
+
+### �📋 Pending Tasks (Manual Configuration Required)
 
 **All scripts, workflows, and documentation are complete and tested ✅**  
 **See VERIFICATION_SUMMARY.md for test results**
