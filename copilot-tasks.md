@@ -15,11 +15,12 @@
 **Current Focus:** Deployment Monitoring & Notifications 📊
 
 1. **Deployment Monitoring** 📊
-   - [ ] Configure Slack/Discord webhook URL
+   - [x] ✅ Configure Slack/Discord webhook URL - **Setup guide created**
    - [ ] Add webhook URLs to GitHub secrets and Vercel environment
-   - [ ] Test notification system
+   - [ ] Test notification system (Run `npm run notifications:test`)
    - [ ] Enable health monitoring workflow
-   - **Guide:** Run `npm run notifications:setup --help` for setup instructions
+   - **Guide:** See [SLACK_DISCORD_SETUP.md](./docs/SLACK_DISCORD_SETUP.md) for complete setup instructions
+   - **Quick Test:** Run `npm run notifications:setup` for interactive setup
 
 ---
 
