@@ -11,6 +11,7 @@ import { getAgentRouter } from '../../../lib/agent-router';
 import { AgentRequest } from '../../../lib/agent-service-client';
 import { env } from '../../../types/env';
 import prisma from '../../lib/db';
+import { chatWithFunctionsStream } from '@/lib/chat-function-calling';
 
 // Enhanced chat request schema supporting developer agent commands
 const EnhancedChatRequestSchema = CreateChatMessageSchema.extend({
@@ -22,6 +23,7 @@ const EnhancedChatRequestSchema = CreateChatMessageSchema.extend({
   }).optional(),
   sessionId: z.string().optional(),
   useAgent: z.boolean().default(false), // Flag to use developer agent
+  useFunctionCalling: z.boolean().default(true), // Enable AI tools (GitHub, Jira, Trello)
 });
 
 export async function POST(req: Request): Promise<Response> {
@@ -29,7 +31,7 @@ export async function POST(req: Request): Promise<Response> {
     try {
       const body: unknown = await req.json();
       const requestData = EnhancedChatRequestSchema.parse(body);
-      const { projectId, message, userId, command, context, sessionId, useAgent } = requestData;
+      const { projectId, message, userId, command, context, sessionId, useAgent, useFunctionCalling } = requestData;
 
       // Use provided userId or fallback to static for backwards compatibility
       const finalUserId = userId || "static-user-id";
@@ -40,6 +42,7 @@ export async function POST(req: Request): Promise<Response> {
         messageLength: message.length,
         command: command || 'chat',
         useAgent,
+        useFunctionCalling,
       });
 
       // Verify project exists
@@ -122,6 +125,78 @@ export async function POST(req: Request): Promise<Response> {
 
                 controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
                 controller.close();
+              }
+
+            } else if (useFunctionCalling) {
+              // Use function calling for GitHub/Jira/Trello tools
+              try {
+                // Get recent messages from session for context
+                const recentMessages = sessionId ? await prisma.message.findMany({
+                  where: { sessionId },
+                  orderBy: { createdAt: 'desc' },
+                  take: 10,
+                  select: { role: true, content: true }
+                }) : [];
+
+                // Build conversation history
+                const messages = [
+                  {
+                    role: 'system' as const,
+                    content: `You are a helpful AI assistant for CodeMind, a code intelligence platform. You have access to tools that can help manage projects:
+- Create GitHub issues
+- Assign issues to contributors
+- List GitHub issues
+- Fetch Jira issues
+- Fetch Trello cards
+
+When a user asks to create an issue, assign a task, or fetch project management data, use the appropriate tool. Always confirm actions taken and provide helpful summaries of the results.
+
+Current project: ${project.name}`,
+                  },
+                  ...recentMessages.reverse().map(m => ({
+                    role: m.role as 'user' | 'assistant',
+                    content: m.content
+                  })),
+                  {
+                    role: 'user' as const,
+                    content: message
+                  }
+                ];
+
+                // Stream with function calling
+                for await (const chunk of chatWithFunctionsStream({
+                  projectId,
+                  userId: finalUserId,
+                  sessionId: sessionId || crypto.randomUUID(),
+                  messages
+                })) {
+                  if (typeof chunk === 'string') {
+                    // Regular content chunk
+                    controller.enqueue(
+                      encoder.encode(`data: ${JSON.stringify({ content: chunk })}\n\n`)
+                    );
+                  } else {
+                    // Tool call notification
+                    controller.enqueue(
+                      encoder.encode(`data: ${JSON.stringify({ toolCall: chunk.data })}\n\n`)
+                    );
+                  }
+                }
+
+                controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+                controller.close();
+
+                logger.info('Function calling chat completed', {
+                  projectId,
+                  userId: finalUserId,
+                  sessionId
+                });
+              } catch (functionError) {
+                logger.error('Function calling error', {
+                  projectId,
+                  userId: finalUserId,
+                }, functionError as Error);
+                throw functionError;
               }
 
             } else {

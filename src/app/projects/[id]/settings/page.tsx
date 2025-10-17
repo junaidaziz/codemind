@@ -25,6 +25,13 @@ interface ProjectConfig {
   githubPrivateKey?: string;
   githubInstallationId?: string;
   githubWebhookSecret?: string;
+  jiraApiToken?: string;
+  jiraEmail?: string;
+  jiraDomain?: string;
+  jiraProjectKey?: string;
+  trelloApiKey?: string;
+  trelloToken?: string;
+  trelloBoardId?: string;
 }
 
 interface ConfigField {
@@ -99,6 +106,64 @@ const CONFIG_FIELDS: ConfigField[] = [
     description: 'Secret for validating GitHub webhook signatures',
     type: 'password',
     placeholder: 'whsec_xxxxxxxxxxxx',
+    required: false
+  },
+  // Jira Integration
+  {
+    key: 'jiraApiToken',
+    label: 'Jira API Token',
+    description: 'API token for Jira integration (get from id.atlassian.com)',
+    type: 'password',
+    placeholder: 'ATATTxxxxxxxxxxxx',
+    required: false
+  },
+  {
+    key: 'jiraEmail',
+    label: 'Jira Email',
+    description: 'Your Jira account email address',
+    type: 'text',
+    placeholder: 'user@company.com',
+    required: false
+  },
+  {
+    key: 'jiraDomain',
+    label: 'Jira Domain',
+    description: 'Your Jira domain (e.g., yourcompany.atlassian.net)',
+    type: 'text',
+    placeholder: 'yourcompany.atlassian.net',
+    required: false
+  },
+  {
+    key: 'jiraProjectKey',
+    label: 'Jira Project Key',
+    description: 'Optional: Default Jira project key for queries (e.g., PROJ)',
+    type: 'text',
+    placeholder: 'PROJ',
+    required: false
+  },
+  // Trello Integration
+  {
+    key: 'trelloApiKey',
+    label: 'Trello API Key',
+    description: 'API key for Trello integration (get from trello.com/power-ups/admin)',
+    type: 'password',
+    placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    required: false
+  },
+  {
+    key: 'trelloToken',
+    label: 'Trello Token',
+    description: 'Trello access token (generate at trello.com/power-ups)',
+    type: 'password',
+    placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    required: false
+  },
+  {
+    key: 'trelloBoardId',
+    label: 'Trello Board ID',
+    description: 'The ID of the Trello board to sync (from URL: trello.com/b/BOARD_ID/...)',
+    type: 'text',
+    placeholder: '5f1234567890abcdef123456',
     required: false
   }
 ];
