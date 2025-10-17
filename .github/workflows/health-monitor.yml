@@ -1,0 +1,44 @@
+name: Health Monitor
+
+on:
+  schedule:
+    # Run every hour
+    - cron: '0 * * * *'
+  workflow_dispatch: # Allow manual triggering
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  monitor-health:
+    name: Monitor Deployment Health
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm install dotenv
+
+      - name: Run health monitor
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: node scripts/monitor-deployment-health.js --timeframe 1h --alert-threshold 3
+        continue-on-error: true
+
+      - name: Notify on workflow failure
+        if: failure()
+        run: |
+          echo "Health monitoring workflow failed"
+          # Additional notification logic can be added here
