@@ -7,6 +7,16 @@ import { Octokit } from '@octokit/rest';
 import prisma from '@/lib/db';
 import { getGitHubToken } from './config-helper';
 
+export interface ToolParams {
+  [key: string]: string | undefined;
+}
+
+export interface ToolResult {
+  success: boolean;
+  message: string;
+  [key: string]: unknown;
+}
+
 export interface ChatTool {
   name: string;
   description: string;
@@ -19,7 +29,7 @@ export interface ChatTool {
     }>;
     required: string[];
   };
-  execute: (params: any, context: ToolContext) => Promise<any>;
+  execute: (params: ToolParams, context: ToolContext) => Promise<ToolResult>;
 }
 
 export interface ToolContext {
@@ -59,6 +69,11 @@ export const createGitHubIssueTool: ChatTool = {
   execute: async (params, context) => {
     const { title, body, labels, assignees } = params;
     
+    // Validate required parameters
+    if (!title || !body) {
+      throw new Error('Title and body are required');
+    }
+    
     // Get project details
     const project = await prisma.project.findUnique({
       where: { id: context.projectId }
@@ -86,7 +101,14 @@ export const createGitHubIssueTool: ChatTool = {
     const octokit = new Octokit({ auth: token });
 
     // Create the issue
-    const issueData: any = {
+    const issueData: {
+      owner: string;
+      repo: string;
+      title: string;
+      body: string;
+      labels?: string[];
+      assignees?: string[];
+    } = {
       owner,
       repo: cleanRepo,
       title,
@@ -116,9 +138,9 @@ export const createGitHubIssueTool: ChatTool = {
         htmlUrl: issue.html_url,
         authorLogin: issue.user?.login || 'unknown',
         authorUrl: issue.user?.html_url || '',
-        labels: issue.labels?.map((label: any) => 
-          typeof label === 'string' ? label : label.name
-        ) || [],
+        labels: issue.labels?.map((label) => 
+          typeof label === 'string' ? label : (label.name ?? '')
+        ).filter((name): name is string => name !== '') || [],
         createdAt: new Date(issue.created_at),
         updatedAt: new Date(issue.updated_at)
       }
@@ -131,7 +153,7 @@ export const createGitHubIssueTool: ChatTool = {
         title: issue.title,
         url: issue.html_url,
         state: issue.state,
-        labels: issue.labels?.map((l: any) => typeof l === 'string' ? l : l.name) || []
+        labels: issue.labels?.map((l) => typeof l === 'string' ? l : l.name) || []
       },
       message: `Successfully created issue #${issue.number}: ${issue.title}`
     };
@@ -160,6 +182,11 @@ export const assignGitHubIssueTool: ChatTool = {
   },
   execute: async (params, context) => {
     const { issueNumber, assignees } = params;
+    
+    // Validate required parameters
+    if (!issueNumber || !assignees) {
+      throw new Error('Issue number and assignees are required');
+    }
     
     // Get project details
     const project = await prisma.project.findUnique({
@@ -286,7 +313,9 @@ export const listGitHubIssuesTool: ChatTool = {
 
 /**
  * Tool: Fetch Jira Issues
+ * NOTE: Commented out until Prisma schema migration is complete
  */
+/*
 export const fetchJiraIssuesTool: ChatTool = {
   name: 'fetch_jira_issues',
   description: 'Fetch issues from Jira. Use this to sync or display Jira issues in CodeMind.',
@@ -330,11 +359,22 @@ export const fetchJiraIssuesTool: ChatTool = {
       throw new Error(`Jira API error: ${response.statusText}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as {
+      issues: Array<{
+        key: string;
+        fields: {
+          summary: string;
+          status: { name: string };
+          assignee?: { displayName: string };
+          priority?: { name: string };
+          issuetype: { name: string };
+        };
+      }>;
+    };
 
     return {
       success: true,
-      issues: data.issues.map((issue: any) => ({
+      issues: data.issues.map((issue) => ({
         key: issue.key,
         summary: issue.fields.summary,
         status: issue.fields.status.name,
@@ -348,10 +388,13 @@ export const fetchJiraIssuesTool: ChatTool = {
     };
   }
 };
+*/
 
 /**
  * Tool: Fetch Trello Cards
+ * NOTE: Commented out until Prisma schema migration is complete
  */
+/*
 export const fetchTrelloCardsTool: ChatTool = {
   name: 'fetch_trello_cards',
   description: 'Fetch cards from Trello board. Use this to sync or display Trello tasks in CodeMind.',
@@ -387,30 +430,46 @@ export const fetchTrelloCardsTool: ChatTool = {
       throw new Error(`Trello API error: ${response.statusText}`);
     }
 
-    let cards = await response.json();
+    interface TrelloCard {
+      id: string;
+      name: string;
+      desc: string;
+      url: string;
+      due: string | null;
+      idList: string;
+      labels: Array<{ name: string }>;
+      idMembers: string[];
+    }
+
+    interface TrelloList {
+      id: string;
+      name: string;
+    }
+
+    let cards = await response.json() as TrelloCard[];
 
     // Filter by list if specified
     if (listName) {
       const listsResponse = await fetch(`${baseUrl}/lists?${auth}`);
-      const lists = await listsResponse.json();
-      const targetList = lists.find((l: any) => 
+      const lists = await listsResponse.json() as TrelloList[];
+      const targetList = lists.find((l) => 
         l.name.toLowerCase() === listName.toLowerCase()
       );
       
       if (targetList) {
-        cards = cards.filter((c: any) => c.idList === targetList.id);
+        cards = cards.filter((c) => c.idList === targetList.id);
       }
     }
 
     return {
       success: true,
-      cards: cards.map((card: any) => ({
+      cards: cards.map((card) => ({
         id: card.id,
         name: card.name,
         description: card.desc,
         url: card.url,
         due: card.due,
-        labels: card.labels.map((l: any) => l.name),
+        labels: card.labels.map((l) => l.name),
         members: card.idMembers.length
       })),
       count: cards.length,
@@ -418,6 +477,7 @@ export const fetchTrelloCardsTool: ChatTool = {
     };
   }
 };
+*/
 
 /**
  * Registry of all available chat tools
@@ -426,8 +486,8 @@ export const chatTools: ChatTool[] = [
   createGitHubIssueTool,
   assignGitHubIssueTool,
   listGitHubIssuesTool,
-  fetchJiraIssuesTool,
-  fetchTrelloCardsTool
+  // fetchJiraIssuesTool,  // Commented out until DB migration complete
+  // fetchTrelloCardsTool  // Commented out until DB migration complete
 ];
 
 /**
@@ -442,9 +502,9 @@ export function getTool(name: string): ChatTool | undefined {
  */
 export async function executeTool(
   toolName: string,
-  params: any,
+  params: ToolParams,
   context: ToolContext
-): Promise<any> {
+): Promise<ToolResult> {
   const tool = getTool(toolName);
   
   if (!tool) {
