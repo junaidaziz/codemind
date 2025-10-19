@@ -67,21 +67,29 @@
 
 ### **5. Dashboard & Visualization** ✅ PARTIALLY COMPLETED
 - [x] Add **AI Activity Feed** (timeline of all actions) ✅
+  - ✅ ActivityEvent database model with comprehensive event tracking
+  - ✅ REST API endpoint at `/api/activity/feed` (GET/POST/PATCH)
+  - ✅ ActivityFeed React component with timeline UI
+  - ✅ Activity page at `/activity` with filters
+  - ✅ Activity logger utility with helper functions (logAPRPhase, logIndexingEvent, etc.)
+  - ✅ **Integrated with APR orchestrator** (7 lifecycle phases logged) - Commit 5770280
+  - ✅ **Integrated with indexing jobs** (STARTED, PROGRESS, COMPLETED, FAILED) - Commit 3f77a9b
+  - ✅ Real-time event tracking for APR sessions and indexing operations
+  - 📋 TODO: Add chat message logging, auto-fix logging
 - [ ] Visualize **indexing and job progress** with real-time status bars
 - [ ] Show **codebase insights**: most changed files, complexity hotspots
 - [ ] Add **dark/light theme toggle** and responsive design improvements
 - [ ] Improve navigation for projects and chat sessions
 
-**Status**: APR Dashboard, Risk Scoring, Auth Flow, and **AI Activity Feed** completed.
+**Status**: APR Dashboard, Risk Scoring, Auth Flow, and **AI Activity Feed** completed and integrated.
 
-**✅ AI Activity Feed Completed** (commit 207fba8):
-- Component at `/activity` with timeline UI
-- Filters by event type, status, search
-- Real-time event cards with metadata
-- Activity logger utility with helper functions
-- Integration ready for APR, indexing, chat
+**✅ AI Activity Feed Integration Complete**:
+- **APR Orchestrator** (commit 5770280): All 7 phases logged (CREATED, ANALYZING, CODE_GENERATION, VALIDATION, REVIEW, PR_CREATED, COMPLETED/FAILED)
+- **Indexing Jobs** (commit 3f77a9b): Full lifecycle tracking (STARTED, PROGRESS, COMPLETED, FAILED) with progress updates every 20%
+- Real-time visibility into long-running operations
+- Comprehensive metadata included: file counts, chunk counts, duration, errors
 
-**Remaining**: Indexing progress visualization, codebase insights dashboard
+**Remaining**: Indexing progress visualization UI, codebase insights dashboard, chat/auto-fix logging
 
 ---
 
