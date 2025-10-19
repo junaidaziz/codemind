@@ -30,6 +30,7 @@ model User {
   toolExecutions          ToolExecution[]
   developerInsights       DeveloperInsights[]
   activityLogs            ActivityLog[]
+  activityEvents          ActivityEvent[]
   timeTracking            TimeTracking[]
 }
 
@@ -62,6 +63,7 @@ model Project {
   toolExecutions    ToolExecution[]
   developerInsights DeveloperInsights[]
   activityLogs      ActivityLog[]
+  activityEvents    ActivityEvent[]
   timeTracking      TimeTracking[]
   commits           Commit[]
   contributors      Contributor[]
@@ -595,6 +597,32 @@ model ActivityLog {
   @@index([activityType, createdAt])
 }
 
+// AI Activity Feed for real-time visibility into all AI operations
+model ActivityEvent {
+  id          String              @id @default(cuid())
+  projectId   String
+  userId      String?
+  eventType   ActivityEventType
+  entityType  String              // "indexing", "apr_session", "chat_message", "auto_fix", "code_generation"
+  entityId    String?
+  title       String
+  description String?             @db.Text
+  metadata    String?             @db.Text  // JSON string for additional data (file paths, line numbers, etc.)
+  status      ActivityEventStatus @default(IN_PROGRESS)
+  duration    Int?                // duration in milliseconds
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  
+  project     Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([eventType, createdAt(sort: Desc)])
+  @@index([status, createdAt(sort: Desc)])
+  @@index([projectId, eventType, createdAt(sort: Desc)])
+}
+
 model TimeTracking {
   id              String   @id @default(cuid())
   projectId       String
@@ -641,6 +669,35 @@ enum ActivityImpact {
   MEDIUM
   HIGH
   CRITICAL
+}
+
+enum ActivityEventType {
+  INDEXING_STARTED
+  INDEXING_PROGRESS
+  INDEXING_COMPLETED
+  INDEXING_FAILED
+  APR_SESSION_CREATED
+  APR_ANALYZING
+  APR_CODE_GENERATION
+  APR_VALIDATION
+  APR_REVIEW
+  APR_PR_CREATED
+  APR_COMPLETED
+  APR_FAILED
+  CHAT_MESSAGE_SENT
+  CHAT_MESSAGE_RECEIVED
+  AUTO_FIX_STARTED
+  AUTO_FIX_COMPLETED
+  AUTO_FIX_FAILED
+  CODE_SCAFFOLDING
+  TEST_GENERATION
+}
+
+enum ActivityEventStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  CANCELLED
 }
 
 // Project Analytics Models
