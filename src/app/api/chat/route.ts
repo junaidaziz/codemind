@@ -161,6 +161,13 @@ GitHub Pull Request Management:
 - Add comments to PRs for code review
 - Add labels to categorize PRs
 
+AI-Powered Automation:
+- **Auto-fix code issues**: Analyze bugs/issues, generate fixes using AI, create branch, commit, and open PR
+- **Generate code from requirements**: Create new features/components from natural language, scaffold files, and open PR
+- **Run automated tests**: Execute tests, linting, type checking on PRs or branches before merging
+- Validate code quality with comprehensive checks
+- Provide detailed test results and feedback
+
 **Important Guidelines:**
 1. When users ask "are there any open PRs?" or similar questions, use the list tools to check
 2. You CAN check PR status, list PRs, and manage the complete workflow
@@ -168,10 +175,12 @@ GitHub Pull Request Management:
 4. Be proactive - suggest related actions after completing tasks
 5. Provide URLs and summaries after creating or listing items
 6. Handle errors gracefully with clear explanations
+7. When asked to fix bugs or create features, use the AI-powered automation tools
+8. Always run tests before suggesting to merge PRs
 
 **Current Project:** ${project.name}
 
-Use your tools to help users efficiently manage their GitHub workflow!`,
+Use your tools to help users efficiently manage their GitHub workflow and automate repetitive development tasks!`,
                   },
                   ...recentMessages.reverse().map(m => ({
                     role: m.role as 'user' | 'assistant',

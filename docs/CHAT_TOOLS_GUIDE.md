@@ -1,10 +1,12 @@
 # Chat Tools Guide
 
-CodeMind's AI chat now includes powerful tools for project management! The AI can interact with GitHub, Jira, and Trello directly from chat.
+CodeMind's AI chat now includes powerful tools for project management and automation! The AI can interact with GitHub, manage PRs, auto-fix bugs, generate code, and run tests - all from chat.
 
-## 🚀 Available Tools
+## 🚀 Available Tools (11 Total)
 
-### 1. **Create GitHub Issues**
+### GitHub Issue Management (3 tools)
+
+#### 1. **Create GitHub Issues**
 Ask the AI to create issues directly on your GitHub repository.
 
 **Examples:**
@@ -24,7 +26,7 @@ Ask the AI to create issues directly on your GitHub repository.
 
 ---
 
-### 2. **Assign GitHub Issues**
+#### 2. **Assign GitHub Issues**
 Assign issues to contributors via chat.
 
 **Examples:**
@@ -41,7 +43,28 @@ Assign issues to contributors via chat.
 
 ---
 
-### 3. **Create GitHub Pull Requests** 🆕
+#### 3. **List GitHub Issues**
+View and filter issues from your repository.
+
+**Examples:**
+```
+"Show me all open issues"
+
+"List closed issues"
+
+"Show issues labeled 'bug'"
+```
+
+**What it does:**
+- Fetches issues from database
+- Filters by state and labels
+- Shows issue details
+
+---
+
+### GitHub Pull Request Management (5 tools)
+
+#### 4. **Create GitHub Pull Requests**
 Create pull requests to merge branches directly from chat.
 
 **Examples:**
@@ -62,7 +85,7 @@ Create pull requests to merge branches directly from chat.
 
 ---
 
-### 4. **List Pull Requests** 🆕
+#### 5. **List Pull Requests**
 View and filter pull requests from your repository.
 
 **Examples:**
@@ -84,7 +107,7 @@ View and filter pull requests from your repository.
 
 ---
 
-### 5. **Merge Pull Requests** 🆕
+#### 6. **Merge Pull Requests**
 Merge approved pull requests with different merge strategies.
 
 **Examples:**
@@ -104,26 +127,130 @@ Merge approved pull requests with different merge strategies.
 
 ---
 
-### 6. **List GitHub Issues**
-View and filter issues from your repository.
+#### 7. **Add Comments to PRs/Issues**
+Add comments to pull requests or issues for discussion.
 
 **Examples:**
 ```
-"Show me all open issues"
+"Add comment to PR #42: 'Looks good, just fix the TypeScript errors'"
 
-"List closed issues with bug label"
-
-"Show the last 5 issues"
+"Comment on issue #15: 'This is now fixed in the latest release'"
 ```
 
 **What it does:**
-- Fetches issues from database
-- Filters by state, labels, etc.
-- Shows issue details (number, title, assignees, etc.)
+- Posts comment on GitHub PR or issue
+- Supports Markdown formatting
+- Returns comment URL
 
 ---
 
-### 7. **Fetch Jira Issues**
+#### 8. **Add Labels to PRs/Issues**
+Categorize PRs and issues with labels.
+
+**Examples:**
+```
+"Add labels 'bug' and 'priority:high' to issue #42"
+
+"Label PR #15 with 'ready-for-review'"
+```
+
+**What it does:**
+- Adds labels to GitHub items
+- Updates database
+- Returns updated item with new labels
+
+---
+
+### AI-Powered Automation (3 tools) 🤖
+
+#### 9. **Auto-Fix Code Issues** ⚡
+Automatically analyze bugs and generate fixes using AI.
+
+**Examples:**
+```
+"Fix the memory leak in the dashboard component"
+
+"Auto-fix the email validation bug in the login form"
+
+"There's a bug where users can't delete their accounts - please fix it"
+```
+
+**What it does:**
+- Uses GPT-4 to analyze the issue
+- Identifies root cause
+- Generates specific code changes
+- Creates a new branch
+- Opens a draft PR with the fix
+- Provides detailed explanation
+
+**Why it's powerful:**
+- Saves hours of debugging time
+- Suggests best-practice solutions
+- Creates ready-to-review PRs
+- Learns from your codebase
+
+---
+
+#### 10. **Generate Code from Requirements** 🎨
+Create new features, components, or services from natural language.
+
+**Examples:**
+```
+"Generate a user profile component with avatar, name, bio, and social links"
+
+"Create an API endpoint for user authentication with JWT"
+
+"Build a notification service that supports email and SMS"
+```
+
+**What it does:**
+- Uses GPT-4 to generate production-ready code
+- Creates complete file structure
+- Includes types, error handling, and documentation
+- Opens draft PR with all generated files
+- Provides setup instructions
+
+**Feature Types Supported:**
+- React components
+- API routes
+- Services and utilities
+- Full pages
+- Complete features
+
+---
+
+#### 11. **Run Automated Tests** ✅
+Execute tests, linting, and type checking on PRs or branches.
+
+**Examples:**
+```
+"Run tests on PR #42"
+
+"Run linting and type checking on the feature/dark-mode branch"
+
+"Test PR #15 before merging"
+```
+
+**What it does:**
+- Runs TypeScript compilation check
+- Executes ESLint for code quality
+- Runs Jest unit tests
+- Optionally runs E2E tests
+- Posts detailed results as PR comment
+- Indicates if safe to merge
+
+**Test Types:**
+- `lint` - ESLint code quality
+- `typecheck` - TypeScript validation
+- `unit` - Jest unit tests
+- `e2e` - Playwright E2E tests
+- `all` - Run everything (default)
+
+---
+
+### Integration Tools (2 tools - Coming Soon)
+
+#### 12. **Fetch Jira Issues** (Pending)
 Pull issues from your Jira board.
 
 **Examples:**
@@ -144,12 +271,126 @@ Pull issues from your Jira board.
 
 ---
 
-### 8. **Fetch Trello Cards**
+#### 13. **Fetch Trello Cards** (Pending)
 Pull cards from your Trello board.
 
 **Examples:**
 ```
 "Fetch Trello cards from board ABC123"
+
+"Show cards from the 'To Do' list"
+```
+
+**What it does:**
+- Connects to Trello API
+- Fetches cards from specified board
+- Optionally filters by list name
+- Shows card details (name, description, due date, labels)
+
+**Note:** Requires Trello credentials configured in project settings and database migration.
+
+---
+
+## 📊 Tool Statistics
+
+- **Total Tools**: 11 (8 active, 2 pending, 3 AI-powered)
+- **GitHub Tools**: 8 (issues, PRs, comments, labels)
+- **AI Automation**: 3 (auto-fix, code generation, testing)
+- **Integrations**: 2 pending (Jira, Trello)
+- **Lines of Code**: ~1,600 (chat-tools.ts)
+- **AI Model**: GPT-4 Turbo (for automation tools)
+
+---
+
+## 🎯 Real-World Usage Examples
+
+### Complete Feature Workflow
+
+```
+User: "Generate a dark mode toggle component"
+
+AI: [Calls generate_code_from_requirements]
+    ✅ Generated 3 files:
+    - DarkModeToggle.tsx
+    - DarkModeToggle.module.css  
+    - DarkModeToggle.test.tsx
+    
+    PR #127 created: https://github.com/...
+
+User: "Run tests on PR #127"
+
+AI: [Calls run_automated_tests]
+    ✅ All tests passed!
+    - Typecheck: ✅
+    - Lint: ✅
+    - Unit tests: ✅
+    
+    Safe to merge!
+
+User: "Merge PR #127 using squash"
+
+AI: [Calls merge_github_pull_request]
+    ✅ PR #127 merged successfully!
+    Merge SHA: abc123def
+```
+
+### Bug Fix Workflow
+
+```
+User: "There's a memory leak in the Dashboard component"
+
+AI: [Calls auto_fix_code_issue]
+    🔍 Analyzing issue...
+    
+    ✅ Created fix PR #128
+    🔗 https://github.com/user/repo/pull/128
+    
+    Root Cause: useEffect missing cleanup function
+    
+    Fix: Added return statement to cleanup subscriptions
+    
+    Please review before merging!
+
+User: "Add comment to PR #128: 'Great catch! Approving now'"
+
+AI: [Calls add_comment_tool]
+    ✅ Comment added to PR #128
+
+User: "Run tests on PR #128"
+
+AI: [Calls run_automated_tests]
+    ✅ 3/3 tests passed
+    
+User: "Merge it"
+
+AI: [Calls merge_github_pull_request]
+    ✅ Merged! 🎉
+```
+
+### Project Status Overview
+
+```
+User: "Show me all open PRs and issues"
+
+AI: [Calls list_github_pull_requests and list_github_issues]
+    
+    📦 Pull Requests (3 open):
+    - PR #127: Add dark mode toggle (alice) ✅ Mergeable
+    - PR #126: Fix API timeout (bob) ⚠️ Conflicts
+    - PR #125: Update docs (charlie) 📝 Draft
+    
+    📋 Issues (5 open):
+    - #45: Memory leak in dashboard [bug, priority:high] → alice
+    - #44: Add search feature [enhancement] → Unassigned
+    - #43: Update documentation [docs] → charlie
+    ...
+```
+
+---
+
+## 🔧 Setup & Configuration
+
+### GitHub Configuration (Required)
 
 "Show Trello cards in 'To Do' list"
 
