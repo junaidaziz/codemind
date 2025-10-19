@@ -41,7 +41,7 @@
     "@langchain/openai": "^0.6.14",
     "@octokit/auth-app": "^8.1.1",
     "@octokit/rest": "^22.0.0",
-    "@prisma/client": "^6.17.1",
+    "@prisma/client": "6.17.1",
     "@supabase/supabase-js": "^2.75.0",
     "chart.js": "^4.5.1",
     "clsx": "^2.1.1",

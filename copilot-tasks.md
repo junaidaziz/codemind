@@ -248,5 +248,43 @@
 
 ---
 
+### 🧩 Task: Improve Authentication Flow and Header Behavior
+
+**Goal:**  
+Enhance user experience and authentication flow by refining password reset logic, header visibility, and navigation consistency across public and logged-in areas.
+
+---
+
+##### 1. **Forgot Password Email Validation**
+- [ ] Update `/api/auth/forgot-password` logic to **send reset email only if the email exists in the database**.  
+- [ ] Prevent leaking user existence — return a **generic success message** (e.g., “If this email is registered, you will receive a reset link”).  
+- [ ] Log failed attempts securely (no sensitive info exposed).  
+- [ ] Ensure Supabase Auth or custom token-based reset flow is correctly used.  
+- [ ] Test both registered and unregistered email flows.
+
+---
+
+##### 2. **Hide Public Header for Logged-In Users**
+- [ ] When user is authenticated, **hide the public header** (the one with Home, About, Contact links).  
+- [ ] Instead, display the **user header/navigation** containing:
+  - Dashboard  
+  - Projects  
+  - Profile  
+  - Logout  
+- [ ] Implement this check using session data (e.g., Supabase session or JWT context).
+
+---
+
+##### 3. **Unified Logo Across All Headers**
+- [ ] Use the **same logo component** from the public header (`<Logo />`) in both public and authenticated headers.  
+- [ ] Centralize logo in `/components/shared/Logo.tsx`.  
+- [ ] Remove duplicate logo imports to ensure brand consistency.
+
+---
+
+##### 4. **Add “Dashboard” Link to User Menu**
+- [ ] In the user dropdown menu (top-right corner of the authenticated header), add an option:
+
+
 **Built with ❤️ by Junaid Aziz**  
 *“Empowering developers through AI-driven engineering.”*

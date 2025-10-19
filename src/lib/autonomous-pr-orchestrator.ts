@@ -99,12 +99,6 @@ export interface CodeGenerationResult {
   dependencies: string[];
 }
 
-type ValidationType = 'LINT' | 'TYPECHECK' | 'UNIT_TEST' | 'E2E_TEST' | 'SECURITY_SCAN' | 'PERFORMANCE';
-type ReviewTypeEnum = 'CODE_QUALITY' | 'PERFORMANCE' | 'SECURITY' | 'BEST_PRACTICES' | 'POTENTIAL_BUG' | 'N_PLUS_ONE' | 'MEMORY_LEAK' | 'ERROR_HANDLING';
-type ReviewSeverityEnum = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
-type AutoFixStatusEnum = 'ANALYZING' | 'GENERATING' | 'VALIDATING' | 'SELF_HEALING' | 'REVIEWING' | 'PR_CREATED' | 'CI_FEEDBACK' | 'READY' | 'FAILED' | 'COMPLETED' | 'CANCELLED';
-type AutoFixPhaseEnum = 'ANALYSIS' | 'CODE_GENERATION' | 'VALIDATION' | 'SELF_HEALING' | 'REVIEW' | 'PR_CREATION' | 'CI_MONITORING' | 'COMPLETION';
-
 // ============================================================================
 // AUTONOMOUS PR ORCHESTRATOR
 // ============================================================================
@@ -128,13 +122,13 @@ export class AutonomousPROrchestrator {
       this.addAudit('INITIALIZATION', 'Session created', 'success', `Session ID: ${session.id}`);
 
       // Phase 1: Analysis
-      await this.updatePhase(session.id, 'ANALYZING', 'ANALYSIS');
+      await this.updatePhase(session.id, 'ANALYZING');
       const analysis = await this.analyzeIssue(session.id, config);
       this.addAudit('ANALYSIS', 'Issue analyzed', 'success', `Root cause: ${analysis.rootCause}`);
 
       // Phase 2: Code Generation
-      await this.updatePhase(session.id, 'GENERATING', 'CODE_GENERATION');
-      const codeGeneration = await this.generateCodeFixes(session.id, analysis, config);
+      await this.updatePhase(session.id, 'GENERATING');
+      const codeGeneration = await this.generateCodeFixes(session.id, analysis);
       this.addAudit('GENERATION', 'Code fixes generated', 'success', `Modified ${codeGeneration.filesModified.length} files`);
 
       // Phase 2.5: Risk Assessment
@@ -142,11 +136,11 @@ export class AutonomousPROrchestrator {
       this.addAudit('RISK_ASSESSMENT', `Risk level: ${riskScore.level}`, 'info', `Score: ${riskScore.score}/100`);
 
       // Phase 3: Pre-PR Validation Loop (with self-healing)
-      await this.updatePhase(session.id, 'VALIDATING', 'VALIDATION');
+      await this.updatePhase(session.id, 'VALIDATING');
       const validation = await this.validationLoop(session.id, codeGeneration, config);
       
       if (!validation.passed && !config.enableSelfHealing) {
-        await this.updatePhase(session.id, 'FAILED', 'VALIDATION');
+        await this.updatePhase(session.id, 'FAILED');
         throw new Error('Validation failed and self-healing is disabled');
       }
 
@@ -155,13 +149,13 @@ export class AutonomousPROrchestrator {
       // Phase 4: AI Code Review
       let reviewFindings = 0;
       if (config.enableAIReview !== false) {
-        await this.updatePhase(session.id, 'REVIEWING', 'REVIEW');
+        await this.updatePhase(session.id, 'REVIEWING');
         reviewFindings = await this.performAIReview(session.id, codeGeneration);
         this.addAudit('REVIEW', 'AI code review completed', 'info', `${reviewFindings} findings identified`);
       }
 
       // Phase 5: Create Pull Request
-      await this.updatePhase(session.id, 'PR_CREATED', 'PR_CREATION');
+      await this.updatePhase(session.id, 'PR_CREATED');
       const pr = await this.createPullRequest(session.id, analysis, reviewFindings, config);
       this.addAudit('PR_CREATION', 'Pull request created', 'success', `PR #${pr.number}: ${pr.url}`);
 
@@ -172,7 +166,7 @@ export class AutonomousPROrchestrator {
       }
 
       // Phase 7: Mark as ready
-      await this.updatePhase(session.id, 'READY', 'COMPLETION');
+      await this.updatePhase(session.id, 'READY');
       await this.markSessionComplete(session.id, pr.number);
 
       return {
@@ -289,7 +283,7 @@ Format your response as JSON: {
   /**
    * Phase 2: Generate code fixes
    */
-  private async generateCodeFixes(sessionId: string, analysis: AnalysisResult, _config: APRConfig) {
+  private async generateCodeFixes(sessionId: string, analysis: AnalysisResult) {
     const prompt = `Generate production-ready code fixes for this issue:
 
 Root Cause: ${analysis.rootCause}
@@ -417,7 +411,7 @@ Format as JSON: {
       if (config.enableSelfHealing !== false && retryCount < (config.maxRetries || 3)) {
         this.addAudit('SELF_HEALING', `Attempt ${retryCount + 1} failed, initiating self-heal`, 'info', 'Analyzing validation errors');
         
-        await this.updatePhase(sessionId, 'SELF_HEALING', 'SELF_HEALING');
+        await this.updatePhase(sessionId, 'SELF_HEALING');
         const healResult = await this.selfHeal(sessionId, validationResult, retryCount + 1);
         
         if (healResult.success) {
@@ -887,7 +881,7 @@ ${review.references.map(ref => `- ${ref}`).join('\n')}` : ''}
   /**
    * Helper methods
    */
-  private async updatePhase(sessionId: string, status: string, _phase: string) {
+  private async updatePhase(sessionId: string, status: string) {
     await prisma.autoFixSession.update({
       where: { id: sessionId },
       data: { 
