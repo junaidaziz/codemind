@@ -18,6 +18,7 @@ import { getGitHubToken } from './config-helper';
 import { env } from '@/types/env';
 import { runValidationSimulation } from './validation-runner';
 import { calculatePRRisk, type RiskScore } from './pr-risk-scorer';
+import { logAPRPhase, updateActivity } from '@/lib/activity-logger';
 
 // ============================================================================
 // TYPES
@@ -118,16 +119,50 @@ export class AutonomousPROrchestrator {
     // Create session
     const session = await this.createSession(config);
     
+    // Log session creation to activity feed
+    const activityId = await logAPRPhase(
+      config.projectId,
+      session.id,
+      'CREATED',
+      'APR session initiated',
+      { 
+        issueDescription: config.issueDescription, 
+        targetFiles: config.targetFiles || [],
+        branchName: session.branchName,
+        userId: config.userId
+      }
+    );
+    
     try {
       this.addAudit('INITIALIZATION', 'Session created', 'success', `Session ID: ${session.id}`);
 
       // Phase 1: Analysis
       await this.updatePhase(session.id, 'ANALYZING');
+      await logAPRPhase(
+        config.projectId,
+        session.id,
+        'ANALYZING',
+        'Analyzing codebase and issue',
+        { 
+          targetFiles: config.targetFiles || [],
+          analysisEngine: 'GPT-4 Turbo'
+        }
+      );
       const analysis = await this.analyzeIssue(session.id, config);
       this.addAudit('ANALYSIS', 'Issue analyzed', 'success', `Root cause: ${analysis.rootCause}`);
 
       // Phase 2: Code Generation
       await this.updatePhase(session.id, 'GENERATING');
+      await logAPRPhase(
+        config.projectId,
+        session.id,
+        'CODE_GENERATION',
+        'Generating code fixes',
+        { 
+          filesToModify: analysis.filesToModify || [],
+          proposedSolution: analysis.proposedSolution.substring(0, 200)
+        }
+      );
       const codeGeneration = await this.generateCodeFixes(session.id, analysis);
       this.addAudit('GENERATION', 'Code fixes generated', 'success', `Modified ${codeGeneration.filesModified.length} files`);
 
@@ -137,6 +172,17 @@ export class AutonomousPROrchestrator {
 
       // Phase 3: Pre-PR Validation Loop (with self-healing)
       await this.updatePhase(session.id, 'VALIDATING');
+      await logAPRPhase(
+        config.projectId,
+        session.id,
+        'VALIDATION',
+        'Running validation suite',
+        { 
+          validationTypes: ['lint', 'typecheck', 'unit_tests'],
+          maxRetries: config.maxRetries || 3,
+          selfHealingEnabled: config.enableSelfHealing !== false
+        }
+      );
       const validation = await this.validationLoop(session.id, codeGeneration, config);
       
       if (!validation.passed && !config.enableSelfHealing) {
@@ -150,6 +196,16 @@ export class AutonomousPROrchestrator {
       let reviewFindings = 0;
       if (config.enableAIReview !== false) {
         await this.updatePhase(session.id, 'REVIEWING');
+        await logAPRPhase(
+          config.projectId,
+          session.id,
+          'REVIEW',
+          'AI code review in progress',
+          { 
+            filesModified: codeGeneration.filesModified,
+            reviewEngine: 'GPT-4 Turbo'
+          }
+        );
         reviewFindings = await this.performAIReview(session.id, codeGeneration);
         this.addAudit('REVIEW', 'AI code review completed', 'info', `${reviewFindings} findings identified`);
       }
@@ -157,6 +213,19 @@ export class AutonomousPROrchestrator {
       // Phase 5: Create Pull Request
       await this.updatePhase(session.id, 'PR_CREATED');
       const pr = await this.createPullRequest(session.id, analysis, reviewFindings, config);
+      await logAPRPhase(
+        config.projectId,
+        session.id,
+        'PR_CREATED',
+        'Pull request created successfully',
+        { 
+          prNumber: pr.number,
+          prUrl: pr.url,
+          reviewFindings,
+          retryCount: validation.retryCount,
+          isDraft: reviewFindings > 0
+        }
+      );
       this.addAudit('PR_CREATION', 'Pull request created', 'success', `PR #${pr.number}: ${pr.url}`);
 
       // Phase 6: Post review comments to PR
@@ -168,6 +237,22 @@ export class AutonomousPROrchestrator {
       // Phase 7: Mark as ready
       await this.updatePhase(session.id, 'READY');
       await this.markSessionComplete(session.id, pr.number);
+      
+      // Log successful completion
+      if (activityId) {
+        await updateActivity({
+          eventId: activityId,
+          status: 'COMPLETED',
+          duration: Date.now() - new Date(session.createdAt).getTime(),
+          metadata: {
+            prNumber: pr.number,
+            prUrl: pr.url,
+            reviewFindings,
+            retryCount: validation.retryCount,
+            finalStatus: 'READY'
+          }
+        });
+      }
 
       return {
         success: true,
@@ -186,6 +271,31 @@ export class AutonomousPROrchestrator {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.addAudit('ERROR', 'APR orchestration failed', 'failure', errorMessage);
+      
+      // Log failure to activity feed
+      await logAPRPhase(
+        config.projectId,
+        session.id,
+        'FAILED',
+        'APR session failed',
+        { 
+          error: errorMessage,
+          phase: 'ERROR',
+          duration: Date.now() - new Date(session.createdAt).getTime()
+        }
+      );
+      
+      if (activityId) {
+        await updateActivity({
+          eventId: activityId,
+          status: 'FAILED',
+          duration: Date.now() - new Date(session.createdAt).getTime(),
+          metadata: {
+            error: errorMessage,
+            phase: 'ERROR'
+          }
+        });
+      }
       
       await prisma.autoFixSession.update({
         where: { id: session.id },
