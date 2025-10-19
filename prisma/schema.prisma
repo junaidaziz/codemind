@@ -324,6 +324,9 @@ model AutoFixSession {
   startedAt        DateTime?
   completedAt      DateTime?
   results          AutoFixResult[]
+  attempts         AutoFixAttempt[]
+  validations      AutoFixValidation[]
+  reviews          AutoFixReview[]
   approver         User?              @relation("AutoFixApprover", fields: [approvedBy], references: [id])
   project          Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
   user             User?              @relation(fields: [userId], references: [id])
@@ -718,4 +721,93 @@ model ProjectConfig {
   project               Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   
   @@index([projectId])
+}
+
+// ============================================================================
+// APR (Autonomous Pull Request) System Models
+// ============================================================================
+
+// Tracks each code generation attempt within an AutoFix session
+model AutoFixAttempt {
+  id             String         @id @default(cuid())
+  sessionId      String
+  attemptNumber  Int
+  filesModified  String[]       @default([])
+  prompt         String         @db.Text
+  aiResponse     String         @db.Text
+  codeSnippets   String         @db.Text
+  success        Boolean        @default(false)
+  errorMessage   String?        @db.Text
+  createdAt      DateTime       @default(now())
+  session        AutoFixSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  @@index([sessionId])
+  @@index([sessionId, attemptNumber])
+}
+
+// Stores validation results for each attempt
+model AutoFixValidation {
+  id             String         @id @default(cuid())
+  sessionId      String
+  attemptNumber  Int
+  validationType String         // LINT, TYPECHECK, UNIT_TEST, E2E_TEST, SECURITY_SCAN, PERFORMANCE
+  passed         Boolean
+  output         String         @db.Text
+  errors         String?        @db.Text
+  duration       Int?           // milliseconds
+  executedAt     DateTime       @default(now())
+  session        AutoFixSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  @@index([sessionId])
+  @@index([sessionId, validationType])
+  @@index([passed])
+}
+
+// AI code review findings for each session
+model AutoFixReview {
+  id                String         @id @default(cuid())
+  sessionId         String
+  reviewType        String         // CODE_QUALITY, PERFORMANCE, SECURITY, BEST_PRACTICES, POTENTIAL_BUG, N_PLUS_ONE, MEMORY_LEAK, ERROR_HANDLING
+  severity          String         // CRITICAL, HIGH, MEDIUM, LOW, INFO
+  filePath          String
+  lineNumber        Int?
+  issue             String         @db.Text
+  explanation       String         @db.Text
+  suggestion        String?        @db.Text
+  category          String         // performance, security, maintainability, etc.
+  tags              String[]       @default([])
+  postedToGitHub    Boolean        @default(false)
+  githubCommentId   Int?
+  references        String[]       @default([])
+  createdAt         DateTime       @default(now())
+  session           AutoFixSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  @@index([sessionId])
+  @@index([sessionId, severity])
+  @@index([reviewType])
+  @@index([postedToGitHub])
+}
+
+// Complete history and audit trail for each AutoFix session
+model AutoFixHistory {
+  id               String   @id @default(cuid())
+  sessionId        String   @unique
+  projectId        String
+  issueDescription String   @db.Text
+  attempts         String   @db.Text // JSON array of all attempts
+  finalStatus      String
+  prNumber         Int?
+  prUrl            String?
+  totalAttempts    Int      @default(0)
+  validationsPassed Int     @default(0)
+  validationsFailed Int     @default(0)
+  reviewFindings    Int     @default(0)
+  retryCount        Int     @default(0)
+  createdAt         DateTime
+  completedAt       DateTime?
+  
+  @@index([projectId])
+  @@index([sessionId])
+  @@index([finalStatus])
+  @@index([createdAt])
 }
