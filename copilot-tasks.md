@@ -86,12 +86,26 @@
 
 ## ⚙️ Tier 2 – UX / Developer Experience
 
-### **6. Dashboard & Visualization**
-- [ ] Add **AI Activity Feed** (timeline of all actions).  
-- [ ] Visualize **indexing and job progress** with real-time status bars.  
-- [ ] Show **codebase insights**: most changed files, complexity hotspots.  
-- [ ] Add **dark/light theme toggle** and responsive design.  
-- [ ] Improve navigation for projects and chat sessions.
+### **6. Dashboard & Visualization** ✅ PARTIALLY COMPLETED
+- [x] Add **APR Dashboard** (Autonomous PR monitoring interface at /apr)
+- [x] Visualize **session status, retry attempts, and audit trail**
+- [ ] Add **AI Activity Feed** (timeline of all actions)
+- [ ] Visualize **indexing and job progress** with real-time status bars
+- [ ] Show **codebase insights**: most changed files, complexity hotspots
+- [ ] Add **dark/light theme toggle** and responsive design
+- [ ] Improve navigation for projects and chat sessions
+
+**Status**: ✅ **APR Dashboard Completed** (commit 3728a75, feature/apr-dashboard branch)
+- Dashboard at `/apr` with session list and detail views
+- 4-tab detail view: Overview, Attempts, Validations, Reviews
+- Project and status filtering
+- Stats overview with real-time updates
+- API endpoint `/api/apr/sessions` with full Prisma integration
+- Complete audit trail visualization
+- Dark mode support
+- Responsive design
+
+**Remaining**: AI Activity Feed, indexing visualization, codebase insights
 
 ---
 
