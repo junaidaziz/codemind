@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import { Spinner } from '../../components/ui';
+import Logo from '@/components/shared/Logo';
 
 export function AppHeader() {
   const { user, signOut, loading } = useAuth();
@@ -16,10 +17,7 @@ export function AppHeader() {
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <span className="text-2xl mr-2">🧠</span>
-              <span className="text-xl font-bold">CodeMind</span>
-            </div>
+            <Logo />
             <Spinner size="sm" />
           </div>
         </div>
@@ -36,10 +34,7 @@ export function AppHeader() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-8">
-            <Link href="/" className="flex items-center header-logo cursor-pointer">
-              <span className="text-2xl mr-2">🧠</span>
-              <span className="text-xl font-bold">CodeMind</span>
-            </Link>
+            <Logo />
             <nav className="hidden md:flex space-x-6">
               <Link
                 href="/projects"
@@ -74,6 +69,12 @@ export function AppHeader() {
             </div>
             <div className="relative">
               <div className="flex items-center space-x-2">
+                <Link
+                  href="/dashboard"
+                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  Dashboard
+                </Link>
                 <Link
                   href="/profile"
                   className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
