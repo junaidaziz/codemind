@@ -1,197 +1,230 @@
-# 📊 CodeMind
-# 🤖 CodeMind — Automatic Fix Orchestration System
+# 🤖 CodeMind — Automatic Fix Orchestration System      
 
-## 🎯 Current Phase: DevOps & CI/CD Testing & Deployment
+# 🧠 CodeMind Roadmap v2 — Refinement & Expansion Plan
 
-**Goal:** Test and validate CI/CD pipeline, complete Vercel integration, and set up monitoring.
-
-**Status:** 🎉 **ALL AUTOMATED WORK COMPLETE** - Only manual configuration steps remain
-
-### � Quick Start
-**Ready to finish setup?** → See **[QUICK_START_GUIDE.md](./QUICK_START_GUIDE.md)** for step-by-step instructions (20 minutes)
-
-### 📋 Pending Tasks (Manual Configuration Required)
-
-**Current Focus:** Deployment Monitoring & Notifications 📊
-
-1. **Deployment Monitoring** 📊
-   - [x] ✅ Configure Slack/Discord webhook URL - **Setup guide created**
-   - [ ] Add webhook URLs to GitHub secrets and Vercel environment
-   - [ ] Test notification system (Run `npm run notifications:test`)
-   - [ ] Enable health monitoring workflow
-   - **Guide:** See [SLACK_DISCORD_SETUP.md](./docs/SLACK_DISCORD_SETUP.md) for complete setup instructions
-   - **Quick Test:** Run `npm run notifications:setup` for interactive setup
+> **Author:** Junaid Aziz  
+> **Date:** October 19, 2025  
+> **Version:** 2.0  
+> **Goal:** Enhance CodeMind’s intelligence, automation, and developer experience through strategic feature refinement and scope expansion.
 
 ---
 
-## 🎉 Completed (17 October 2025)
+## 📋 Table of Contents
 
-<details>
-<summary><b>View Latest Completion - Vercel Webhook Integration</b></summary>
-
-### Vercel Webhook Integration ✅ **COMPLETE**
-- Configured webhook at https://codemind-delta.vercel.app/api/webhooks/vercel-deployment
-  - ✅ Events: Deployment Checks Failed, Created, Error, Succeeded
-  - ✅ VERCEL_WEBHOOK_SECRET configured in Vercel environment
-  - ✅ Signature verification tested and working
-  - ✅ Endpoint deployed and accessible
-  - ✅ Auto-fix system ready to trigger on failures
-- Created `WEBHOOK_VERIFICATION_COMPLETE.md` - Full verification report
-- Verified with live tests:
-  - ✅ GET request returns active status
-  - ✅ POST with invalid signature properly rejected
-  - ✅ All security measures working
-
-### CI/CD Test Branch ✅
-- Created test/ci-cd-verification branch with test file
-- Added `.github/CI_CD_TEST.md` with verification objectives
-- Branch ready for PR creation
-
-**Status:** Webhook fully operational, auto-fix ready ✅
-
-</details>
-
-<details>
-<summary><b>View Completion - Quick Start Guide + Final Documentation</b></summary>
-
-### Quick Start Guide ✅
-- Created `QUICK_START_GUIDE.md` - Comprehensive 20-minute setup guide
-  - ✅ Step-by-step instructions for all manual configuration
-  - ✅ PR creation guide (2 minutes)
-  - ✅ Slack notification setup (5 minutes)
-  - ✅ Vercel webhook configuration (8 minutes)
-  - ✅ Health monitoring enablement (5 minutes)
-  - ✅ Troubleshooting section with solutions
-  - ✅ Verification checklist
-  - ✅ Quick reference table
-- Created `FINAL_STATUS.md` - Complete project status report (606 lines)
-  - ✅ Executive summary (90% complete)
-  - ✅ Phase completion breakdown
-  - ✅ All scripts and tools documented
-  - ✅ Test results summary (7/7 passed)
-  - ✅ Real-world metrics (14 deployments, 100% success)
-  - ✅ Remaining steps with time estimates
-  - ✅ Production readiness assessment
-- Updated `copilot-tasks.md` with Quick Start Guide reference
-
-**Status:** All documentation complete and pushed ✅  
-**User Action:** Follow QUICK_START_GUIDE.md to complete setup ✅
-
-</details>
-
-<details>
-<summary><b>View Completion - Monitoring & Notification System</b></summary>
-
-### Monitoring System ✅ (Verified Working)
-- Created `scripts/setup-notifications.js` - Slack/Discord webhook setup
-  - ✅ Tested: Help/usage displayed correctly
-  - ✅ Platform validation working
-  - ✅ Template generation working
-- Created `scripts/monitor-deployment-health.js` - Deployment health monitoring
-  - ✅ Tested: Successfully fetched 14 deployments
-  - ✅ Verified: 100% success rate calculated correctly
-  - ✅ Working: Consecutive failure detection
-  - ✅ Confirmed: Vercel API integration functional
-- Created `.github/workflows/health-monitor.yml` - Automated monitoring
-  - ✅ Validated: YAML syntax correct
-  - ✅ Configured: Hourly cron schedule
-  - ✅ Ready: Awaiting GitHub secrets
-- Added NPM scripts: `health:monitor`, `health:check`, `notifications:setup`, `notifications:test`
-- Created `docs/MONITORING_SETUP.md` - Complete setup guide (398 lines)
-- Created `MONITORING_COMPLETE.md` - Progress report (404 lines)
-- Created `VERIFICATION_SUMMARY.md` - Test results (7/7 tests passed)
-
-**Test Results:** All scripts tested and working ✅  
-**Deployment Health:** 14 deployments, 100% success rate ✅  
-**Production Ready:** Yes, awaiting configuration only ✅
-
-</details>
-
-## 🎉 Completed (16 October 2025)
-
-<details>
-<summary><b>View Current Phase Completion</b></summary>
-
-### Database Schema Fix ✅
-- Fixed missing AI fields in Issue table (`aiAnalyzed`, `aiAnalyzedAt`, `aiSummary`, `aiFixPrUrl`)
-- Created `scripts/fix-issue-schema.js` - Automated migration script
-- Created `SCHEMA_FIX_REPORT.md` - Comprehensive fix documentation
-- Resolved migration history conflicts
-- Verified all GitHub APIs working correctly
-
-### Vercel Integration Tools ✅
-- Created `scripts/fetch-vercel-logs.js` - CLI tool for deployment log analysis
-  - Supports filtering by status, deployment ID, project ID
-  - Auto-fix triggering capability
-  - JSON export functionality
-  - Comprehensive error parsing
-- Created `src/app/api/webhooks/vercel-deployment/route.ts` - Real-time webhook handler
-  - HMAC SHA256 signature verification
-  - Automatic log fetching on deployment failure
-  - Auto-fix integration
-  - Health check endpoint
-- Added npm scripts: `fetch-vercel-logs`, `fetch-vercel-logs:errors`, `fetch-vercel-logs:auto-fix`
-
-### Documentation ✅
-- Created `docs/VERCEL_INTEGRATION.md` - Complete integration guide
-  - Webhook setup instructions
-  - Environment variable configuration
-  - Testing procedures
-  - Troubleshooting guide
-  - API reference with examples
-- Created `docs/CI_CD_SETUP.md` - Comprehensive CI/CD documentation
-  - Architecture diagrams
-  - GitHub Actions workflow explanation
-  - Setup instructions
-  - Monitoring and maintenance
-  - Security best practices
-
-### Code Quality ✅
-- Fixed TypeScript type errors in `src/middleware/api-error-handler.ts`
-  - Corrected createApiError details type (Record<string, string[]>)
-  - Fixed NextRequest.ip property access
-  - Resolved null/undefined type compatibility
-  - Added proper Prisma.TransactionClient typing
-- Updated `eslint.config.mjs` to allow CommonJS require() in scripts directory
-- All critical type errors resolved
-
-### CI/CD Infrastructure ✅
-- Verified `.github/workflows/ci-cd.yml` exists with complete pipeline
-  - Quality job: ESLint, TypeScript, security audit
-  - Test job: Jest with coverage, Node 18/20 matrix
-  - E2E job: Playwright tests
-  - Build job: Docker, Snyk, Trivy security scans
-  - Deploy jobs: Staging and production with smoke tests
-  - Database migration job
-
-</details>
+1. [High-Impact Enhancements](#-tier-1--high-impact-enhancements)
+2. [UX / Developer Experience](#-tier-2--ux--developer-experience)
+3. [Strategic Scope Expansion](#-tier-3--strategic-scope-expansion)
+4. [Polish & Growth](#-tier-4--polish--growth-enhancements)
+5. [Summary Table](#-summary-of-focus-areas)
 
 ---
 
-## ✅ Phase 1: COMPLETED (16 October 2025)
+## 🔥 Tier 1 – High-Impact Enhancements
 
-<details>
-<summary>View Phase 1 Completion Report</summary>
+### **1. Auto-Fix → Full Auto-PR Lifecycle (Agentic Workflow)**
+- [ ] Add **auto-validation layer** to run lint, tests, and type-check before PR creation.  
+- [ ] Include **AI-review comments** in PR (context-aware suggestions).  
+- [ ] Implement **self-healing retry mechanism** for failed tests.  
+- [ ] Store **AutoFix history and explanations** for auditability.  
+- [ ] Enable **PR risk scoring** based on change impact.
 
-### Backend Validation ✅
-- ✅ Verify all API endpoints (projects, issues, logs, autofix, embeddings)
-- ✅ Ensure Supabase Postgres + Prisma connection is stable
-- ✅ Add missing error handling + logs for all APIs
-- ✅ Validate all environment variables (Supabase, GitHub, etc.)
+**Goal:** Move toward *Autonomous Pull Requests (APR)* — full CI feedback and retry loop.
 
-### Database Optimization ✅
-- ✅ Ensure `pgvector` extension active and working
-- ✅ Verify embeddings table indexing for fast search
-- ✅ Add relations between `Projects`, `AutoFixSession`, and `Issues`
+---
 
-### Frontend Consistency ✅
-- ✅ Audit all buttons, forms, and clickable elements (cursor pointer, hover)
-- ✅ Fix any layout inconsistencies (especially dark/light theme filters)
-- ✅ Add global error boundary + toast notification system
+### **2. AI Code Generation → Smart Scaffolder Mode**
+- [ ] Add **context-aware scaffolding** (reads existing project conventions).  
+- [ ] Allow natural prompts like “Create settings module similar to profile.”  
+- [ ] Support **multi-file generation** with dependency visualization.  
+- [ ] Auto-generate **migration scripts, seeders, and docs** for backend features.  
+- [ ] Provide **framework templates** (Next.js, Nest.js, Express, etc.).
 
-### DevOps ✅
-- ✅ Implement logging middleware for API route tracing
+**Goal:** Build a production-grade scaffolder that adapts to the existing codebase.
 
-**See full report:** [PHASE1_COMPLETION_REPORT.md](./PHASE1_COMPLETION_REPORT.md)
+---
 
-</details>
+### **3. AI Chat → Developer Command Console**
+- [ ] Enable **multi-turn conversation memory** per project.  
+- [ ] Support **slash commands** (`/fix`, `/gen`, `/test`, `/refactor`).  
+- [ ] Add **inline file diffs** with “Accept / Reject” actions in chat.  
+- [ ] Provide **daily PR summaries** and deployment updates via chat.  
+- [ ] Add **auto-context recall** from previous chats.
+
+**Goal:** Make chat the *central developer console* for coding, testing, and deployment.
+
+---
+
+### **4. GitHub Integration → Multi-Repo Workspace**
+- [ ] Add **multi-repo dependency graphs** for large organizations.  
+- [ ] Support **cross-repo issue and PR linking**.  
+- [ ] Integrate **GitHub Actions logs** with AI error summarization.  
+- [ ] Add **branch policy enforcement** (“warn on direct main commits”).  
+- [ ] Enable **multi-org support** for enterprise teams.
+
+**Goal:** Scale CodeMind into an *organization-level GitHub orchestrator.*
+
+---
+
+### **5. Testing Automation → AI Test Author**
+- [ ] Implement **AI test generation** for uncovered files.  
+- [ ] Identify **coverage gaps** and prompt test generation automatically.  
+- [ ] Integrate with **GitHub Checks API** for inline test results.  
+- [ ] Auto-update snapshots after PR merges.  
+- [ ] Allow **AI-based failure analysis** and reruns.
+
+**Goal:** Create a self-maintaining *TestOps* system powered by AI.
+
+---
+
+## ⚙️ Tier 2 – UX / Developer Experience
+
+### **6. Dashboard & Visualization**
+- [ ] Add **AI Activity Feed** (timeline of all actions).  
+- [ ] Visualize **indexing and job progress** with real-time status bars.  
+- [ ] Show **codebase insights**: most changed files, complexity hotspots.  
+- [ ] Add **dark/light theme toggle** and responsive design.  
+- [ ] Improve navigation for projects and chat sessions.
+
+---
+
+### **7. Project Analytics Expansion**
+- [ ] Track **AI productivity metrics**: auto-fixes, PRs, generated tests.  
+- [ ] Provide **export options** (CSV, PDF, Slack summary).  
+- [ ] Add **forecasting trends** (e.g., code coverage predictions).  
+- [ ] Integrate with **Supabase analytics dashboard** for insights.  
+- [ ] Include **team-level metrics** (top contributors, review activity).
+
+---
+
+### **8. Authentication & Teams**
+- [ ] Implement **Team Workspaces** with org-level roles (Owner, Developer, Reviewer).  
+- [ ] Add **Audit Logging** (AI action history).  
+- [ ] Support **2FA or SSO (Google, GitHub, SAML)**.  
+- [ ] Create **scoped API keys** (read/write/admin).  
+- [ ] Allow **project sharing** via invite links.
+
+---
+
+### **9. AI Model Management**
+- [ ] Enable **per-project model switching** (GPT-4, Claude, Mistral, Local LLMs).  
+- [ ] Track **cost and token usage** per model.  
+- [ ] Cache frequent prompts with **Supabase Edge Functions**.  
+- [ ] Provide **performance comparison dashboard** for models.  
+- [ ] Add support for **fine-tuned custom models**.
+
+---
+
+## 🧩 Tier 3 – Strategic Scope Expansion
+
+### **10. VS Code Extension**
+- [ ] Connect local workspace to CodeMind chat and actions.  
+- [ ] Commands:  
+  - “Explain selection”  
+  - “Fix highlighted code”  
+  - “Generate test for this file”  
+  - “Open in CodeMind Web”  
+- [ ] Sync local → remote PR creation automatically.  
+- [ ] Show AI results inline in editor.
+
+**Goal:** Bring CodeMind directly into developer workflows.
+
+---
+
+### **11. CI/CD & DevOps Integration**
+- [ ] Integrate with **Vercel, GitHub Actions, AWS Lambda pipelines**.  
+- [ ] Add **AI-powered CI pre-reviews** before merge.  
+- [ ] Post **deployment summaries** automatically.  
+- [ ] Detect **post-deploy errors** and suggest rollbacks.  
+- [ ] Track deployment history with change summaries.
+
+---
+
+### **12. Code Review Automation**
+- [ ] AI-generated **PR review comments** for complexity and security.  
+- [ ] Assign **risk scores** per PR (“High – modifies auth middleware”).  
+- [ ] Recommend **documentation or tests** if missing.  
+- [ ] Integrate **review summary bot** to summarize discussions.  
+- [ ] Allow **review simulation** to estimate code impact.
+
+---
+
+### **13. Plugin Ecosystem**
+- [ ] Build **plugin API** for community tool creation.  
+- [ ] Define Plugin I/O spec:  
+  - **Input:** project + context  
+  - **Output:** structured result/action  
+- [ ] Allow plugins for:  
+  - Lighthouse performance audits  
+  - SQL query optimization  
+  - i18n validation  
+- [ ] Host marketplace for verified plugins.
+
+---
+
+### **14. AI Knowledge Graph**
+- [ ] Generate **interactive dependency maps** (functions, modules, APIs).  
+- [ ] Use **D3.js / Cytoscape** for visualization.  
+- [ ] Enable AI to answer:  
+  > “Which files depend on this function?”  
+- [ ] Show **impact propagation** for code changes.  
+- [ ] Cache graph relationships in PostgreSQL.
+
+---
+
+## 💎 Tier 4 – Polish & Growth Enhancements
+
+### **15. SEO & Marketing**
+- [ ] Add **AI-generated meta tags and OG previews** for all pages.  
+- [ ] Generate **dynamic sitemap.xml** for docs and projects.  
+- [ ] Use **JSON-LD structured data** for search engines.  
+- [ ] Improve **docs readability** and **keyword optimization**.  
+- [ ] Add **“Share Project” social preview cards**.
+
+---
+
+### **16. Performance & Cost Optimization**
+- [ ] Cache embeddings with **Redis or Supabase Edge Cache**.  
+- [ ] Optimize **BullMQ concurrency and job priority**.  
+- [ ] Lazy-load large vectors for big repositories.  
+- [ ] Add **usage-based billing / monitoring dashboard**.  
+- [ ] Implement **async rate limiting** for chat and jobs.
+
+---
+
+### **17. Developer Community Integration**
+- [ ] Launch **Discord / Slack bot** powered by CodeMind AI.  
+- [ ] Integrate **GitHub Discussions Agent** for community Q&A.  
+- [ ] Enable **“Ask CodeMind”** button on public repos.  
+- [ ] Summarize common questions for knowledge base.  
+- [ ] Add **weekly AI digest email** for team insights.
+
+---
+
+## 🚀 Summary of Focus Areas
+
+| Category | Priority | Goal |
+|-----------|-----------|------|
+| Auto-Fix System | ⭐⭐⭐⭐ | Full autonomous PR lifecycle |
+| AI Code Generation | ⭐⭐⭐⭐ | Context-aware scaffolding |
+| AI Chat Console | ⭐⭐⭐⭐ | Centralized DevOps assistant |
+| Testing Automation | ⭐⭐⭐ | Intelligent test authoring |
+| Analytics & Dashboard | ⭐⭐⭐ | Developer productivity insights |
+| Teams & RBAC | ⭐⭐⭐ | Enterprise readiness |
+| VS Code Extension | ⭐⭐⭐ | Local workflow integration |
+| Plugin Ecosystem | ⭐⭐ | Extensible architecture |
+| SEO & Docs | ⭐ | Brand visibility & reach |
+
+---
+
+## 🏁 Next Steps
+
+- [ ] Create **Copilot Tasks** for Tier 1 and Tier 2 items.  
+- [ ] Define **timeline milestones** (v2.1 → v3.0).  
+- [ ] Assign ownership to AI agents (AutoFix, Scaffolder, Reviewer).  
+- [ ] Track progress in `/docs/roadmap-progress.md`.  
+- [ ] Sync roadmap with GitHub Projects.
+
+---
+
+**Built with ❤️ by Junaid Aziz**  
+*“Empowering developers through AI-driven engineering.”*
