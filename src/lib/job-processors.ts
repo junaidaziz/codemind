@@ -30,6 +30,7 @@ import {
   optimizeDatabaseTables,
 } from '../app/lib/db-utils';
 import prisma from '../app/lib/db';
+import { logIndexingEvent, updateActivity } from '@/lib/activity-logger';
 
 // Index project processor
 async function indexProjectProcessor(
@@ -41,12 +42,26 @@ async function indexProjectProcessor(
   let filesProcessed = 0;
   let embeddingsGenerated = 0;
   const errors: string[] = [];
+  let activityId: string | null = null;
 
   try {
     logger.info('Starting project indexing', { 
       projectId: data.projectId,
       githubUrl: data.githubUrl,
     });
+
+    // Log indexing start to activity feed
+    activityId = await logIndexingEvent(
+      data.projectId,
+      data.projectId,
+      'STARTED',
+      'Project indexing initiated',
+      {
+        githubUrl: data.githubUrl,
+        includePatterns: data.includePatterns,
+        excludePatterns: data.excludePatterns
+      }
+    );
 
     progress(10);
 
@@ -70,6 +85,24 @@ async function indexProjectProcessor(
       const batch = files.slice(i, i + batchSize);
       const batchProgress = 20 + (60 * (i / files.length));
       progress(batchProgress);
+
+      // Log progress update every 20%
+      if (i % (batchSize * 4) === 0 && activityId) {
+        const processedPercentage = Math.round((i / files.length) * 100);
+        await logIndexingEvent(
+          data.projectId,
+          data.projectId,
+          'PROGRESS',
+          `Indexing in progress: ${processedPercentage}% complete`,
+          {
+            processedFiles: filesProcessed,
+            totalFiles: files.length,
+            percentage: processedPercentage,
+            chunksCreated,
+            batchesProcessed: Math.floor(i / batchSize)
+          }
+        );
+      }
 
       try {
         await withDatabaseTiming('processBatch', async () => {
@@ -133,12 +166,14 @@ async function indexProjectProcessor(
     progress(100);
 
     const endTime = new Date();
+    const duration = endTime.getTime() - startTime.getTime();
+    
     const result: IndexProjectResult = {
       success: errors.length < files.length / 2,
       message: `Processed ${filesProcessed} files, created ${chunksCreated} chunks`,
       startTime,
       endTime,
-      duration: endTime.getTime() - startTime.getTime(),
+      duration,
       chunksCreated,
       filesProcessed,
       embeddingsGenerated,
@@ -149,6 +184,38 @@ async function indexProjectProcessor(
         errorRate: errors.length / files.length,
       },
     };
+
+    // Log completion
+    await logIndexingEvent(
+      data.projectId,
+      data.projectId,
+      result.success ? 'COMPLETED' : 'FAILED',
+      result.success ? 'Project indexing completed' : 'Project indexing completed with errors',
+      {
+        totalFiles: files.length,
+        filesProcessed,
+        chunksCreated,
+        embeddingsGenerated,
+        duration: Math.round(duration / 1000),
+        errorCount: errors.length,
+        errorRate: errors.length / files.length
+      }
+    );
+
+    // Update activity status
+    if (activityId) {
+      await updateActivity({
+        eventId: activityId,
+        status: result.success ? 'COMPLETED' : 'FAILED',
+        duration,
+        metadata: {
+          filesProcessed,
+          chunksCreated,
+          embeddingsGenerated,
+          errorCount: errors.length
+        }
+      });
+    }
 
     logger.info('Project indexing completed', {
       projectId: data.projectId,
@@ -164,14 +231,45 @@ async function indexProjectProcessor(
 
   } catch (error) {
     const endTime = new Date();
+    const duration = endTime.getTime() - startTime.getTime();
+    
     logger.error('Project indexing failed', { projectId: data.projectId }, error as Error);
+    
+    // Log failure
+    await logIndexingEvent(
+      data.projectId,
+      data.projectId,
+      'FAILED',
+      'Project indexing failed',
+      {
+        error: String(error),
+        duration: Math.round(duration / 1000),
+        filesProcessed,
+        chunksCreated,
+        errorCount: errors.length + 1
+      }
+    );
+
+    // Update activity status
+    if (activityId) {
+      await updateActivity({
+        eventId: activityId,
+        status: 'FAILED',
+        duration,
+        metadata: {
+          error: String(error),
+          filesProcessed,
+          chunksCreated
+        }
+      });
+    }
     
     return {
       success: false,
       message: `Indexing failed: ${error}`,
       startTime,
       endTime,
-      duration: endTime.getTime() - startTime.getTime(),
+      duration,
       chunksCreated,
       filesProcessed,
       embeddingsGenerated,
@@ -611,12 +709,27 @@ async function fullIndexProcessor(
   progress: (percent: number) => void
 ): Promise<FullIndexResult> {
   const startTime = new Date();
+  let activityId: string | null = null;
 
   try {
     logger.info('Starting full repository indexing job', {
       projectId: data.projectId,
       githubUrl: data.githubUrl,
     });
+
+    // Log indexing start to activity feed
+    activityId = await logIndexingEvent(
+      data.projectId,
+      data.projectId, // Using projectId as jobId for consistency
+      'STARTED',
+      'Full repository indexing initiated',
+      {
+        githubUrl: data.githubUrl,
+        forceReindex: data.forceReindex ?? false,
+        includeContent: data.includeContent ?? true,
+        chunkAndEmbed: data.chunkAndEmbed ?? true
+      }
+    );
 
     progress(10);
 
@@ -637,6 +750,38 @@ async function fullIndexProcessor(
 
     const endTime = new Date();
     const duration = endTime.getTime() - startTime.getTime();
+
+    // Log indexing completion
+    await logIndexingEvent(
+      data.projectId,
+      data.projectId,
+      'COMPLETED',
+      'Full repository indexing completed successfully',
+      {
+        totalFiles: stats.totalFiles,
+        newFiles: stats.newFiles,
+        updatedFiles: stats.updatedFiles,
+        deletedFiles: stats.deletedFiles,
+        chunksCreated: stats.chunksCreated,
+        embeddingsGenerated: stats.embeddingsGenerated,
+        duration: Math.round(duration / 1000), // Convert to seconds
+        errorCount: stats.errors.length
+      }
+    );
+
+    // Update the activity status
+    if (activityId) {
+      await updateActivity({
+        eventId: activityId,
+        status: 'COMPLETED',
+        duration,
+        metadata: {
+          totalFiles: stats.totalFiles,
+          chunksCreated: stats.chunksCreated,
+          embeddingsGenerated: stats.embeddingsGenerated
+        }
+      });
+    }
 
     return {
       success: true,
@@ -660,6 +805,30 @@ async function fullIndexProcessor(
     
     const endTime = new Date();
     const duration = endTime.getTime() - startTime.getTime();
+    
+    // Log indexing failure
+    await logIndexingEvent(
+      data.projectId,
+      data.projectId,
+      'FAILED',
+      'Full repository indexing failed',
+      {
+        error: (error as Error).message,
+        duration: Math.round(duration / 1000)
+      }
+    );
+
+    // Update activity status to failed
+    if (activityId) {
+      await updateActivity({
+        eventId: activityId,
+        status: 'FAILED',
+        duration,
+        metadata: {
+          error: (error as Error).message
+        }
+      });
+    }
     
     return {
       success: false,
