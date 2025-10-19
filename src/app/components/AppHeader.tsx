@@ -54,6 +54,12 @@ export function AppHeader() {
                 Chat
               </Link>
               <Link
+                href="/apr"
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                🤖 APR
+              </Link>
+              <Link
                 href="/analytics"
                 className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
