@@ -1,3 +1,22 @@
+# 🔍 Vercel Build Failure Analysis
+
+**Generated on:** 2025-10-19 17:31:42 UTC
+**Deployment ID:** 
+**Repository:** junaidaziz/codemind
+**Branch:** main
+**Commit:** 207fba80db061dc2520af6e0c937e23dfd069875
+
+## ❌ Build Failure Summary
+Build failed due to missing module 'framer-motion'.
+
+## 🔍 Root Cause Analysis
+Unknown cause
+
+## 🛠️ Suggested Fix
+See analysis for details
+
+## 📊 Full Analysis
+```json
 {
   "deployment": {
     "uid": "dpl_3ho9XMkmVzF5CCXHokfpGBMReEfw",
@@ -58,3 +77,7 @@
   },
   "timestamp": "2025-10-19T17:31:42.334Z"
 }
+```
+
+---
+*This analysis was generated automatically by our AI-powered build failure analyzer.*
