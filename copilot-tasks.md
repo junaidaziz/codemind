@@ -65,18 +65,27 @@
 
 ## ⚙️ Tier 2 – UX / Developer Experience
 
-### **6. Dashboard & Visualization** (Partially Complete)
-- [ ] Add **AI Activity Feed** (timeline of all actions)
+### **5. Dashboard & Visualization** ✅ PARTIALLY COMPLETED
+- [x] Add **AI Activity Feed** (timeline of all actions) ✅
 - [ ] Visualize **indexing and job progress** with real-time status bars
 - [ ] Show **codebase insights**: most changed files, complexity hotspots
-- [ ] Add **dark/light theme toggle** and responsive design
+- [ ] Add **dark/light theme toggle** and responsive design improvements
 - [ ] Improve navigation for projects and chat sessions
 
-**Status**: APR Dashboard completed. Remaining: AI Activity Feed, indexing visualization, codebase insights
+**Status**: APR Dashboard, Risk Scoring, Auth Flow, and **AI Activity Feed** completed.
+
+**✅ AI Activity Feed Completed** (commit 207fba8):
+- Component at `/activity` with timeline UI
+- Filters by event type, status, search
+- Real-time event cards with metadata
+- Activity logger utility with helper functions
+- Integration ready for APR, indexing, chat
+
+**Remaining**: Indexing progress visualization, codebase insights dashboard
 
 ---
 
-### **7. Project Analytics Expansion**
+### **6. Project Analytics Expansion**
 - [ ] Track **AI productivity metrics**: auto-fixes, PRs, generated tests.  
 - [ ] Provide **export options** (CSV, PDF, Slack summary).  
 - [ ] Add **forecasting trends** (e.g., code coverage predictions).  
@@ -85,7 +94,7 @@
 
 ---
 
-### **8. Authentication & Teams**
+### **7. Authentication & Teams**
 - [ ] Implement **Team Workspaces** with org-level roles (Owner, Developer, Reviewer).  
 - [ ] Add **Audit Logging** (AI action history).  
 - [ ] Support **2FA or SSO (Google, GitHub, SAML)**.  
@@ -94,7 +103,7 @@
 
 ---
 
-### **9. AI Model Management**
+### **8. AI Model Management**
 - [ ] Enable **per-project model switching** (GPT-4, Claude, Mistral, Local LLMs).  
 - [ ] Track **cost and token usage** per model.  
 - [ ] Cache frequent prompts with **Supabase Edge Functions**.  
@@ -105,7 +114,7 @@
 
 ## 🧩 Tier 3 – Strategic Scope Expansion
 
-### **10. VS Code Extension**
+### **9. VS Code Extension**
 - [ ] Connect local workspace to CodeMind chat and actions.  
 - [ ] Commands:  
   - "Explain selection"  
@@ -119,7 +128,7 @@
 
 ---
 
-### **11. CI/CD & DevOps Integration**
+### **10. CI/CD & DevOps Integration**
 - [ ] Integrate with **Vercel, GitHub Actions, AWS Lambda pipelines**.  
 - [ ] Add **AI-powered CI pre-reviews** before merge.  
 - [ ] Post **deployment summaries** automatically.  
@@ -128,7 +137,7 @@
 
 ---
 
-### **12. Code Review Automation**
+### **11. Code Review Automation**
 - [ ] AI-generated **PR review comments** for complexity and security.  
 - [ ] Assign **risk scores** per PR ("High – modifies auth middleware").  
 - [ ] Recommend **documentation or tests** if missing.  
@@ -137,7 +146,7 @@
 
 ---
 
-### **13. Plugin Ecosystem**
+### **12. Plugin Ecosystem**
 - [ ] Build **plugin API** for community tool creation.  
 - [ ] Define Plugin I/O spec:  
   - **Input:** project + context  
@@ -150,7 +159,7 @@
 
 ---
 
-### **14. AI Knowledge Graph**
+### **13. AI Knowledge Graph**
 - [ ] Generate **interactive dependency maps** (functions, modules, APIs).  
 - [ ] Use **D3.js / Cytoscape** for visualization.  
 - [ ] Enable AI to answer:  
@@ -162,7 +171,7 @@
 
 ## 💎 Tier 4 – Polish & Growth Enhancements
 
-### **15. SEO & Marketing**
+### **14. SEO & Marketing**
 - [ ] Add **AI-generated meta tags and OG previews** for all pages.  
 - [ ] Generate **dynamic sitemap.xml** for docs and projects.  
 - [ ] Use **JSON-LD structured data** for search engines.  
@@ -171,7 +180,7 @@
 
 ---
 
-### **16. Performance & Cost Optimization**
+### **15. Performance & Cost Optimization**
 - [ ] Cache embeddings with **Redis or Supabase Edge Cache**.  
 - [ ] Optimize **BullMQ concurrency and job priority**.  
 - [ ] Lazy-load large vectors for big repositories.  
@@ -180,7 +189,7 @@
 
 ---
 
-### **17. Developer Community Integration**
+### **16. Developer Community Integration**
 - [ ] Launch **Discord / Slack bot** powered by CodeMind AI.  
 - [ ] Integrate **GitHub Discussions Agent** for community Q&A.  
 - [ ] Enable **"Ask CodeMind"** button on public repos.  
