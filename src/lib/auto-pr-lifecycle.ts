@@ -426,7 +426,7 @@ ${changes.rootCause}
 
 ### 🔧 Proposed Changes
 
-${Array.isArray(changes.fixes) ? changes.fixes.map((fix: { file: string; changes: string; reasoning: string; code?: string }) => `
+${Array.isArray(changes.fixes) ? (changes.fixes as Array<{ file: string; changes: string; reasoning: string; code?: string }>).map((fix) => `
 **\`${fix.file}\`**
 
 ${fix.changes}
@@ -651,23 +651,26 @@ ${changes.explanation}
   }
 
   /**
-   * Store auto-fix history in database
+   * Store history in database
+   * TEMPORARILY DISABLED - awaiting autoFixHistory model in schema
    */
   private async storeHistory(): Promise<void> {
-    await prisma.autoFixHistory.create({
-      data: {
-        sessionId: this.history.sessionId,
-        projectId: this.history.projectId,
-        issueDescription: this.history.issueDescription,
-        attempts: JSON.stringify(this.history.attempts),
-        finalStatus: this.history.finalStatus,
-        prNumber: this.history.prNumber,
-        prUrl: this.history.prUrl,
-        totalAttempts: this.history.totalAttempts,
-        createdAt: this.history.createdAt,
-        completedAt: this.history.completedAt
-      }
-    });
+    // TODO: Re-enable after adding autoFixHistory model to schema
+    console.log('History storage temporarily disabled - awaiting schema update');
+    // await prisma.autoFixHistory.create({
+    //   data: {
+    //     sessionId: this.history.sessionId,
+    //     projectId: this.history.projectId,
+    //     issueDescription: this.history.issueDescription,
+    //     attempts: JSON.stringify(this.history.attempts),
+    //     finalStatus: this.history.finalStatus,
+    //     prNumber: this.history.prNumber,
+    //     prUrl: this.history.prUrl,
+    //     totalAttempts: this.history.totalAttempts,
+    //     createdAt: this.history.createdAt,
+    //     completedAt: this.history.completedAt
+    //   }
+    // });
   }
 
   /**
