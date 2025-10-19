@@ -17,6 +17,7 @@ import prisma from '@/lib/db';
 import { getGitHubToken } from './config-helper';
 import { env } from '@/types/env';
 import { runValidationSimulation } from './validation-runner';
+import { calculatePRRisk, type RiskScore } from './pr-risk-scorer';
 
 // ============================================================================
 // TYPES
@@ -135,6 +136,10 @@ export class AutonomousPROrchestrator {
       await this.updatePhase(session.id, 'GENERATING', 'CODE_GENERATION');
       const codeGeneration = await this.generateCodeFixes(session.id, analysis, config);
       this.addAudit('GENERATION', 'Code fixes generated', 'success', `Modified ${codeGeneration.filesModified.length} files`);
+
+      // Phase 2.5: Risk Assessment
+      const riskScore = await this.calculateRiskScore(session.id, codeGeneration);
+      this.addAudit('RISK_ASSESSMENT', `Risk level: ${riskScore.level}`, 'info', `Score: ${riskScore.score}/100`);
 
       // Phase 3: Pre-PR Validation Loop (with self-healing)
       await this.updatePhase(session.id, 'VALIDATING', 'VALIDATION');
@@ -345,6 +350,45 @@ Format as JSON: {
       newFiles: codeChanges.newFiles || [],
       dependencies: codeChanges.dependencies || []
     };
+  }
+
+  /**
+   * Phase 2.5: Calculate PR Risk Score
+   */
+  private async calculateRiskScore(sessionId: string, codeGeneration: CodeGenerationResult): Promise<RiskScore> {
+    // Count lines from code snippets
+    let linesAdded = 0;
+    let linesRemoved = 0;
+    
+    for (const change of codeGeneration.changes) {
+      const lines = change.modifications?.split('\n') || [];
+      linesAdded += lines.filter(l => l.startsWith('+')).length;
+      linesRemoved += lines.filter(l => l.startsWith('-')).length;
+    }
+
+    // Calculate risk
+    const riskScore = calculatePRRisk({
+      filesChanged: codeGeneration.filesModified,
+      linesAdded,
+      linesRemoved,
+    });
+
+    // Store in session's analysisResult
+    const session = await prisma.autoFixSession.findUnique({ where: { id: sessionId } });
+    if (session) {
+      const existingAnalysis = session.analysisResult ? JSON.parse(session.analysisResult as string) : {};
+      await prisma.autoFixSession.update({
+        where: { id: sessionId },
+        data: {
+          analysisResult: JSON.stringify({
+            ...existingAnalysis,
+            risk: riskScore
+          })
+        }
+      });
+    }
+
+    return riskScore;
   }
 
   /**
@@ -651,6 +695,10 @@ Format as JSON: {
     const attempts = await prisma.autoFixAttempt.count({ where: { sessionId } });
     const retryCount = Math.max(0, attempts - 1);
 
+    // Extract risk assessment from analysisResult
+    const analysisData = session.analysisResult ? JSON.parse(session.analysisResult as string) : {};
+    const riskScore = analysisData.risk as RiskScore | undefined;
+
     // Create PR body with full audit trail
     const prBody = `## 🤖 Autonomous PR - AI-Generated Fix
 
@@ -663,6 +711,15 @@ ${analysis.rootCause}
 ### Solution
 ${analysis.proposedSolution}
 
+${riskScore ? `### ⚠️ Risk Assessment: ${riskScore.level}
+**Risk Score:** ${riskScore.score}/100
+
+**Risk Factors:**
+${riskScore.factors.map(f => `- **${f.severity}**: ${f.description}`).join('\n')}
+
+**Recommendations:**
+${riskScore.recommendations.map(r => `- ${r}`).join('\n')}
+` : ''}
 ### Validation Results
 - ✅ Lint: ${lintPassed ? 'Passed' : 'N/A'}
 - ✅ TypeCheck: ${typeCheckPassed ? 'Passed' : 'N/A'}

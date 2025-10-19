@@ -3,6 +3,7 @@
 import { APRSession } from './APRDashboard';
 import { format } from 'date-fns';
 import { useState } from 'react';
+import { getRiskColor, getRiskEmoji, type RiskLevel } from '@/lib/pr-risk-scorer';
 
 interface APRSessionDetailProps {
   session: APRSession;
@@ -107,9 +108,56 @@ function Tab({ label, active, onClick }: { label: string; active: boolean; onCli
 
 function OverviewTab({ session }: { session: APRSession }) {
   const analysis = session.analysisResult ? JSON.parse(session.analysisResult) : null;
+  const riskScore = analysis?.risk;
 
   return (
     <div className="space-y-4">
+      {/* Risk Assessment */}
+      {riskScore && (
+        <div>
+          <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">⚠️ Risk Assessment</h4>
+          <div className="bg-gray-50 dark:bg-gray-900 rounded p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <span className={`px-3 py-1.5 rounded font-medium border text-sm ${getRiskColor(riskScore.level)}`}>
+                {getRiskEmoji(riskScore.level)} {riskScore.level}
+              </span>
+              <span className="text-gray-600 dark:text-gray-400">
+                Score: <span className="font-semibold">{riskScore.score}/100</span>
+              </span>
+            </div>
+
+            {riskScore.factors && riskScore.factors.length > 0 && (
+              <div>
+                <span className="font-medium text-gray-700 dark:text-gray-300 text-sm">Risk Factors:</span>
+                <ul className="mt-2 space-y-1">
+                  {riskScore.factors.map((factor: { severity: RiskLevel; description: string }, i: number) => (
+                    <li key={i} className="text-sm text-gray-600 dark:text-gray-400 flex items-start gap-2">
+                      <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${getRiskColor(factor.severity)}`}>
+                        {factor.severity}
+                      </span>
+                      <span>{factor.description}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {riskScore.recommendations && riskScore.recommendations.length > 0 && (
+              <div>
+                <span className="font-medium text-gray-700 dark:text-gray-300 text-sm">Recommendations:</span>
+                <ul className="mt-2 space-y-1">
+                  {riskScore.recommendations.map((rec: string, i: number) => (
+                    <li key={i} className="text-sm text-gray-600 dark:text-gray-400">
+                      {rec}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Analysis Result */}
       {analysis && (
         <div>

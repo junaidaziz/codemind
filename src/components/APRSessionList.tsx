@@ -2,6 +2,7 @@
 
 import { APRSession } from './APRDashboard';
 import { formatDistanceToNow } from 'date-fns';
+import { getRiskColor, getRiskEmoji } from '@/lib/pr-risk-scorer';
 
 interface APRSessionListProps {
   sessions: APRSession[];
@@ -65,6 +66,24 @@ function SessionCard({ session, isSelected, onClick }: SessionCardProps) {
     CANCELLED: '🚫',
   };
 
+  // Extract risk from analysisResult
+  let riskLevel = null;
+  let riskEmoji = null;
+  let riskColor = '';
+  
+  try {
+    if (session.analysisResult) {
+      const analysis = JSON.parse(session.analysisResult);
+      if (analysis.risk) {
+        riskLevel = analysis.risk.level;
+        riskEmoji = getRiskEmoji(riskLevel);
+        riskColor = getRiskColor(riskLevel);
+      }
+    }
+  } catch {
+    // Ignore parse errors
+  }
+
   return (
     <button
       onClick={onClick}
@@ -87,6 +106,14 @@ function SessionCard({ session, isSelected, onClick }: SessionCardProps) {
             >
               {session.status}
             </span>
+            {riskLevel && (
+              <span
+                className={`px-2 py-1 rounded text-xs font-medium border ${riskColor}`}
+                title={`Risk Level: ${riskLevel}`}
+              >
+                {riskEmoji} {riskLevel}
+              </span>
+            )}
           </div>
           <h3 className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-2">
             {session.issuesDetected}
