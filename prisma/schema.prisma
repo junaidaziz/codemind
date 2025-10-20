@@ -4,179 +4,82 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [uuid_ossp(map: "uuid-ossp", schema: "extensions")]
 }
 
-model User {
-  id                      String               @id @default(cuid())
-  email                   String?              @unique
-  name                    String?
-  createdAt               DateTime             @default(now())
-  image                   String?
-  role                    String               @default("user")
-  agentFeedbacks          AgentFeedback[]
-  agentMemories           AgentMemory[]
-  autoFixMetrics          AutoFixMetrics[]     @relation("AutoFixMetricsUser")
-  autoFixApprovals        AutoFixSession[]     @relation("AutoFixApprover")
-  autoFixSessions         AutoFixSession[]
-  sessions                ChatSession[]
-  feedbackAnalytics       FeedbackAnalytics[]
-  ownedOrganizations      Organization[]       @relation("OrganizationOwner")
-  sentInvites             OrganizationInvite[] @relation("InviteSender")
-  invitedMemberships      OrganizationMember[] @relation("MembershipInviter")
-  organizationMemberships OrganizationMember[]
-  projects                Project[]
-  toolExecutions          ToolExecution[]
-  developerInsights       DeveloperInsights[]
-  activityLogs            ActivityLog[]
-  activityEvents          ActivityEvent[]
-  timeTracking            TimeTracking[]
-}
-
-model Project {
-  id                String              @id @default(cuid())
-  name              String
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  defaultBranch     String              @default("main")
-  githubUrl         String
-  lastIndexedAt     DateTime?
-  ownerId           String
-  status            String              @default("idle")
-  visibility        String              @default("public")
-  lastFullScanAt    DateTime?
-  organizationId    String?
-  agentFeedbacks    AgentFeedback[]
-  agentMemories     AgentMemory[]
-  autoFixConfig     AutoFixConfig?
-  autoFixMetrics    AutoFixMetrics[]
-  autoFixSessions   AutoFixSession[]
-  sessions          ChatSession[]
-  files             CodeChunk[]
-  feedbackAnalytics FeedbackAnalytics[]
-  issues            Issue[]
-  organization      Organization?       @relation(fields: [organizationId], references: [id])
-  owner             User                @relation(fields: [ownerId], references: [id])
-  projectFiles      ProjectFile[]       @relation("ProjectFiles")
-  pullRequests      PullRequest[]
-  toolExecutions    ToolExecution[]
-  developerInsights DeveloperInsights[]
-  activityLogs      ActivityLog[]
-  activityEvents    ActivityEvent[]
-  timeTracking      TimeTracking[]
-  commits           Commit[]
-  contributors      Contributor[]
-  projectConfigs    ProjectConfig[]
-
-  @@index([organizationId])
-}
-
-model ChatSession {
-  id           String    @id @default(cuid())
+model ActivityLog {
+  id           String         @id
   projectId    String
+  userId       String?
+  activityType ActivityType
+  entityType   String
+  entityId     String
+  description  String
+  metadata     String?
+  duration     Int?
+  impact       ActivityImpact @default(LOW)
+  createdAt    DateTime       @default(now())
+  Project      Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  User         User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([activityType, createdAt])
+  @@index([projectId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model ActivityEvent {
+  id          String              @id @default(cuid())
+  projectId   String
+  userId      String?
+  eventType   ActivityEventType
+  entityType  String              // "indexing", "apr_session", "chat_message", "auto_fix", "code_generation"
+  entityId    String?
+  title       String
+  description String?             @db.Text
+  metadata    Json?               // JSON data for additional info (file paths, line numbers, etc.)
+  status      ActivityEventStatus @default(IN_PROGRESS)
+  duration    Int?                // duration in milliseconds
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  
+  project     Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([eventType, createdAt(sort: Desc)])
+  @@index([status, createdAt(sort: Desc)])
+  @@index([projectId, eventType, createdAt(sort: Desc)])
+}
+
+model AgentFeedback {
+  id           String                @id
+  sessionId    String
+  messageId    String                @unique
   userId       String
-  title        String    @default("New Chat")
-  summary      String?
-  totalTokens  Int       @default(0)
-  messageCount Int       @default(0)
-  createdAt    DateTime  @default(now())
-  lastActiveAt DateTime  @default(now())
-  project      Project   @relation(fields: [projectId], references: [id])
-  user         User      @relation(fields: [userId], references: [id])
-  messages     Message[]
-
-  @@index([lastActiveAt])
-}
-
-model Message {
-  id             String         @id @default(cuid())
-  sessionId      String
-  role           String
-  content        String
-  tokenCount     Int?
-  contextTokens  Int?
-  memoryIncluded Boolean        @default(false)
-  latencyMs      Int?
-  createdAt      DateTime       @default(now())
-  feedback       AgentFeedback?
-  session        ChatSession    @relation(fields: [sessionId], references: [id])
-
-  @@index([sessionId, createdAt])
-}
-
-/// Each row = code chunk with its embedding
-model CodeChunk {
-  id            String       @id @default(cuid())
-  projectId     String
-  path          String
-  sha           String
-  language      String
-  startLine     Int
-  endLine       Int
-  content       String
-  tokenCount    Int
-  // pgvector column (1536 dims). Stored as real vector after migration.
-  embedding     Unsupported("vector(1536)")?
-  updatedAt     DateTime     @updatedAt
-  projectFileId String?
-  projectFile   ProjectFile? @relation("FileChunks", fields: [projectFileId], references: [id])
-  project       Project      @relation(fields: [projectId], references: [id])
-
-  @@index([projectId])
-  @@index([projectId, path])
-  @@index([projectFileId])
-}
-
-/// Full file metadata for repository synchronization
-model ProjectFile {
-  id           String      @id @default(cuid())
   projectId    String
-  relativePath String
-  absolutePath String?
-  fileType     String
-  language     String
-  extension    String
-  size         Int
-  lines        Int
-  lastModified DateTime
-  gitSha       String?
-  isIndexed    Boolean     @default(false)
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  chunks       CodeChunk[] @relation("FileChunks")
-  project      Project     @relation("ProjectFiles", fields: [projectId], references: [id])
+  feedbackType AgentFeedbackType
+  rating       Int
+  comment      String?
+  category     AgentFeedbackCategory
+  responseTime Int?
+  contextData  String?
+  createdAt    DateTime              @default(now())
+  Message      Message               @relation(fields: [messageId], references: [id])
+  Project      Project               @relation(fields: [projectId], references: [id])
+  User         User                  @relation(fields: [userId], references: [id])
 
-  @@unique([projectId, relativePath])
-  @@index([projectId])
-  @@index([projectId, isIndexed])
-  @@index([projectId, fileType])
-  @@index([lastModified])
-}
-
-model ToolExecution {
-  id              String   @id @default(cuid())
-  toolName        String
-  projectId       String
-  userId          String
-  sessionId       String?
-  input           String
-  output          String
-  success         Boolean
-  executionTimeMs Int
-  error           String?
-  timestamp       DateTime @default(now())
-  metadata        String?
-  project         Project  @relation(fields: [projectId], references: [id])
-  user            User     @relation(fields: [userId], references: [id])
-
-  @@index([toolName, timestamp])
-  @@index([projectId, timestamp])
-  @@index([userId, timestamp])
+  @@index([category, rating])
+  @@index([feedbackType, rating])
+  @@index([projectId, createdAt])
+  @@index([sessionId])
+  @@index([userId, createdAt])
 }
 
 model AgentMemory {
-  id               String   @id @default(cuid())
+  id               String   @id
   sessionId        String
   projectId        String
   userId           String
@@ -190,179 +93,34 @@ model AgentMemory {
   toolsUsed        String
   summary          String?
   createdAt        DateTime @default(now())
-  project          Project  @relation(fields: [projectId], references: [id])
-  user             User     @relation(fields: [userId], references: [id])
+  Project          Project  @relation(fields: [projectId], references: [id])
+  User             User     @relation(fields: [userId], references: [id])
 
-  @@index([sessionId])
-  @@index([projectId, createdAt])
-  @@index([userId, createdAt])
   @@index([command, createdAt])
-}
-
-model AgentFeedback {
-  id           String                @id @default(cuid())
-  sessionId    String
-  messageId    String                @unique
-  userId       String
-  projectId    String
-  feedbackType AgentFeedbackType
-  rating       Int
-  comment      String?
-  category     AgentFeedbackCategory
-  responseTime Int?
-  contextData  String?
-  createdAt    DateTime              @default(now())
-  message      Message               @relation(fields: [messageId], references: [id])
-  project      Project               @relation(fields: [projectId], references: [id])
-  user         User                  @relation(fields: [userId], references: [id])
-
+  @@index([projectId, createdAt])
   @@index([sessionId])
   @@index([userId, createdAt])
-  @@index([projectId, createdAt])
-  @@index([feedbackType, rating])
-  @@index([category, rating])
 }
 
-model FeedbackAnalytics {
-  id                String   @id @default(cuid())
-  projectId         String
-  userId            String?
-  period            String
-  periodStart       DateTime
-  periodEnd         DateTime
-  totalFeedbacks    Int      @default(0)
-  avgRating         Float?
-  ratingCounts      String
-  categoryBreakdown String
-  topIssues         String?
-  improvement       Float?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  project           Project  @relation(fields: [projectId], references: [id])
-  user              User?    @relation(fields: [userId], references: [id])
+model AutoFixAttempt {
+  id             String         @id
+  sessionId      String
+  attemptNumber  Int
+  filesModified  String[]       @default([])
+  prompt         String
+  aiResponse     String
+  codeSnippets   String
+  success        Boolean        @default(false)
+  errorMessage   String?
+  createdAt      DateTime       @default(now())
+  AutoFixSession AutoFixSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
-  @@unique([projectId, userId, period, periodStart])
-  @@index([projectId, period, periodStart])
-  @@index([userId, period, periodStart])
-}
-
-model Organization {
-  id          String               @id @default(cuid())
-  name        String
-  description String?
-  slug        String               @unique
-  avatarUrl   String?
-  plan        String               @default("free")
-  maxProjects Int                  @default(5)
-  maxMembers  Int                  @default(10)
-  createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @updatedAt
-  ownerId     String
-  owner       User                 @relation("OrganizationOwner", fields: [ownerId], references: [id])
-  invites     OrganizationInvite[]
-  members     OrganizationMember[]
-  projects    Project[]
-
-  @@index([ownerId])
-}
-
-model OrganizationMember {
-  id             String           @id @default(cuid())
-  organizationId String
-  userId         String
-  role           OrganizationRole @default(VIEWER)
-  invitedAt      DateTime?
-  joinedAt       DateTime         @default(now())
-  invitedBy      String?
-  inviter        User?            @relation("MembershipInviter", fields: [invitedBy], references: [id])
-  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([organizationId, userId])
-  @@index([organizationId])
-  @@index([userId])
-}
-
-model OrganizationInvite {
-  id             String           @id @default(cuid())
-  organizationId String
-  email          String
-  role           OrganizationRole @default(VIEWER)
-  token          String           @unique
-  expiresAt      DateTime
-  createdAt      DateTime         @default(now())
-  invitedBy      String
-  inviter        User             @relation("InviteSender", fields: [invitedBy], references: [id])
-  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@index([organizationId])
-  @@index([email])
-}
-
-model AutoFixSession {
-  id               String             @id @default(cuid())
-  projectId        String
-  userId           String?
-  status           AutoFixStatus      @default(PENDING)
-  triggerType      AutoFixTriggerType @default(MANUAL)
-  logContent       String?
-  issuesDetected   String
-  projectContext   String?
-  analysisResult   String?
-  fixesGenerated   String?
-  branchName       String?
-  commitSha        String?
-  prUrl            String?
-  prNumber         Int?
-  filesChanged     String?
-  processingTimeMs Int?
-  errorMessage     String?
-  confidence       Float?
-  requiresApproval Boolean            @default(true)
-  approvedAt       DateTime?
-  approvedBy       String?
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  startedAt        DateTime?
-  completedAt      DateTime?
-  results          AutoFixResult[]
-  attempts         AutoFixAttempt[]
-  validations      AutoFixValidation[]
-  reviews          AutoFixReview[]
-  approver         User?              @relation("AutoFixApprover", fields: [approvedBy], references: [id])
-  project          Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user             User?              @relation(fields: [userId], references: [id])
-
-  @@index([projectId, createdAt])
-  @@index([userId, createdAt])
-  @@index([status])
-  @@index([triggerType, createdAt])
-}
-
-model AutoFixResult {
-  id               String         @id @default(cuid())
-  sessionId        String
-  success          Boolean
-  message          String
-  issueType        String
-  severity         String
-  filePath         String
-  changeType       String
-  linesAdded       Int            @default(0)
-  linesRemoved     Int            @default(0)
-  confidence       Float?
-  testability      String?
-  reviewComplexity String?
-  createdAt        DateTime       @default(now())
-  session          AutoFixSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-
+  @@index([sessionId, attemptNumber])
   @@index([sessionId])
-  @@index([success, createdAt])
-  @@index([issueType, severity])
 }
 
 model AutoFixConfig {
-  id                  String   @id @default(cuid())
+  id                  String   @id
   projectId           String   @unique
   enabled             Boolean  @default(true)
   requireApproval     Boolean  @default(true)
@@ -380,14 +138,37 @@ model AutoFixConfig {
   notifyOnSuccess     Boolean  @default(true)
   notifyOnFailure     Boolean  @default(true)
   createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  project             Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  updatedAt           DateTime
+  Project             Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
 }
 
+model AutoFixHistory {
+  id                String    @id
+  sessionId         String    @unique
+  projectId         String
+  issueDescription  String
+  attempts          String
+  finalStatus       String
+  prNumber          Int?
+  prUrl             String?
+  totalAttempts     Int       @default(0)
+  validationsPassed Int       @default(0)
+  validationsFailed Int       @default(0)
+  reviewFindings    Int       @default(0)
+  retryCount        Int       @default(0)
+  createdAt         DateTime
+  completedAt       DateTime?
+
+  @@index([createdAt])
+  @@index([finalStatus])
+  @@index([projectId])
+  @@index([sessionId])
+}
+
 model AutoFixMetrics {
-  id                    String   @id @default(cuid())
+  id                    String   @id
   projectId             String
   userId                String?
   period                String
@@ -407,268 +188,546 @@ model AutoFixMetrics {
   humanInterventionRate Float?
   rollbackRate          Float?
   createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  project               Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user                  User?    @relation("AutoFixMetricsUser", fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt             DateTime
+  Project               Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  User                  User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, userId, period, periodStart])
   @@index([projectId, period, periodStart])
   @@index([userId, period, periodStart])
 }
 
-enum AgentFeedbackType {
-  POSITIVE
-  NEGATIVE
-  NEUTRAL
+model AutoFixResult {
+  id               String         @id
+  sessionId        String
+  success          Boolean
+  message          String
+  issueType        String
+  severity         String
+  filePath         String
+  changeType       String
+  linesAdded       Int            @default(0)
+  linesRemoved     Int            @default(0)
+  confidence       Float?
+  testability      String?
+  reviewComplexity String?
+  createdAt        DateTime       @default(now())
+  AutoFixSession   AutoFixSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([issueType, severity])
+  @@index([sessionId])
+  @@index([success, createdAt])
 }
 
-enum AgentFeedbackCategory {
-  ACCURACY
-  HELPFULNESS
-  RELEVANCE
-  COMPLETENESS
-  CLARITY
-  SPEED
-  OVERALL
+model AutoFixReview {
+  id              String         @id
+  sessionId       String
+  reviewType      String
+  severity        String
+  filePath        String
+  lineNumber      Int?
+  issue           String
+  explanation     String
+  suggestion      String?
+  category        String
+  tags            String[]       @default([])
+  postedToGitHub  Boolean        @default(false)
+  githubCommentId Int?
+  references      String[]       @default([])
+  createdAt       DateTime       @default(now())
+  AutoFixSession  AutoFixSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([postedToGitHub])
+  @@index([reviewType])
+  @@index([sessionId])
+  @@index([sessionId, severity])
 }
 
-enum OrganizationRole {
-  OWNER
-  ADMIN
-  EDITOR
-  VIEWER
-}
+model AutoFixSession {
+  id                                   String              @id
+  projectId                            String
+  userId                               String?
+  status                               AutoFixStatus       @default(PENDING)
+  triggerType                          AutoFixTriggerType  @default(MANUAL)
+  logContent                           String?
+  issuesDetected                       String
+  projectContext                       String?
+  analysisResult                       String?
+  fixesGenerated                       String?
+  branchName                           String?
+  commitSha                            String?
+  prUrl                                String?
+  prNumber                             Int?
+  filesChanged                         String?
+  processingTimeMs                     Int?
+  errorMessage                         String?
+  confidence                           Float?
+  requiresApproval                     Boolean             @default(true)
+  approvedAt                           DateTime?
+  approvedBy                           String?
+  createdAt                            DateTime            @default(now())
+  updatedAt                            DateTime
+  startedAt                            DateTime?
+  completedAt                          DateTime?
+  AutoFixAttempt                       AutoFixAttempt[]
+  AutoFixResult                        AutoFixResult[]
+  AutoFixReview                        AutoFixReview[]
+  User_AutoFixSession_approvedByToUser User?               @relation("AutoFixSession_approvedByToUser", fields: [approvedBy], references: [id])
+  Project                              Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  User_AutoFixSession_userIdToUser     User?               @relation("AutoFixSession_userIdToUser", fields: [userId], references: [id])
+  AutoFixValidation                    AutoFixValidation[]
 
-enum AutoFixStatus {
-  PENDING
-  ANALYZING
-  FIXING
-  CREATING_PR
-  COMPLETED
-  FAILED
-  CANCELLED
-}
-
-enum AutoFixTriggerType {
-  MANUAL
-  WEBHOOK
-  CI_FAILURE
-  SCHEDULE
-}
-
-model PullRequest {
-  id          String           @id @default(cuid())
-  projectId   String
-  number      Int
-  title       String
-  body        String?
-  state       PullRequestState @default(OPEN)
-  htmlUrl     String
-  headBranch  String
-  baseBranch  String
-  authorLogin String
-  authorUrl   String
-  createdAt   DateTime
-  updatedAt   DateTime
-  closedAt    DateTime?
-  mergedAt    DateTime?
-  draft       Boolean          @default(false)
-  mergeable   Boolean?
-  labels      String[]         @default([])
-  additions   Int?
-  deletions   Int?
-  changedFiles Int?
-  reviewComments Int?
-  isAiGenerated Boolean        @default(false)
-  contributorId String?
-  contributor Contributor?     @relation(fields: [contributorId], references: [id])
-  project     Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@unique([projectId, number])
-  @@index([projectId, state])
   @@index([projectId, createdAt])
+  @@index([status])
+  @@index([triggerType, createdAt])
+  @@index([userId, createdAt])
+}
+
+model AutoFixValidation {
+  id             String         @id
+  sessionId      String
+  attemptNumber  Int
+  validationType String
+  passed         Boolean
+  output         String
+  errors         String?
+  duration       Int?
+  executedAt     DateTime       @default(now())
+  AutoFixSession AutoFixSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([passed])
+  @@index([sessionId])
+  @@index([sessionId, validationType])
+}
+
+model ChatSession {
+  id           String    @id
+  projectId    String
+  userId       String
+  title        String    @default("New Chat")
+  summary      String?
+  totalTokens  Int       @default(0)
+  messageCount Int       @default(0)
+  createdAt    DateTime  @default(now())
+  lastActiveAt DateTime  @default(now())
+  Project      Project   @relation(fields: [projectId], references: [id])
+  User         User      @relation(fields: [userId], references: [id])
+  Message      Message[]
+
+  @@index([lastActiveAt])
+}
+
+model CodeChunk {
+  id            String       @id
+  projectId     String
+  path          String
+  sha           String
+  language      String
+  startLine     Int
+  endLine       Int
+  content       String
+  tokenCount    Int
+  embedding     String?
+  updatedAt     DateTime
+  projectFileId String?
+  ProjectFile   ProjectFile? @relation(fields: [projectFileId], references: [id])
+  Project       Project      @relation(fields: [projectId], references: [id])
+
+  @@index([projectFileId])
+  @@index([projectId])
+  @@index([projectId, path])
+}
+
+model Commit {
+  id            String       @id
+  sha           String       @unique
+  message       String
+  author        String
+  authorEmail   String?
+  additions     Int?
+  deletions     Int?
+  date          DateTime
+  url           String?
+  projectId     String
+  contributorId String?
+  branch        String?
+  isAiGenerated Boolean      @default(false)
+  filesChanged  String[]     @default([])
+  Contributor   Contributor? @relation(fields: [contributorId], references: [id])
+  Project       Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
   @@index([contributorId])
+  @@index([date])
+  @@index([projectId, branch])
+  @@index([projectId, date])
+}
+
+model Contributor {
+  id             String        @id
+  githubId       String?       @unique
+  username       String
+  avatarUrl      String?
+  email          String?
+  name           String?
+  projectId      String
+  totalCommits   Int           @default(0)
+  totalAdditions Int           @default(0)
+  totalDeletions Int           @default(0)
+  totalPRs       Int           @default(0)
+  lastActiveAt   DateTime?
+  joinedAt       DateTime      @default(now())
+  Commit         Commit[]
+  Project        Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  PullRequest    PullRequest[]
+
+  @@unique([projectId, username])
+  @@index([githubId])
+  @@index([lastActiveAt])
+  @@index([projectId])
+}
+
+model DeveloperInsights {
+  id                      String   @id
+  projectId               String
+  userId                  String?
+  period                  String
+  periodStart             DateTime
+  periodEnd               DateTime
+  totalAiFixes            Int      @default(0)
+  successfulFixes         Int      @default(0)
+  failedFixes             Int      @default(0)
+  successRate             Float    @default(0)
+  estimatedHoursSaved     Float    @default(0)
+  avgFixTimeMinutes       Int      @default(0)
+  totalFixTimeMinutes     Int      @default(0)
+  totalCommits            Int      @default(0)
+  totalPRsCreated         Int      @default(0)
+  totalPRsMerged          Int      @default(0)
+  totalIssuesResolved     Int      @default(0)
+  linesOfCodeFixed        Int      @default(0)
+  bugsFixed               Int      @default(0)
+  securityIssuesFixed     Int      @default(0)
+  performanceImprovements Int      @default(0)
+  avgCodeReviewTime       Int?
+  prMergeRate             Float    @default(0)
+  rollbackRate            Float    @default(0)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime
+  Project                 Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  User                    User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId, period, periodStart])
+  @@index([projectId, period, periodStart])
+  @@index([userId, period, periodStart])
+}
+
+model FeedbackAnalytics {
+  id                String   @id
+  projectId         String
+  userId            String?
+  period            String
+  periodStart       DateTime
+  periodEnd         DateTime
+  totalFeedbacks    Int      @default(0)
+  avgRating         Float?
+  ratingCounts      String
+  categoryBreakdown String
+  topIssues         String?
+  improvement       Float?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime
+  Project           Project  @relation(fields: [projectId], references: [id])
+  User              User?    @relation(fields: [userId], references: [id])
+
+  @@unique([projectId, userId, period, periodStart])
+  @@index([projectId, period, periodStart])
+  @@index([userId, period, periodStart])
 }
 
 model Issue {
-  id          String     @id @default(cuid())
-  projectId   String
-  number      Int
-  title       String
-  body        String?
-  state       IssueState @default(OPEN)
-  htmlUrl     String
-  authorLogin String
-  authorUrl   String
-  assignees   String[]   @default([])
-  labels      String[]   @default([])
-  createdAt   DateTime
-  updatedAt   DateTime
-  closedAt    DateTime?
-  // AI persistence fields
-  aiAnalyzed   Boolean   @default(false)
+  id           String     @id
+  projectId    String
+  number       Int
+  title        String
+  body         String?
+  state        IssueState @default(OPEN)
+  htmlUrl      String
+  authorLogin  String
+  authorUrl    String
+  assignees    String[]   @default([])
+  labels       String[]   @default([])
+  createdAt    DateTime
+  updatedAt    DateTime
+  closedAt     DateTime?
+  aiAnalyzed   Boolean    @default(false)
   aiAnalyzedAt DateTime?
   aiSummary    String?
   aiFixPrUrl   String?
-  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  Project      Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, number])
+  @@index([projectId, createdAt])
   @@index([projectId, state])
+}
+
+model Message {
+  id             String         @id
+  sessionId      String
+  role           String
+  content        String
+  tokenCount     Int?
+  contextTokens  Int?
+  memoryIncluded Boolean        @default(false)
+  latencyMs      Int?
+  createdAt      DateTime       @default(now())
+  AgentFeedback  AgentFeedback?
+  ChatSession    ChatSession    @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId, createdAt])
+}
+
+model Organization {
+  id                 String               @id
+  name               String
+  description        String?
+  slug               String               @unique
+  avatarUrl          String?
+  plan               String               @default("free")
+  maxProjects        Int                  @default(5)
+  maxMembers         Int                  @default(10)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime
+  ownerId            String
+  User               User                 @relation(fields: [ownerId], references: [id])
+  OrganizationInvite OrganizationInvite[]
+  OrganizationMember OrganizationMember[]
+  Project            Project[]
+
+  @@index([ownerId])
+}
+
+model OrganizationInvite {
+  id             String           @id
+  organizationId String
+  email          String
+  role           OrganizationRole @default(VIEWER)
+  token          String           @unique
+  expiresAt      DateTime
+  createdAt      DateTime         @default(now())
+  invitedBy      String
+  User           User             @relation(fields: [invitedBy], references: [id])
+  Organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([organizationId])
+}
+
+model OrganizationMember {
+  id                                      String           @id
+  organizationId                          String
+  userId                                  String
+  role                                    OrganizationRole @default(VIEWER)
+  invitedAt                               DateTime?
+  joinedAt                                DateTime         @default(now())
+  invitedBy                               String?
+  User_OrganizationMember_invitedByToUser User?            @relation("OrganizationMember_invitedByToUser", fields: [invitedBy], references: [id])
+  Organization                            Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  User_OrganizationMember_userIdToUser    User             @relation("OrganizationMember_userIdToUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
+}
+
+model Project {
+  id                String              @id
+  name              String
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime
+  defaultBranch     String              @default("main")
+  githubUrl         String
+  lastIndexedAt     DateTime?
+  ownerId           String
+  status            String              @default("idle")
+  visibility        String              @default("public")
+  lastFullScanAt    DateTime?
+  organizationId    String?
+  ActivityLog       ActivityLog[]
+  ActivityEvent     ActivityEvent[]
+  AgentFeedback     AgentFeedback[]
+  AgentMemory       AgentMemory[]
+  AutoFixConfig     AutoFixConfig?
+  AutoFixMetrics    AutoFixMetrics[]
+  AutoFixSession    AutoFixSession[]
+  ChatSession       ChatSession[]
+  CodeChunk         CodeChunk[]
+  Commit            Commit[]
+  Contributor       Contributor[]
+  DeveloperInsights DeveloperInsights[]
+  FeedbackAnalytics FeedbackAnalytics[]
+  Issue             Issue[]
+  Organization      Organization?       @relation(fields: [organizationId], references: [id])
+  User              User                @relation(fields: [ownerId], references: [id])
+  ProjectConfig     ProjectConfig?
+  ProjectFile       ProjectFile[]
+  PullRequest       PullRequest[]
+  TimeTracking      TimeTracking[]
+  ToolExecution     ToolExecution[]
+
+  @@index([organizationId])
+}
+
+model ProjectConfig {
+  id                   String   @id
+  projectId            String   @unique
+  vercelToken          String?
+  vercelProjectId      String?
+  vercelTeamId         String?
+  openaiApiKey         String?
+  githubAppId          String?
+  githubPrivateKey     String?
+  githubInstallationId String?
+  githubWebhookSecret  String?
+  githubToken          String?
+  encryptionSalt       String?
+  isEncrypted          Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime
+  Project              Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model ProjectFile {
+  id           String      @id
+  projectId    String
+  relativePath String
+  absolutePath String?
+  fileType     String
+  language     String
+  extension    String
+  size         Int
+  lines        Int
+  lastModified DateTime
+  gitSha       String?
+  isIndexed    Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime
+  CodeChunk    CodeChunk[]
+  Project      Project     @relation(fields: [projectId], references: [id])
+
+  @@unique([projectId, relativePath])
+  @@index([lastModified])
+  @@index([projectId, fileType])
+  @@index([projectId])
+  @@index([projectId, isIndexed])
+}
+
+model PullRequest {
+  id             String           @id
+  projectId      String
+  number         Int
+  title          String
+  body           String?
+  state          PullRequestState @default(OPEN)
+  htmlUrl        String
+  headBranch     String
+  baseBranch     String
+  authorLogin    String
+  authorUrl      String
+  createdAt      DateTime
+  updatedAt      DateTime
+  closedAt       DateTime?
+  mergedAt       DateTime?
+  draft          Boolean          @default(false)
+  mergeable      Boolean?
+  labels         String[]         @default([])
+  additions      Int?
+  changedFiles   Int?
+  contributorId  String?
+  deletions      Int?
+  isAiGenerated  Boolean          @default(false)
+  reviewComments Int?
+  Contributor    Contributor?     @relation(fields: [contributorId], references: [id])
+  Project        Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, number])
+  @@index([contributorId])
   @@index([projectId, createdAt])
-}
-
-enum PullRequestState {
-  OPEN
-  CLOSED
-  MERGED
-}
-
-enum IssueState {
-  OPEN
-  CLOSED
-}
-
-// Enhanced Analytics Models for Developer Insights Dashboard
-model DeveloperInsights {
-  id                    String   @id @default(cuid())
-  projectId             String
-  userId                String?
-  period                String   // "daily", "weekly", "monthly", "quarterly", "yearly"
-  periodStart           DateTime
-  periodEnd             DateTime
-  
-  // Core Metrics
-  totalAiFixes          Int      @default(0)
-  successfulFixes       Int      @default(0)
-  failedFixes           Int      @default(0)
-  successRate           Float    @default(0)
-  
-  // Time Savings
-  estimatedHoursSaved   Float    @default(0)
-  avgFixTimeMinutes     Int      @default(0)
-  totalFixTimeMinutes   Int      @default(0)
-  
-  // Repository Activity
-  totalCommits          Int      @default(0)
-  totalPRsCreated       Int      @default(0)
-  totalPRsMerged        Int      @default(0)
-  totalIssuesResolved   Int      @default(0)
-  
-  // Code Quality Metrics
-  linesOfCodeFixed      Int      @default(0)
-  bugsFixed             Int      @default(0)
-  securityIssuesFixed   Int      @default(0)
-  performanceImprovements Int    @default(0)
-  
-  // Efficiency Metrics  
-  avgCodeReviewTime     Int?     // minutes
-  prMergeRate           Float    @default(0)
-  rollbackRate          Float    @default(0)
-  
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  
-  project               Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user                  User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([projectId, userId, period, periodStart])
-  @@index([projectId, period, periodStart])
-  @@index([userId, period, periodStart])
-}
-
-model ActivityLog {
-  id            String           @id @default(cuid())
-  projectId     String
-  userId        String?
-  activityType  ActivityType
-  entityType    String           // "issue", "pr", "commit", "ai_fix"
-  entityId      String
-  description   String
-  metadata      String?          // JSON string for additional data
-  duration      Int?             // activity duration in minutes
-  impact        ActivityImpact   @default(LOW)
-  createdAt     DateTime         @default(now())
-  
-  project       Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user          User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([projectId, createdAt])
-  @@index([userId, createdAt])
-  @@index([activityType, createdAt])
-}
-
-// AI Activity Feed for real-time visibility into all AI operations
-model ActivityEvent {
-  id          String              @id @default(cuid())
-  projectId   String
-  userId      String?
-  eventType   ActivityEventType
-  entityType  String              // "indexing", "apr_session", "chat_message", "auto_fix", "code_generation"
-  entityId    String?
-  title       String
-  description String?             @db.Text
-  metadata    String?             @db.Text  // JSON string for additional data (file paths, line numbers, etc.)
-  status      ActivityEventStatus @default(IN_PROGRESS)
-  duration    Int?                // duration in milliseconds
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
-  
-  project     Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user        User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([projectId, createdAt(sort: Desc)])
-  @@index([userId, createdAt(sort: Desc)])
-  @@index([eventType, createdAt(sort: Desc)])
-  @@index([status, createdAt(sort: Desc)])
-  @@index([projectId, eventType, createdAt(sort: Desc)])
+  @@index([projectId, state])
 }
 
 model TimeTracking {
-  id              String   @id @default(cuid())
+  id              String    @id
   projectId       String
   userId          String?
-  sessionId       String?  // Links to AI fix session
-  taskType        String   // "ai_fix", "code_review", "debugging", "feature_development"
+  sessionId       String?
+  taskType        String
   startTime       DateTime
   endTime         DateTime?
   durationMinutes Int?
   description     String?
-  tags            String[] @default([])
-  
-  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags            String[]  @default([])
+  Project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  User            User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([projectId, startTime])
-  @@index([userId, startTime])
   @@index([taskType, startTime])
+  @@index([userId, startTime])
 }
 
-enum ActivityType {
-  AI_FIX_STARTED
-  AI_FIX_COMPLETED
-  AI_FIX_FAILED
-  AI_FIX_REGENERATED
-  AI_FIX_CANCELLED
-  AI_FIX_DIFF_METRICS
-  PR_CREATED
-  PR_MERGED
-  PR_CLOSED
-  ISSUE_OPENED
-  ISSUE_CLOSED
-  COMMIT_PUSHED
-  CODE_REVIEWED
-  DEPLOYMENT
-  BUILD_FAILED
-  BUILD_SUCCESS
-  TEST_FAILED
-  TEST_PASSED
+model ToolExecution {
+  id              String   @id
+  toolName        String
+  projectId       String
+  userId          String
+  sessionId       String?
+  input           String
+  output          String
+  success         Boolean
+  executionTimeMs Int
+  error           String?
+  timestamp       DateTime @default(now())
+  metadata        String?
+  Project         Project  @relation(fields: [projectId], references: [id])
+  User            User     @relation(fields: [userId], references: [id])
+
+  @@index([projectId, timestamp])
+  @@index([toolName, timestamp])
+  @@index([userId, timestamp])
 }
 
-enum ActivityImpact {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
+model User {
+  id                                                    String               @id
+  email                                                 String?              @unique
+  name                                                  String?
+  createdAt                                             DateTime             @default(now())
+  image                                                 String?
+  role                                                  String               @default("user")
+  ActivityLog                                           ActivityLog[]
+  ActivityEvent                                         ActivityEvent[]
+  AgentFeedback                                         AgentFeedback[]
+  AgentMemory                                           AgentMemory[]
+  AutoFixMetrics                                        AutoFixMetrics[]
+  AutoFixSession_AutoFixSession_approvedByToUser        AutoFixSession[]     @relation("AutoFixSession_approvedByToUser")
+  AutoFixSession_AutoFixSession_userIdToUser            AutoFixSession[]     @relation("AutoFixSession_userIdToUser")
+  ChatSession                                           ChatSession[]
+  DeveloperInsights                                     DeveloperInsights[]
+  FeedbackAnalytics                                     FeedbackAnalytics[]
+  Organization                                          Organization[]
+  OrganizationInvite                                    OrganizationInvite[]
+  OrganizationMember_OrganizationMember_invitedByToUser OrganizationMember[] @relation("OrganizationMember_invitedByToUser")
+  OrganizationMember_OrganizationMember_userIdToUser    OrganizationMember[] @relation("OrganizationMember_userIdToUser")
+  Project                                               Project[]
+  TimeTracking                                          TimeTracking[]
+  ToolExecution                                         ToolExecution[]
+}
+
+enum ActivityEventStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  CANCELLED
 }
 
 enum ActivityEventType {
@@ -693,178 +752,81 @@ enum ActivityEventType {
   TEST_GENERATION
 }
 
-enum ActivityEventStatus {
-  IN_PROGRESS
+enum ActivityImpact {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ActivityType {
+  AI_FIX_STARTED
+  AI_FIX_COMPLETED
+  AI_FIX_FAILED
+  PR_CREATED
+  PR_MERGED
+  PR_CLOSED
+  ISSUE_OPENED
+  ISSUE_CLOSED
+  COMMIT_PUSHED
+  CODE_REVIEWED
+  DEPLOYMENT
+  BUILD_FAILED
+  BUILD_SUCCESS
+  TEST_FAILED
+  TEST_PASSED
+  AI_FIX_REGENERATED
+  AI_FIX_CANCELLED
+  AI_FIX_DIFF_METRICS
+}
+
+enum AgentFeedbackCategory {
+  ACCURACY
+  HELPFULNESS
+  RELEVANCE
+  COMPLETENESS
+  CLARITY
+  SPEED
+  OVERALL
+}
+
+enum AgentFeedbackType {
+  POSITIVE
+  NEGATIVE
+  NEUTRAL
+}
+
+enum AutoFixStatus {
+  PENDING
+  ANALYZING
+  FIXING
+  CREATING_PR
   COMPLETED
   FAILED
   CANCELLED
 }
 
-// Project Analytics Models
-model Commit {
-  id          String       @id @default(cuid())
-  sha         String       @unique
-  message     String
-  author      String
-  authorEmail String?
-  additions   Int?
-  deletions   Int?
-  date        DateTime
-  url         String?
-  projectId   String
-  contributorId String?
-  branch      String?
-  isAiGenerated Boolean    @default(false)
-  filesChanged String[]    @default([])
-  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  contributor Contributor? @relation(fields: [contributorId], references: [id])
-  
-  @@index([projectId, date])
-  @@index([contributorId])
-  @@index([projectId, branch])
-  @@index([date])
+enum AutoFixTriggerType {
+  MANUAL
+  WEBHOOK
+  CI_FAILURE
+  SCHEDULE
 }
 
-model Contributor {
-  id           String        @id @default(cuid())
-  githubId     String?       @unique
-  username     String
-  avatarUrl    String?
-  email        String?
-  name         String?
-  projectId    String
-  totalCommits Int           @default(0)
-  totalAdditions Int         @default(0) 
-  totalDeletions Int         @default(0)
-  totalPRs     Int           @default(0)
-  lastActiveAt DateTime?
-  joinedAt     DateTime      @default(now())
-  commits      Commit[]
-  pullRequests PullRequest[]
-  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  
-  @@unique([projectId, username])
-  @@index([projectId])
-  @@index([githubId])
-  @@index([lastActiveAt])
+enum IssueState {
+  OPEN
+  CLOSED
 }
 
-// Dynamic Project Configuration System
-model ProjectConfig {
-  id                    String   @id @default(cuid())
-  projectId             String   @unique
-  vercelToken           String?
-  vercelProjectId       String?
-  vercelTeamId          String?
-  openaiApiKey          String?
-  githubAppId           String?
-  githubPrivateKey      String?
-  githubInstallationId  String?
-  githubWebhookSecret   String?
-  githubToken           String?
-  // Jira Integration
-  jiraApiToken          String?
-  jiraEmail             String?
-  jiraDomain            String?  // e.g., "yourcompany.atlassian.net"
-  jiraProjectKey        String?  // e.g., "PROJ"
-  // Trello Integration
-  trelloApiKey          String?
-  trelloToken           String?
-  trelloBoardId         String?
-  encryptionSalt        String?  // For encrypting sensitive data
-  isEncrypted           Boolean  @default(false)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  project               Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  
-  @@index([projectId])
+enum OrganizationRole {
+  OWNER
+  ADMIN
+  EDITOR
+  VIEWER
 }
 
-// ============================================================================
-// APR (Autonomous Pull Request) System Models
-// ============================================================================
-
-// Tracks each code generation attempt within an AutoFix session
-model AutoFixAttempt {
-  id             String         @id @default(cuid())
-  sessionId      String
-  attemptNumber  Int
-  filesModified  String[]       @default([])
-  prompt         String         @db.Text
-  aiResponse     String         @db.Text
-  codeSnippets   String         @db.Text
-  success        Boolean        @default(false)
-  errorMessage   String?        @db.Text
-  createdAt      DateTime       @default(now())
-  session        AutoFixSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  
-  @@index([sessionId])
-  @@index([sessionId, attemptNumber])
-}
-
-// Stores validation results for each attempt
-model AutoFixValidation {
-  id             String         @id @default(cuid())
-  sessionId      String
-  attemptNumber  Int
-  validationType String         // LINT, TYPECHECK, UNIT_TEST, E2E_TEST, SECURITY_SCAN, PERFORMANCE
-  passed         Boolean
-  output         String         @db.Text
-  errors         String?        @db.Text
-  duration       Int?           // milliseconds
-  executedAt     DateTime       @default(now())
-  session        AutoFixSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  
-  @@index([sessionId])
-  @@index([sessionId, validationType])
-  @@index([passed])
-}
-
-// AI code review findings for each session
-model AutoFixReview {
-  id                String         @id @default(cuid())
-  sessionId         String
-  reviewType        String         // CODE_QUALITY, PERFORMANCE, SECURITY, BEST_PRACTICES, POTENTIAL_BUG, N_PLUS_ONE, MEMORY_LEAK, ERROR_HANDLING
-  severity          String         // CRITICAL, HIGH, MEDIUM, LOW, INFO
-  filePath          String
-  lineNumber        Int?
-  issue             String         @db.Text
-  explanation       String         @db.Text
-  suggestion        String?        @db.Text
-  category          String         // performance, security, maintainability, etc.
-  tags              String[]       @default([])
-  postedToGitHub    Boolean        @default(false)
-  githubCommentId   Int?
-  references        String[]       @default([])
-  createdAt         DateTime       @default(now())
-  session           AutoFixSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  
-  @@index([sessionId])
-  @@index([sessionId, severity])
-  @@index([reviewType])
-  @@index([postedToGitHub])
-}
-
-// Complete history and audit trail for each AutoFix session
-model AutoFixHistory {
-  id               String   @id @default(cuid())
-  sessionId        String   @unique
-  projectId        String
-  issueDescription String   @db.Text
-  attempts         String   @db.Text // JSON array of all attempts
-  finalStatus      String
-  prNumber         Int?
-  prUrl            String?
-  totalAttempts    Int      @default(0)
-  validationsPassed Int     @default(0)
-  validationsFailed Int     @default(0)
-  reviewFindings    Int     @default(0)
-  retryCount        Int     @default(0)
-  createdAt         DateTime
-  completedAt       DateTime?
-  
-  @@index([projectId])
-  @@index([sessionId])
-  @@index([finalStatus])
-  @@index([createdAt])
+enum PullRequestState {
+  OPEN
+  CLOSED
+  MERGED
 }
