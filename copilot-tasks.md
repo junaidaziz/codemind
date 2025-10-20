@@ -66,48 +66,17 @@
 ## ⚙️ Tier 2 – UX / Developer Experience
 
 ### **5. Dashboard & Visualization** ✅ PARTIALLY COMPLETED
-- [x] Add **AI Activity Feed** (timeline of all actions) ✅
-  - ✅ ActivityEvent database model with comprehensive event tracking
-  - ✅ REST API endpoint at `/api/activity/feed` (GET/POST/PATCH)
-  - ✅ ActivityFeed React component with timeline UI
-  - ✅ Activity page at `/activity` with filters
-  - ✅ Activity logger utility with helper functions (logAPRPhase, logIndexingEvent, etc.)
-  - ✅ **Integrated with APR orchestrator** (7 lifecycle phases logged) - Commit 5770280
-  - ✅ **Integrated with indexing jobs** (STARTED, PROGRESS, COMPLETED, FAILED) - Commit 3f77a9b
-  - ✅ Real-time event tracking for APR sessions and indexing operations
-  - 📋 TODO: Add chat message logging, auto-fix logging
-- [x] Visualize **indexing and job progress** with real-time status bars ✅
-  - ✅ **IndexingProgressWidget** component with live updates (commit b465355)
-  - ✅ Real-time progress bars (percentage, file counts, chunks)
-  - ✅ Shimmer animation for active progress
-  - ✅ Integrated into `/projects` dashboard
-  - ✅ Auto-refresh every 3 seconds
-  - ✅ Time remaining estimates
-  - ✅ Cancel job functionality
-  - ✅ Color-coded status badges (IN_PROGRESS, COMPLETED, FAILED)
+- [x] Add **AI Activity Feed** (timeline of all actions) ✅ **COMPLETE**
+  - Commit 5770280, 3f77a9b - Full integration with APR and indexing
+- [x] Visualize **indexing and job progress** with real-time status bars ✅ **COMPLETE**
+  - Commit b465355, f4d7004 - IndexingProgressWidget with live updates
 - [ ] Show **codebase insights**: most changed files, complexity hotspots
 - [ ] Add **dark/light theme toggle** and responsive design improvements
 - [ ] Improve navigation for projects and chat sessions
+- [ ] Add chat message logging to activity feed
+- [ ] Add auto-fix operation logging to activity feed
 
-**Status**: APR Dashboard, Risk Scoring, Auth Flow, **AI Activity Feed**, and **Indexing Progress Visualization** completed.
-
-**✅ AI Activity Feed Integration Complete**:
-- **APR Orchestrator** (commit 5770280): All 7 phases logged (CREATED, ANALYZING, CODE_GENERATION, VALIDATION, REVIEW, PR_CREATED, COMPLETED/FAILED)
-- **Indexing Jobs** (commit 3f77a9b): Full lifecycle tracking (STARTED, PROGRESS, COMPLETED, FAILED) with progress updates every 20%
-- Real-time visibility into long-running operations
-- Comprehensive metadata included: file counts, chunk counts, duration, errors
-
-**✅ Indexing Progress Visualization Complete** (commit b465355):
-- **IndexingProgressWidget**: Real-time component showing active indexing jobs
-- **Progress Bars**: Visual percentage, file counts, chunks created
-- **Shimmer Animation**: Beautiful animated progress bars
-- **Time Estimates**: Calculate and display remaining time
-- **Cancel Jobs**: Button to stop active indexing operations
-- **Auto-refresh**: Polls /api/indexing/active every 3 seconds
-- **Dark Mode**: Full support with color-coded status badges
-- **Location**: Integrated into `/projects` dashboard page
-
-**Remaining**: Codebase insights dashboard, theme toggle, navigation improvements, chat/auto-fix logging
+**Status**: APR Dashboard, Risk Scoring, Auth Flow, AI Activity Feed, and Indexing Progress Visualization **completed**.
 
 ---
 
