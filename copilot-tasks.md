@@ -70,13 +70,18 @@
   - Commit 5770280, 3f77a9b - Full integration with APR and indexing
 - [x] Visualize **indexing and job progress** with real-time status bars ✅ **COMPLETE**
   - Commit b465355, f4d7004 - IndexingProgressWidget with live updates
-- [ ] Show **codebase insights**: most changed files, complexity hotspots
+- [x] Show **codebase insights**: most changed files, complexity hotspots ✅ **COMPLETE**
+  - Commit c7ecb5c - CodebaseInsightsWidget with visualizations
+  - Bar charts, pie charts, summary cards, hotspot table
+  - File type distribution, code churn metrics
+  - Activity trends (7/30/90 days)
+  - Integrated into /projects dashboard
 - [ ] Add **dark/light theme toggle** and responsive design improvements
 - [ ] Improve navigation for projects and chat sessions
 - [ ] Add chat message logging to activity feed
 - [ ] Add auto-fix operation logging to activity feed
 
-**Status**: APR Dashboard, Risk Scoring, Auth Flow, AI Activity Feed, and Indexing Progress Visualization **completed**.
+**Status**: APR Dashboard, Risk Scoring, Auth Flow, AI Activity Feed, Indexing Progress Visualization, and **Codebase Insights Dashboard** completed.
 
 ---
 
