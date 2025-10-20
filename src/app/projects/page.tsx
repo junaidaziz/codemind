@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { FullPageSpinner, ErrorBanner, InlineSpinner } from '../../components/ui';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import ConfirmationModal from '../../components/ui/ConfirmationModal';
+import IndexingProgressWidget from '../../components/IndexingProgressWidget';
 
 interface Project {
   id: string;
@@ -256,6 +257,15 @@ function ProjectsPageContent() {
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Active Indexing Jobs Widget */}
+          <div className="mt-6">
+            <IndexingProgressWidget 
+              refreshInterval={3000} 
+              showCompleted={false}
+              maxJobs={5}
+            />
           </div>
         </div>
 
