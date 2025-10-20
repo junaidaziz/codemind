@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import { authenticatedFetch } from '@/lib/api-client';
 
 interface ActivityEvent {
   id: string;
@@ -69,7 +70,7 @@ export default function ActivityFeed({ projectId, limit = 50 }: ActivityFeedProp
       if (filters.status) params.append('status', filters.status);
       if (filters.search) params.append('search', filters.search);
 
-      const response = await fetch(`/api/activity/feed?${params}`);
+      const response = await authenticatedFetch(`/api/activity/feed?${params}`);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

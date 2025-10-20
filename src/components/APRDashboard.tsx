@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { authenticatedFetch } from '@/lib/api-client';
 import APRSessionList from './APRSessionList';
 import APRSessionDetail from './APRSessionDetail';
 import APRFilters from './APRFilters';
@@ -93,7 +94,7 @@ export default function APRDashboard() {
       if (filters.projectId) params.set('projectId', filters.projectId);
       if (filters.status) params.set('status', filters.status);
 
-      const response = await fetch(`/api/apr/sessions?${params}`);
+      const response = await authenticatedFetch(`/api/apr/sessions?${params}`);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
