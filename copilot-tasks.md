@@ -76,12 +76,20 @@
   - ✅ **Integrated with indexing jobs** (STARTED, PROGRESS, COMPLETED, FAILED) - Commit 3f77a9b
   - ✅ Real-time event tracking for APR sessions and indexing operations
   - 📋 TODO: Add chat message logging, auto-fix logging
-- [ ] Visualize **indexing and job progress** with real-time status bars
+- [x] Visualize **indexing and job progress** with real-time status bars ✅
+  - ✅ **IndexingProgressWidget** component with live updates (commit b465355)
+  - ✅ Real-time progress bars (percentage, file counts, chunks)
+  - ✅ Shimmer animation for active progress
+  - ✅ Integrated into `/projects` dashboard
+  - ✅ Auto-refresh every 3 seconds
+  - ✅ Time remaining estimates
+  - ✅ Cancel job functionality
+  - ✅ Color-coded status badges (IN_PROGRESS, COMPLETED, FAILED)
 - [ ] Show **codebase insights**: most changed files, complexity hotspots
 - [ ] Add **dark/light theme toggle** and responsive design improvements
 - [ ] Improve navigation for projects and chat sessions
 
-**Status**: APR Dashboard, Risk Scoring, Auth Flow, and **AI Activity Feed** completed and integrated.
+**Status**: APR Dashboard, Risk Scoring, Auth Flow, **AI Activity Feed**, and **Indexing Progress Visualization** completed.
 
 **✅ AI Activity Feed Integration Complete**:
 - **APR Orchestrator** (commit 5770280): All 7 phases logged (CREATED, ANALYZING, CODE_GENERATION, VALIDATION, REVIEW, PR_CREATED, COMPLETED/FAILED)
@@ -89,7 +97,17 @@
 - Real-time visibility into long-running operations
 - Comprehensive metadata included: file counts, chunk counts, duration, errors
 
-**Remaining**: Indexing progress visualization UI, codebase insights dashboard, chat/auto-fix logging
+**✅ Indexing Progress Visualization Complete** (commit b465355):
+- **IndexingProgressWidget**: Real-time component showing active indexing jobs
+- **Progress Bars**: Visual percentage, file counts, chunks created
+- **Shimmer Animation**: Beautiful animated progress bars
+- **Time Estimates**: Calculate and display remaining time
+- **Cancel Jobs**: Button to stop active indexing operations
+- **Auto-refresh**: Polls /api/indexing/active every 3 seconds
+- **Dark Mode**: Full support with color-coded status badges
+- **Location**: Integrated into `/projects` dashboard page
+
+**Remaining**: Codebase insights dashboard, theme toggle, navigation improvements, chat/auto-fix logging
 
 ---
 
