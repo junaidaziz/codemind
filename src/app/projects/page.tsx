@@ -6,6 +6,7 @@ import { FullPageSpinner, ErrorBanner, InlineSpinner } from '../../components/ui
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import ConfirmationModal from '../../components/ui/ConfirmationModal';
 import IndexingProgressWidget from '../../components/IndexingProgressWidget';
+import CodebaseInsightsWidget from '../../components/CodebaseInsightsWidget';
 
 interface Project {
   id: string;
@@ -265,6 +266,14 @@ function ProjectsPageContent() {
               refreshInterval={3000} 
               showCompleted={false}
               maxJobs={5}
+            />
+          </div>
+
+          {/* Codebase Insights Widget */}
+          <div className="mt-6">
+            <CodebaseInsightsWidget 
+              days={90}
+              autoRefresh={false}
             />
           </div>
         </div>
