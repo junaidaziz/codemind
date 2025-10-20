@@ -157,7 +157,10 @@ async function getFileStatsFromActivity(projectId: string, days: number, limit: 
 
   const fileMap = new Map<string, FileStats>();
   activities.forEach(activity => {
-    const metadata = activity.metadata as Record<string, unknown>;
+    if (!activity.metadata || typeof activity.metadata !== 'object') {
+      return;
+    }
+    const metadata = activity.metadata as unknown as Record<string, unknown>;
     const files = (metadata?.files as string[]) || (metadata?.modifiedFiles as string[]) || [];
     files.forEach((file: string) => {
       const existing = fileMap.get(file);
@@ -198,9 +201,10 @@ async function cacheInsights(projectId: string, days: number, insights: Codebase
       data: {
         projectId,
         eventType: 'INDEXING_COMPLETED',
+        entityType: 'codebase_insights',
         status: 'COMPLETED',
         title: `Codebase insights cached (${days} days)`,
-        metadata: insights as unknown as Record<string, unknown>
+        metadata: JSON.stringify(insights)
       }
     });
   } catch (cacheError) {

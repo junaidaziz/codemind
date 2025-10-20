@@ -19,6 +19,10 @@
 
 ## 🔥 Tier 1 – High-Impact Enhancements
 
+**Status**: Starting implementation of Developer Command Console (Feature #2)
+
+---
+
 ### **1. AI Code Generation → Smart Scaffolder Mode**
 - [ ] Add **context-aware scaffolding** (reads existing project conventions).  
 - [ ] Allow natural prompts like "Create settings module similar to profile."  
@@ -30,14 +34,16 @@
 
 ---
 
-### **2. AI Chat → Developer Command Console**
+### **2. AI Chat → Developer Command Console** 🚧 **IN PROGRESS**
 - [ ] Enable **multi-turn conversation memory** per project.  
-- [ ] Support **slash commands** (`/fix`, `/gen`, `/test`, `/refactor`).  
+- [ ] Support **slash commands** (`/fix`, `/gen`, `/test`, `/refactor`, `/explain`) 🔨 **IMPLEMENTING**
 - [ ] Add **inline file diffs** with "Accept / Reject" actions in chat.  
 - [ ] Provide **daily PR summaries** and deployment updates via chat.  
 - [ ] Add **auto-context recall** from previous chats.
 
 **Goal:** Make chat the *central developer console* for coding, testing, and deployment.
+
+**Current Phase**: Building command parser and slash command handlers
 
 ---
 
@@ -65,23 +71,17 @@
 
 ## ⚙️ Tier 2 – UX / Developer Experience
 
-### **5. Dashboard & Visualization** ✅ PARTIALLY COMPLETED
-- [x] Add **AI Activity Feed** (timeline of all actions) ✅ **COMPLETE**
-  - Commit 5770280, 3f77a9b - Full integration with APR and indexing
-- [x] Visualize **indexing and job progress** with real-time status bars ✅ **COMPLETE**
-  - Commit b465355, f4d7004 - IndexingProgressWidget with live updates
-- [x] Show **codebase insights**: most changed files, complexity hotspots ✅ **COMPLETE**
-  - Commit c7ecb5c - CodebaseInsightsWidget with visualizations
-  - Bar charts, pie charts, summary cards, hotspot table
-  - File type distribution, code churn metrics
-  - Activity trends (7/30/90 days)
-  - Integrated into /projects dashboard
-- [ ] Add **dark/light theme toggle** and responsive design improvements
-- [ ] Improve navigation for projects and chat sessions
-- [ ] Add chat message logging to activity feed
-- [ ] Add auto-fix operation logging to activity feed
+### **5. Dashboard & Visualization** ✅ **COMPLETED**
+All dashboard visualization features are complete:
+- ✅ AI Activity Feed (Commits: 5770280, 3f77a9b)
+- ✅ Indexing Progress Visualization (Commits: b465355, f4d7004)
+- ✅ Codebase Insights Dashboard (Commit: c7ecb5c, 88b5422)
 
-**Status**: APR Dashboard, Risk Scoring, Auth Flow, AI Activity Feed, Indexing Progress Visualization, and **Codebase Insights Dashboard** completed.
+**Remaining polish tasks** (moved to backlog):
+- Theme toggle and responsive design improvements
+- Navigation enhancements for projects and chat
+- Chat message logging to activity feed
+- Auto-fix operation logging to activity feed
 
 ---
 
