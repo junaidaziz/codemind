@@ -9,6 +9,9 @@ import { QuickFeedback } from '../../components/AgentFeedback';
 import { FeedbackSummary } from '../../components/FeedbackAnalytics';
 import { RealtimeCollaborationPanel, RealtimeStatusBadge } from '../../components/RealtimeCollaboration';
 import { useRealtimeCollaboration, useTypingIndicator } from '../../hooks/useRealtimeCollaboration';
+import { CommandParser, getCommandRegistry, initializeCommandHandlers } from '@/lib/command-handlers';
+import type { CommandResult } from '@/lib/command-handlers/types';
+import type { Command } from '@/lib/command-parser';
 
 interface Project {
   id: string;
@@ -19,9 +22,10 @@ interface Project {
 
 interface Message {
   id: string;
-  role: 'user' | 'assistant' | 'system';
+  role: 'user' | 'assistant' | 'system' | 'command';
   content: string;
   createdAt: string;
+  commandResult?: CommandResult;
 }
 
 function ChatPageContent() {
@@ -37,6 +41,11 @@ function ChatPageContent() {
   const [isRestoringSession] = useState(false); // Keep for UI consistency, always false since restore function is disabled
   const [showCollaborationPanel, setShowCollaborationPanel] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Initialize command handlers on mount
+  useEffect(() => {
+    initializeCommandHandlers();
+  }, []);
 
   // Realtime collaboration
   const collaboration = useRealtimeCollaboration({
@@ -211,8 +220,71 @@ function ChatPageContent() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const handleCommandExecution = async (command: Command, originalInput: string) => {
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: originalInput,
+      createdAt: new Date().toISOString()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputMessage('');
+    setIsLoading(true);
+
+    try {
+      const registry = getCommandRegistry();
+      const result = await registry.execute(command, {
+        userId: user?.id || 'unknown',
+        projectId: selectedProjectId,
+        sessionId: currentSessionId,
+      });
+
+      // Add command result as assistant message
+      const commandMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'command',
+        content: result.message || 'Command executed',
+        createdAt: new Date().toISOString(),
+        commandResult: result
+      };
+
+      setMessages(prev => [...prev, commandMessage]);
+
+      // Broadcast command result if in a session (as assistant role for compatibility)
+      if (currentSessionId) {
+        collaboration.sendMessage({
+          messageId: commandMessage.id,
+          role: 'assistant',
+          content: commandMessage.content,
+          createdAt: commandMessage.createdAt,
+        }).catch(error => {
+          console.warn('Failed to broadcast command result:', error);
+        });
+      }
+    } catch (error) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'system',
+        content: `Command error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        createdAt: new Date().toISOString()
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || !selectedProjectId || isStreaming) return;
+
+    // Check for slash commands first
+    const parsed = CommandParser.parse(inputMessage);
+    if (parsed.hasCommand && parsed.command) {
+      await handleCommandExecution(parsed.command, inputMessage);
+      return; // Don't send to chat API
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -231,7 +303,7 @@ function ChatPageContent() {
       stopTyping();
       collaboration.sendMessage({
         messageId: userMessage.id,
-        role: userMessage.role,
+        role: userMessage.role as 'user',
         content: userMessage.content,
         createdAt: userMessage.createdAt,
       }).catch(error => {
@@ -309,7 +381,7 @@ function ChatPageContent() {
                   // Get the final message content
                   setMessages(prevMessages => {
                     const finalMessage = prevMessages.find(msg => msg.id === assistantMessage.id);
-                    if (finalMessage && finalMessage.content) {
+                    if (finalMessage && finalMessage.content && finalMessage.role !== 'command') {
                       collaboration.sendMessage({
                         messageId: finalMessage.id,
                         role: finalMessage.role,
@@ -496,12 +568,98 @@ function ChatPageContent() {
                   className={`max-w-3xl rounded-lg p-4 ${
                     message.role === 'user'
                       ? 'bg-blue-500 text-white ml-8'
+                      : message.role === 'command'
+                      ? 'bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-200 dark:border-purple-800 text-gray-900 dark:text-white mr-8'
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white mr-8'
                   }`}
                 >
-                  <div className="text-sm">
-                    {formatMessage(message.content)}
-                  </div>
+                  {/* Command Result Display */}
+                  {message.commandResult ? (
+                    <div className="space-y-3">
+                      {/* Command Status */}
+                      <div className="flex items-center gap-2 pb-2 border-b border-purple-200 dark:border-purple-800">
+                        <span className="text-lg">
+                          {message.commandResult.success ? '✅' : '❌'}
+                        </span>
+                        <span className="font-semibold text-purple-700 dark:text-purple-300">
+                          Command Result
+                        </span>
+                      </div>
+
+                      {/* Message */}
+                      {message.commandResult.message && (
+                        <div className="text-sm">
+                          {String(message.commandResult.message)}
+                        </div>
+                      )}
+
+                      {/* Data Display */}
+                      {message.commandResult.data !== undefined && (
+                        <div className="bg-white dark:bg-gray-900 rounded p-3 border border-purple-200 dark:border-purple-700">
+                          <pre className="text-xs overflow-x-auto whitespace-pre-wrap">
+                            {typeof message.commandResult.data === 'string'
+                              ? message.commandResult.data
+                              : String(JSON.stringify(message.commandResult.data, null, 2))}
+                          </pre>
+                        </div>
+                      )}
+
+                      {/* Code Changes */}
+                      {message.commandResult.changes && message.commandResult.changes.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="font-semibold text-sm text-purple-700 dark:text-purple-300">
+                            Proposed Changes:
+                          </div>
+                          {message.commandResult.changes.map((change, idx) => (
+                            <div key={idx} className="bg-white dark:bg-gray-900 rounded p-3 border border-purple-200 dark:border-purple-700">
+                              <div className="text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                                {change.filePath}
+                              </div>
+                              <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                                {change.description}
+                              </div>
+                              <pre className="text-xs overflow-x-auto whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-2 rounded">
+                                {change.newContent}
+                              </pre>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Action Buttons */}
+                      {message.commandResult.actions && message.commandResult.actions.length > 0 && (
+                        <div className="flex gap-2 pt-2">
+                          {message.commandResult.actions.map((action, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => {
+                                console.log('Action clicked:', action.type);
+                                action.handler().catch(err => {
+                                  console.error('Action handler error:', err);
+                                });
+                              }}
+                              className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                                action.type === 'accept'
+                                  ? 'bg-green-600 text-white hover:bg-green-700'
+                                  : action.type === 'reject'
+                                  ? 'bg-red-600 text-white hover:bg-red-700'
+                                  : action.type === 'modify'
+                                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                  : 'bg-gray-600 text-white hover:bg-gray-700'
+                              }`}
+                            >
+                              {action.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-sm">
+                      {formatMessage(message.content)}
+                    </div>
+                  )}
+
                   {message.role === 'assistant' && isStreaming && message.content === '' && (
                     <div className="flex items-center space-x-1 text-gray-500">
                       <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
