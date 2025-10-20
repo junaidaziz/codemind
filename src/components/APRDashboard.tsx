@@ -88,16 +88,25 @@ export default function APRDashboard() {
   const fetchSessions = async () => {
     try {
       setLoading(true);
+      setError(null);
       const params = new URLSearchParams();
       if (filters.projectId) params.set('projectId', filters.projectId);
       if (filters.status) params.set('status', filters.status);
 
       const response = await fetch(`/api/apr/sessions?${params}`);
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch sessions');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server error: ${response.status}`);
       }
 
       const data = await response.json();
+      
+      if (!data.sessions || data.sessions.length === 0) {
+        setSessions([]);
+        setError('No APR sessions found. Start by creating your first automated PR!');
+        return;
+      }
       
       interface SessionResponse {
         id: string;
@@ -176,7 +185,8 @@ export default function APRDashboard() {
         })),
       })));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load sessions');
+      console.error('Error fetching APR sessions:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load APR sessions. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -192,14 +202,34 @@ export default function APRDashboard() {
 
   if (error) {
     return (
-      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-        <p className="text-red-800 dark:text-red-200">❌ {error}</p>
-        <button
-          onClick={() => fetchSessions()}
-          className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-        >
-          Retry
-        </button>
+      <div className="max-w-2xl mx-auto mt-8">
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6">
+          <div className="flex items-start space-x-3">
+            <div className="text-2xl">ℹ️</div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-yellow-900 dark:text-yellow-200 mb-2">
+                No APR Sessions Yet
+              </h3>
+              <p className="text-yellow-800 dark:text-yellow-300 mb-4">
+                {error}
+              </p>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => fetchSessions()}
+                  className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+                >
+                  🔄 Retry
+                </button>
+                <button
+                  onClick={() => window.location.href = '/projects'}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  📁 Go to Projects
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

@@ -58,6 +58,7 @@ export default function ActivityFeed({ projectId, limit = 50 }: ActivityFeedProp
   const fetchEvents = async (offset = 0) => {
     try {
       setLoading(true);
+      setError(null);
       const params = new URLSearchParams({
         limit: limit.toString(),
         offset: offset.toString(),
@@ -69,14 +70,26 @@ export default function ActivityFeed({ projectId, limit = 50 }: ActivityFeedProp
       if (filters.search) params.append('search', filters.search);
 
       const response = await fetch(`/api/activity/feed?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch activity feed');
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server error: ${response.status}`);
+      }
 
       const data = await response.json();
+      
+      if (!data.events || data.events.length === 0) {
+        setEvents([]);
+        setError('No activity events found yet. Activity will appear here as you use the platform.');
+        return;
+      }
+      
       setEvents(data.events);
       setPagination(data.pagination);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      console.error('Error fetching activity feed:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load activity feed. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -98,8 +111,34 @@ export default function ActivityFeed({ projectId, limit = 50 }: ActivityFeedProp
 
   if (error) {
     return (
-      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-        <p className="text-red-800 dark:text-red-200">Error: {error}</p>
+      <div className="max-w-2xl mx-auto mt-8">
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6">
+          <div className="flex items-start space-x-3">
+            <div className="text-2xl">ℹ️</div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-yellow-900 dark:text-yellow-200 mb-2">
+                No Activity Yet
+              </h3>
+              <p className="text-yellow-800 dark:text-yellow-300 mb-4">
+                {error}
+              </p>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => fetchEvents(0)}
+                  className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+                >
+                  🔄 Retry
+                </button>
+                <button
+                  onClick={() => window.location.href = '/projects'}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  📁 Go to Projects
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
