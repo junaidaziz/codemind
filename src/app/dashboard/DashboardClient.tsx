@@ -6,6 +6,8 @@ import { apiGet } from '@/lib/api-client';
 
 interface DashboardStats {
   projects: number;
+  workspaces: number;
+  repositories: number;
   messages: number;
   aprSessions: number;
   recentActivity: ActivityEvent[];
@@ -74,12 +76,30 @@ export default function DashboardClient() {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Link
+          href="/workspaces"
+          className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-3xl">�️</div>
+            <div className="text-sm font-medium text-blue-600 dark:text-blue-400">
+              View All →
+            </div>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            Workspaces
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Multi-repo workspace management
+          </p>
+        </Link>
+
+        <Link
           href="/projects"
           className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="text-3xl">📁</div>
-            <div className="text-sm font-medium text-blue-600 dark:text-blue-400">
+            <div className="text-3xl">�</div>
+            <div className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
               View All →
             </div>
           </div>
@@ -87,7 +107,7 @@ export default function DashboardClient() {
             Projects
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Manage your indexed repositories
+            Individual project repositories
           </p>
         </Link>
 
@@ -126,24 +146,6 @@ export default function DashboardClient() {
             AI-powered pull requests
           </p>
         </Link>
-
-        <Link
-          href="/activity"
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-3xl">🎬</div>
-            <div className="text-sm font-medium text-orange-600 dark:text-orange-400">
-              View Feed →
-            </div>
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            Activity Feed
-          </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Track all AI actions
-          </p>
-        </Link>
       </div>
 
       {/* Stats Overview */}
@@ -151,18 +153,26 @@ export default function DashboardClient() {
         <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
           📈 Quick Stats
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div className="text-center">
             <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-              {stats?.projects ?? '-'}
+              {stats?.workspaces ?? '0'}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">
-              Active Projects
+              Workspaces
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">
+              {stats?.repositories ?? '0'}
+            </div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Repositories
             </div>
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
-              {stats?.messages ?? '-'}
+              {stats?.messages ?? '0'}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">
               Chat Messages
@@ -170,7 +180,7 @@ export default function DashboardClient() {
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
-              {stats?.aprSessions ?? '-'}
+              {stats?.aprSessions ?? '0'}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">
               APR Sessions

@@ -11,9 +11,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Get counts in parallel
-    const [projectCount, messageCount, aprCount, recentActivity] = await Promise.all([
+    const [projectCount, workspaceCount, messageCount, aprCount, recentActivity] = await Promise.all([
+      // Count individual projects
       prisma.project.count({ 
         where: { ownerId: user.id } 
+      }),
+      // Count workspaces (multi-repo feature)
+      prisma.workspace.count({ 
+        where: { userId: user.id } 
       }),
       prisma.message.count({ 
         where: { 
@@ -37,8 +42,21 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
+    // Get total repositories across all workspaces
+    const workspaces = await prisma.workspace.findMany({
+      where: { userId: user.id },
+      select: { repositories: true }
+    });
+    
+    const totalReposInWorkspaces = workspaces.reduce((sum, workspace) => {
+      const repos = Array.isArray(workspace.repositories) ? workspace.repositories : [];
+      return sum + repos.length;
+    }, 0);
+
     return NextResponse.json({
       projects: projectCount,
+      workspaces: workspaceCount,
+      repositories: totalReposInWorkspaces,
       messages: messageCount,
       aprSessions: aprCount,
       recentActivity,
