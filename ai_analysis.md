@@ -1,3 +1,22 @@
+# 🔍 Vercel Build Failure Analysis
+
+**Generated on:** 2025-10-21 12:07:27 UTC
+**Deployment ID:** 
+**Repository:** junaidaziz/codemind
+**Branch:** main
+**Commit:** a1a074aa2fe0f735478914502310d2def6c4e728
+
+## ❌ Build Failure Summary
+Build failed due to a TypeScript error related to unknown properties.
+
+## 🔍 Root Cause Analysis
+Unknown cause
+
+## 🛠️ Suggested Fix
+See analysis for details
+
+## 📊 Full Analysis
+```json
 {
   "deployment": {
     "uid": "dpl_22j2i2yWinDEGMZP8tmEtrtBgAiZ",
@@ -58,3 +77,7 @@
   },
   "timestamp": "2025-10-21T12:07:27.790Z"
 }
+```
+
+---
+*This analysis was generated automatically by our AI-powered build failure analyzer.*
