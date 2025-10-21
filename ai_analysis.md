@@ -1,3 +1,22 @@
+# 🔍 Vercel Build Failure Analysis
+
+**Generated on:** 2025-10-21 10:21:55 UTC
+**Deployment ID:** 
+**Repository:** junaidaziz/codemind
+**Branch:** main
+**Commit:** eea5dafbd7c6d4927cacb48896e97d5e5644f485
+
+## ❌ Build Failure Summary
+Build failed due to a TypeScript error in langchain-memory.ts.
+
+## 🔍 Root Cause Analysis
+Unknown cause
+
+## 🛠️ Suggested Fix
+See analysis for details
+
+## 📊 Full Analysis
+```json
 {
   "deployment": {
     "uid": "dpl_86TKgEKk8T5Q122SiQanAirpVL9x",
@@ -58,3 +77,7 @@
   },
   "timestamp": "2025-10-21T10:21:55.460Z"
 }
+```
+
+---
+*This analysis was generated automatically by our AI-powered build failure analyzer.*
