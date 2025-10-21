@@ -1,3 +1,22 @@
+# 🔍 Vercel Build Failure Analysis
+
+**Generated on:** 2025-10-21 15:44:29 UTC
+**Deployment ID:** 
+**Repository:** junaidaziz/codemind
+**Branch:** main
+**Commit:** 47c7c645f0ac0428e95ca937ba6fe16656eea51b
+
+## ❌ Build Failure Summary
+Build failed due to unresolved modules 'fs' and 'fs/promises'.
+
+## 🔍 Root Cause Analysis
+Unknown cause
+
+## 🛠️ Suggested Fix
+See analysis for details
+
+## 📊 Full Analysis
+```json
 {
   "deployment": {
     "uid": "dpl_AVvCK2u17moVEMpNwGBYZiLRU4cr",
@@ -58,3 +77,7 @@
   },
   "timestamp": "2025-10-21T15:44:29.022Z"
 }
+```
+
+---
+*This analysis was generated automatically by our AI-powered build failure analyzer.*
