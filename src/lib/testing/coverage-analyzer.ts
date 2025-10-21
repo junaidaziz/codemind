@@ -11,7 +11,6 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { parse } from '@babel/parser';
 import traverse, { NodePath } from '@babel/traverse';
-import type { Node as BabelNode } from '@babel/types';
 
 /**
  * Represents a function or method in the codebase
@@ -219,7 +218,7 @@ export class CoverageAnalyzer {
               endLine: node.loc?.end.line || 0,
               params: node.params.map(p => this.getParamName(p)),
               isAsync: node.async || false,
-              isExported: this.isExported(path.parentPath.parentPath),
+              isExported: path.parentPath?.parentPath ? this.isExported(path.parentPath.parentPath) : false,
               complexity: this.calculateComplexity(path),
               type: 'arrow',
             });
@@ -276,7 +275,7 @@ export class CoverageAnalyzer {
       ForStatement: () => complexity++,
       WhileStatement: () => complexity++,
       DoWhileStatement: () => complexity++,
-      CaseClause: () => complexity++,
+      SwitchCase: () => complexity++,
       LogicalExpression: (logicalPath: NodePath) => {
         const node = logicalPath.node as { operator?: string };
         if (node.operator === '&&' || node.operator === '||') {
@@ -293,7 +292,7 @@ export class CoverageAnalyzer {
    * Check if a node is exported
    */
   private isExported(path: NodePath): boolean {
-    let current = path;
+    let current: NodePath | null = path;
     while (current) {
       if (
         current.isExportNamedDeclaration() ||
@@ -338,11 +337,14 @@ export class CoverageAnalyzer {
   /**
    * Get method name from key
    */
-  private getMethodName(key: { type: string; name?: string; value?: string }): string {
-    if (key.type === 'Identifier') {
-      return key.name;
-    } else if (key.type === 'StringLiteral') {
-      return key.value;
+  private getMethodName(key: unknown): string {
+    if (typeof key === 'object' && key !== null) {
+      const keyObj = key as { type: string; name?: string; value?: string | boolean };
+      if (keyObj.type === 'Identifier' && keyObj.name) {
+        return keyObj.name;
+      } else if (keyObj.type === 'StringLiteral' && typeof keyObj.value === 'string') {
+        return keyObj.value;
+      }
     }
     return 'unknown';
   }
