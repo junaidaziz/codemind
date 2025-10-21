@@ -1,321 +1,288 @@
-# 🤖 CodeMind — Roadmap v2
+# 🤖 CodeMind — Active Roadmap
 
 > **Author:** Junaid Aziz  
-> **Date:** October 19, 2025  
-> **Version:** 2.0  
-> **Goal:** Enhance CodeMind's intelligence, automation, and developer experience through strategic feature refinement and scope expansion.
+> **Last Updated:** January 21, 2025  
+> **Version:** 2.1  
+> **Goal:** Scale CodeMind with intelligent automation and enterprise features.
 
 ---
 
 ## 📋 Table of Contents
 
-1. [High-Impact Enhancements](#-tier-1--high-impact-enhancements)
-2. [UX / Developer Experience](#-tier-2--ux--developer-experience)
-3. [Strategic Scope Expansion](#-tier-3--strategic-scope-expansion)
-4. [Polish & Growth](#-tier-4--polish--growth-enhancements)
-5. [Summary Table](#-summary-of-focus-areas)
+1. [Active Features](#-active-features--in-progress)
+2. [Next Priority Queue](#-next-priority-queue)
+3. [UX / Developer Experience](#-ux--developer-experience)
+4. [Strategic Expansion](#-strategic-expansion)
+5. [Polish & Growth](#-polish--growth)
 
 ---
 
-## 🔥 Tier 1 – High-Impact Enhancements
+## 🎯 Completed Features
 
-**Status**: Smart Scaffolder 100% Complete ✅ | Feature #3 Next
+**✅ Feature #1: Smart Scaffolder** (100% Complete - Jan 2025)
+- 6/6 phases complete | 4,570 production lines | 300+ test lines
+- Docs: SMART_SCAFFOLDER_IMPLEMENTATION.md, SMART_SCAFFOLDER_USAGE_GUIDE.md
 
-**Recent Completion**: 
-- Feature #2 (Developer Command Console) - Production-ready! ✅
-- Feature #1 (Smart Scaffolder) - All 6 Phases Complete ✅ 🎉
+**✅ Feature #2: Developer Command Console** (100% Complete)
+- 2,200 implementation lines | 650 test lines | 6 slash commands
+- Docs: COMMAND_CONSOLE_COMPLETE.md, CHAT_INTEGRATION_COMPLETE.md
 
----
-
-### **1. AI Code Generation → Smart Scaffolder Mode** ✅ **100% COMPLETE**
-
-**ALL PHASES COMPLETE** (6/6):
-- ✅ **Phase 1**: Core Architecture (1,400+ lines)
-- ✅ **Phase 2**: Convention Analyzer (480+ lines) - Real file system scanning
-- ✅ **Phase 3**: Template Engine (650+ lines) - Advanced templating with conditionals, loops, helpers
-- ✅ **Phase 4**: Prompt Parser (489 lines) - NLP with path inference and template matching
-- ✅ **Phase 5**: Command Console Integration (280+ lines) - /scaffold command handler
-- ✅ **Phase 6**: Multi-File Generation & Testing (1,270+ lines) - Templates, tests, docs
-
-**Final Status**: ~4,570 lines of production code | 300+ lines of tests | 1,200+ lines of documentation
-
-**What's Included**:
-- ✅ Full scaffolding pipeline (Parser → Analyzer → Engine)
-- ✅ 4 production-ready templates (React, Next.js, Prisma, Hooks)
-- ✅ Natural language prompt parsing with 70%+ accuracy
-- ✅ Project convention auto-detection
-- ✅ Multi-file generation with dependency graphs
-- ✅ Circular dependency detection
-- ✅ /scaffold command integration
-- ✅ Preview with Accept/Reject/Modify actions
-- ✅ Comprehensive integration tests
-- ✅ Complete usage guide
-
-**Templates Available**:
-1. Next.js API Route - REST endpoints with auth & validation
-2. React Component - Functional components with TypeScript
-3. Prisma Model - Database models with relations
-4. React Hook - Custom hooks with state management
-
-**Documentation**:
-- SMART_SCAFFOLDER_IMPLEMENTATION.md - Technical implementation
-- SMART_SCAFFOLDER_USAGE_GUIDE.md - User guide with examples
-
-**Goal:** Build a production-grade scaffolder that adapts to the existing codebase. ✅ 100% ACHIEVED
+**✅ Feature #5: Dashboard & Visualization** (Core Complete)
+- Activity Feed, Indexing Progress, Codebase Insights
+- Docs: ACTIVITY_FEED_COMPLETE.md, INDEXING_PROGRESS_COMPLETE.md
 
 ---
 
-### **2. AI Chat → Developer Command Console** ✅ **COMPLETE**
+## 🚀 Active Features & In Progress
 
-**Status**: All phases complete! Developer Command Console is production-ready.
+### **Feature #3: GitHub Integration → Multi-Repo Workspace**
 
-**Completed Features:**
-- ✅ **Command Parser & Registry** - Slash command detection and routing (Commits: ff7fe80, 2ed0b4b)
-- ✅ **Command Handlers** - All 6 handlers (/fix, /gen, /test, /refactor, /explain, /help) (Commits: 2ed0b4b, 847418e)
-- ✅ **Chat UI Integration** - Rich result display with action buttons (Commit: 7327b96)
-- ✅ **Testing & Verification** - 22/22 tests passing (Commits: a796f72, 0b24d3a, df33d0f)
-- ✅ **Documentation** - Complete user guide and API docs (Commits: 847418e, 1342027, df33d0f)
+**Status:** Not Started | **Priority:** ⭐⭐⭐⭐
 
-**Implementation Summary:**
-- 2,200+ lines of implementation code
-- 650+ lines of test code
-- 1,900+ lines of documentation
-- 6 fully functional slash commands
-- Interactive UI with Accept/Reject/Modify actions
-- Real-time collaboration support
-- 100% production-ready
+**Pending Tasks:**
+- [ ] Add **multi-repo dependency graphs** for large organizations
+- [ ] Support **cross-repo issue and PR linking**
+- [ ] Integrate **GitHub Actions logs** with AI error summarization
+- [ ] Add **branch policy enforcement** ("warn on direct main commits")
+- [ ] Enable **multi-org support** for enterprise teams
 
-**Documentation**: See `COMMAND_CONSOLE_COMPLETE.md`, `CHAT_INTEGRATION_COMPLETE.md`, `TESTING_VERIFICATION_COMPLETE.md`
-
-**Next Enhancement Opportunities:**
-- [ ] Enable **multi-turn conversation memory** per project
-- [ ] Add **inline file diffs** with syntax highlighting
-- [ ] Provide **daily PR summaries** and deployment updates via chat
-- [ ] Add **auto-context recall** from previous chats
-- [ ] Command history and recall
-
-**Goal Achieved:** ✅ Chat is now the *central developer console* for coding, testing, and deployment!
+**Goal:** Scale CodeMind into an *organization-level GitHub orchestrator*
 
 ---
 
-### **3. GitHub Integration → Multi-Repo Workspace**
-- [ ] Add **multi-repo dependency graphs** for large organizations.  
-- [ ] Support **cross-repo issue and PR linking**.  
-- [ ] Integrate **GitHub Actions logs** with AI error summarization.  
-- [ ] Add **branch policy enforcement** ("warn on direct main commits").  
-- [ ] Enable **multi-org support** for enterprise teams.
+### **Feature #4: Testing Automation → AI Test Author**
 
-**Goal:** Scale CodeMind into an *organization-level GitHub orchestrator.*
+**Status:** Not Started | **Priority:** ⭐⭐⭐⭐ (RECOMMENDED NEXT)
 
----
+**Pending Tasks:**
+- [ ] Implement **AI test generation** for uncovered files
+- [ ] Identify **coverage gaps** and prompt test generation automatically
+- [ ] Integrate with **GitHub Checks API** for inline test results
+- [ ] Auto-update snapshots after PR merges
+- [ ] Allow **AI-based failure analysis** and reruns
 
-### **4. Testing Automation → AI Test Author**
-- [ ] Implement **AI test generation** for uncovered files.  
-- [ ] Identify **coverage gaps** and prompt test generation automatically.  
-- [ ] Integrate with **GitHub Checks API** for inline test results.  
-- [ ] Auto-update snapshots after PR merges.  
-- [ ] Allow **AI-based failure analysis** and reruns.
+**Goal:** Create a self-maintaining *TestOps* system powered by AI
 
-**Goal:** Create a self-maintaining *TestOps* system powered by AI.
+**Why This Next?**
+- Complements existing /test command
+- High impact on developer productivity
+- Natural extension of current capabilities
 
 ---
 
-## ⚙️ Tier 2 – UX / Developer Experience
+## 💎 Next Priority Queue
 
-### **5. Project Analytics Expansion**
-- [ ] Track **AI productivity metrics**: auto-fixes, PRs, generated tests.  
-- [ ] Provide **export options** (CSV, PDF, Slack summary).  
-- [ ] Add **forecasting trends** (e.g., code coverage predictions).  
-- [ ] Integrate with **Supabase analytics dashboard** for insights.  
-- [ ] Include **team-level metrics** (top contributors, review activity).
+**Choose Next Feature to Implement:**
 
----
+1. **Testing Automation (Feature #4)** ⭐ RECOMMENDED
+   - Synergy with /test command
+   - Auto-generate tests for coverage gaps
+   - CI/CD integration ready
 
-### **6. Authentication & Teams**
-- [ ] Implement **Team Workspaces** with org-level roles (Owner, Developer, Reviewer).  
-- [ ] Add **Audit Logging** (AI action history).  
-- [ ] Support **2FA or SSO (Google, GitHub, SAML)**.  
-- [ ] Create **scoped API keys** (read/write/admin).  
-- [ ] Allow **project sharing** via invite links.
+2. **GitHub Multi-Repo (Feature #3)**
+   - Enterprise-scale orchestration
+   - Cross-repo dependency tracking
+   - GitHub Actions integration
 
 ---
 
-### **7. AI Model Management**
-- [ ] Enable **per-project model switching** (GPT-4, Claude, Mistral, Local LLMs).  
-- [ ] Track **cost and token usage** per model.  
-- [ ] Cache frequent prompts with **Supabase Edge Functions**.  
-- [ ] Provide **performance comparison dashboard** for models.  
-- [ ] Add support for **fine-tuned custom models**.
+## ⚙️ UX / Developer Experience
+
+### **Feature #6: Project Analytics Expansion**
+
+**Status:** Partially Complete | **Priority:** ⭐⭐⭐
+
+**Completed:**
+- ✅ Activity Feed
+- ✅ Codebase Insights Dashboard
+
+**Pending Tasks:**
+- [ ] Track **AI productivity metrics**: auto-fixes, PRs, generated tests
+- [ ] Provide **export options** (CSV, PDF, Slack summary)
+- [ ] Add **forecasting trends** (e.g., code coverage predictions)
+- [ ] Integrate with **Supabase analytics dashboard** for insights
+- [ ] Include **team-level metrics** (top contributors, review activity)
 
 ---
 
-## 🧩 Tier 3 – Strategic Scope Expansion
+### **Feature #7: Authentication & Teams**
 
-### **8. VS Code Extension**
-- [ ] Connect local workspace to CodeMind chat and actions.  
-- [ ] Commands:  
-  - "Explain selection"  
-  - "Fix highlighted code"  
-  - "Generate test for this file"  
-  - "Open in CodeMind Web"  
-- [ ] Sync local → remote PR creation automatically.  
-- [ ] Show AI results inline in editor.
+**Status:** Not Started | **Priority:** ⭐⭐⭐
 
-**Goal:** Bring CodeMind directly into developer workflows.
+**Pending Tasks:**
+- [ ] Implement **Team Workspaces** with org-level roles (Owner, Developer, Reviewer)
+- [ ] Add **Audit Logging** (AI action history)
+- [ ] Support **2FA or SSO (Google, GitHub, SAML)**
+- [ ] Create **scoped API keys** (read/write/admin)
+- [ ] Allow **project sharing** via invite links
 
 ---
 
-### **9. CI/CD & DevOps Integration**
-- [ ] Integrate with **Vercel, GitHub Actions, AWS Lambda pipelines**.  
-- [ ] Add **AI-powered CI pre-reviews** before merge.  
-- [ ] Post **deployment summaries** automatically.  
-- [ ] Detect **post-deploy errors** and suggest rollbacks.  
-- [ ] Track deployment history with change summaries.
+### **Feature #8: AI Model Management**
+
+**Status:** Not Started | **Priority:** ⭐⭐
+
+**Pending Tasks:**
+- [ ] Enable **per-project model switching** (GPT-4, Claude, Mistral, Local LLMs)
+- [ ] Track **cost and token usage** per model
+- [ ] Cache frequent prompts with **Supabase Edge Functions**
+- [ ] Provide **performance comparison dashboard** for models
+- [ ] Add support for **fine-tuned custom models**
 
 ---
 
-### **10. Code Review Automation**
-- [ ] AI-generated **PR review comments** for complexity and security.  
-- [ ] Assign **risk scores** per PR ("High – modifies auth middleware").  
-- [ ] Recommend **documentation or tests** if missing.  
-- [ ] Integrate **review summary bot** to summarize discussions.  
-- [ ] Allow **review simulation** to estimate code impact.
+## 🧩 Strategic Expansion
+
+### **Feature #9: VS Code Extension**
+
+**Status:** Not Started | **Priority:** ⭐⭐⭐
+
+**Pending Tasks:**
+- [ ] Connect local workspace to CodeMind chat and actions
+- [ ] Commands:
+  - "Explain selection"
+  - "Fix highlighted code"
+  - "Generate test for this file"
+  - "Open in CodeMind Web"
+- [ ] Sync local → remote PR creation automatically
+- [ ] Show AI results inline in editor
+
+**Goal:** Bring CodeMind directly into developer workflows
 
 ---
 
-### **11. Plugin Ecosystem**
-- [ ] Build **plugin API** for community tool creation.  
-- [ ] Define Plugin I/O spec:  
-  - **Input:** project + context  
-  - **Output:** structured result/action  
-- [ ] Allow plugins for:  
-  - Lighthouse performance audits  
-  - SQL query optimization  
-  - i18n validation  
-- [ ] Host marketplace for verified plugins.
+### **Feature #10: CI/CD & DevOps Integration**
+
+**Status:** Not Started | **Priority:** ⭐⭐⭐
+
+**Pending Tasks:**
+- [ ] Integrate with **Vercel, GitHub Actions, AWS Lambda pipelines**
+- [ ] Add **AI-powered CI pre-reviews** before merge
+- [ ] Post **deployment summaries** automatically
+- [ ] Detect **post-deploy errors** and suggest rollbacks
+- [ ] Track deployment history with change summaries
 
 ---
 
-### **12. AI Knowledge Graph**
-- [ ] Generate **interactive dependency maps** (functions, modules, APIs).  
-- [ ] Use **D3.js / Cytoscape** for visualization.  
-- [ ] Enable AI to answer:  
-  > "Which files depend on this function?"  
-- [ ] Show **impact propagation** for code changes.  
-- [ ] Cache graph relationships in PostgreSQL.
+### **Feature #11: Code Review Automation**
+
+**Status:** Not Started | **Priority:** ⭐⭐⭐
+
+**Pending Tasks:**
+- [ ] AI-generated **PR review comments** for complexity and security
+- [ ] Assign **risk scores** per PR ("High – modifies auth middleware")
+- [ ] Recommend **documentation or tests** if missing
+- [ ] Integrate **review summary bot** to summarize discussions
+- [ ] Allow **review simulation** to estimate code impact
 
 ---
 
-## 💎 Tier 4 – Polish & Growth Enhancements
+### **Feature #12: Plugin Ecosystem**
 
-### **13. SEO & Marketing**
-- [ ] Add **AI-generated meta tags and OG previews** for all pages.  
-- [ ] Generate **dynamic sitemap.xml** for docs and projects.  
-- [ ] Use **JSON-LD structured data** for search engines.  
-- [ ] Improve **docs readability** and **keyword optimization**.  
-- [ ] Add **"Share Project" social preview cards**.
+**Status:** Not Started | **Priority:** ⭐⭐
 
----
-
-### **14. Performance & Cost Optimization**
-- [ ] Cache embeddings with **Redis or Supabase Edge Cache**.  
-- [ ] Optimize **BullMQ concurrency and job priority**.  
-- [ ] Lazy-load large vectors for big repositories.  
-- [ ] Add **usage-based billing / monitoring dashboard**.  
-- [ ] Implement **async rate limiting** for chat and jobs.
+**Pending Tasks:**
+- [ ] Build **plugin API** for community tool creation
+- [ ] Define Plugin I/O spec:
+  - **Input:** project + context
+  - **Output:** structured result/action
+- [ ] Allow plugins for:
+  - Lighthouse performance audits
+  - SQL query optimization
+  - i18n validation
+- [ ] Host marketplace for verified plugins
 
 ---
 
-### **15. Developer Community Integration**
-- [ ] Launch **Discord / Slack bot** powered by CodeMind AI.  
-- [ ] Integrate **GitHub Discussions Agent** for community Q&A.  
-- [ ] Enable **"Ask CodeMind"** button on public repos.  
-- [ ] Summarize common questions for knowledge base.  
-- [ ] Add **weekly AI digest email** for team insights.
+### **Feature #13: AI Knowledge Graph**
+
+**Status:** Not Started | **Priority:** ⭐⭐
+
+**Pending Tasks:**
+- [ ] Generate **interactive dependency maps** (functions, modules, APIs)
+- [ ] Use **D3.js / Cytoscape** for visualization
+- [ ] Enable AI to answer: "Which files depend on this function?"
+- [ ] Show **impact propagation** for code changes
+- [ ] Cache graph relationships in PostgreSQL
 
 ---
 
-## 🚀 Summary of Focus Areas
+## 💎 Polish & Growth
 
-| Category | Priority | Goal |
-|-----------|-----------|------|
-| AI Code Generation | ⭐⭐⭐⭐ | Context-aware scaffolding |
-| AI Chat Console | ⭐⭐⭐⭐ | Centralized DevOps assistant |
-| Testing Automation | ⭐⭐⭐ | Intelligent test authoring |
-| Analytics & Dashboard | ⭐⭐⭐ | Developer productivity insights |
-| Teams & RBAC | ⭐⭐⭐ | Enterprise readiness |
-| VS Code Extension | ⭐⭐⭐ | Local workflow integration |
-| Plugin Ecosystem | ⭐⭐ | Extensible architecture |
-| SEO & Docs | ⭐ | Brand visibility & reach |
+### **Feature #14: SEO & Marketing**
+
+**Status:** Not Started | **Priority:** ⭐
+
+**Pending Tasks:**
+- [ ] Add **AI-generated meta tags and OG previews** for all pages
+- [ ] Generate **dynamic sitemap.xml** for docs and projects
+- [ ] Use **JSON-LD structured data** for search engines
+- [ ] Improve **docs readability** and **keyword optimization**
+- [ ] Add **"Share Project" social preview cards**
 
 ---
 
-## 🏁 Next Steps
+### **Feature #15: Performance & Cost Optimization**
 
-### Recently Completed ✅
-- [x] **Developer Command Console (Feature #2)** - All phases complete!
-  - Command Parser & Registry
-  - 6 Command Handlers (/fix, /gen, /test, /refactor, /explain, /help)
-  - Chat UI Integration
-  - Testing & Verification (22/22 tests passing)
-  - Complete Documentation
+**Status:** Not Started | **Priority:** ⭐⭐
 
-- [x] **Dashboard & Visualization (Feature #5)** - All core features complete!
-  - AI Activity Feed with real-time updates
-  - Indexing Progress Visualization
-  - Codebase Insights Dashboard
+**Pending Tasks:**
+- [ ] Cache embeddings with **Redis or Supabase Edge Cache**
+- [ ] Optimize **BullMQ concurrency and job priority**
+- [ ] Lazy-load large vectors for big repositories
+- [ ] Add **usage-based billing / monitoring dashboard**
+- [ ] Implement **async rate limiting** for chat and jobs
 
-- [x] **Smart Scaffolder - ALL 6 PHASES** (January 2025) ✅ 🎉
-  - ✅ Phase 1: Core Architecture (1,400+ lines)
-  - ✅ Phase 2: Convention Analyzer (480+ lines) - Real file system scanning
-  - ✅ Phase 3: Template Engine (650+ lines) - Advanced features
-  - ✅ Phase 4: Prompt Parser (489 lines) - NLP with path inference
-  - ✅ Phase 5: Command Console Integration (280+ lines) - /scaffold command
-  - ✅ Phase 6: Templates & Testing (1,270+ lines) - 4 templates, integration tests
-  - 📊 Total: ~4,570 lines of production code
-  - 🧪 Tests: 300+ lines of integration tests
-  - 📝 Documentation: SMART_SCAFFOLDER_IMPLEMENTATION.md + SMART_SCAFFOLDER_USAGE_GUIDE.md
-  - ⚡ Status: 100% complete, production-ready! 🚀
+---
 
-- [x] **Critical Bug Fixes & Infrastructure** (January 2025)
-  - ✅ Dashboard 404 Error - Created comprehensive dashboard page
-  - ✅ Header Redesign - Modern user dropdown with avatar
-  - ✅ Authentication Fix - Resolved 401 errors on all API endpoints
-  - ✅ Database Schema Fix - Added missing ActivityEvent table
-  - ✅ Error Handling Improvements - Better UX for empty states
-  - ✅ Prisma Type Errors - Fixed 24+ missing IDs across 8 files
-  - Total: ~1,300 lines of fixes and improvements
+### **Feature #16: Developer Community Integration**
 
-### Current Focus 🎯
+**Status:** Not Started | **Priority:** ⭐
 
-**Smart Scaffolder Complete!** 🎉
-- All 6 phases complete
-- Production-ready and fully tested
-- 4 framework templates available
-- Comprehensive documentation
+**Pending Tasks:**
+- [ ] Launch **Discord / Slack bot** powered by CodeMind AI
+- [ ] Integrate **GitHub Discussions Agent** for community Q&A
+- [ ] Enable **"Ask CodeMind"** button on public repos
+- [ ] Summarize common questions for knowledge base
+- [ ] Add **weekly AI digest email** for team insights
 
-**Ready for Next Feature**  
-Choose from priority queue below.
+---
 
-### Next Priority Queue
+## � Progress Summary
 
-**Option A: Testing Automation → AI Test Author (Feature #4)** ⭐ RECOMMENDED
-- Complements /test command
-- Auto-generate tests for coverage gaps
-- CI/CD integration
+| Feature | Status | Priority | Lines of Code |
+|---------|--------|----------|---------------|
+| Smart Scaffolder | ✅ Complete | ⭐⭐⭐⭐ | 4,570 + 300 tests |
+| Command Console | ✅ Complete | ⭐⭐⭐⭐ | 2,200 + 650 tests |
+| Dashboard | ✅ Core Complete | ⭐⭐⭐ | In progress |
+| Testing Automation | 🔜 Next | ⭐⭐⭐⭐ | Not started |
+| GitHub Multi-Repo | 🔜 Queued | ⭐⭐⭐⭐ | Not started |
+| Analytics Expansion | 🔄 Partial | ⭐⭐⭐ | In progress |
+| Auth & Teams | 📋 Planned | ⭐⭐⭐ | Not started |
+| VS Code Extension | 📋 Planned | ⭐⭐⭐ | Not started |
 
-**Option B: GitHub Integration → Multi-Repo (Feature #3)**
-- Multi-repo dependency graphs
-- Cross-repo PR linking
-- GitHub Actions integration
+---
 
-### Planning Tasks
-- [ ] Define **timeline milestones** (v2.1 → v3.0)
-- [ ] Assign ownership to AI agents (AutoFix, Scaffolder, Reviewer)
-- [ ] Track progress in `/docs/roadmap-progress.md`
-- [ ] Sync roadmap with GitHub Projects
+## � Immediate Next Steps
+
+### Recommended: Feature #4 - Testing Automation (AI Test Author)
+
+**Why this feature?**
+- Natural progression from /test command
+- High developer impact
+- Complements existing scaffolder
+
+**Estimated Effort:** 4-6 weeks
+**Lines of Code:** ~3,000-4,000
+
+**Phase Breakdown:**
+1. **Coverage Analysis Engine** - Scan project for untested files
+2. **AI Test Generator** - Generate unit/integration tests
+3. **GitHub Checks Integration** - Show results inline
+4. **Snapshot Management** - Auto-update after merges
+5. **Failure Analysis** - AI-powered debugging
 
 ---
 
 **Built with ❤️ by Junaid Aziz**  
-*"Empowering developers through AI-driven engineering."*
+*Last Updated: January 21, 2025*
