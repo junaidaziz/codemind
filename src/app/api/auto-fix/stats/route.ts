@@ -21,7 +21,7 @@ export async function GET() {
       prisma.autoFixResult.count({
         where: { 
           success: true,
-          session: {
+          AutoFixSession: {
             prNumber: { not: null }
           }
         }
@@ -30,13 +30,13 @@ export async function GET() {
         take: 5,
         orderBy: { createdAt: 'desc' },
         include: {
-          project: {
+          Project: {
             select: {
               name: true,
               githubUrl: true
             }
           },
-          results: {
+          AutoFixResult: {
             select: {
               success: true
             },

@@ -112,10 +112,10 @@ export async function GET(request: NextRequest) {
       skip: offset,
     });
 
-    // Parse metadata for each event
+    // Parse metadata for each event (metadata is already JSON from Prisma)
     const eventsWithMetadata = events.map((event: typeof events[0]) => ({
       ...event,
-      metadata: event.metadata ? JSON.parse(event.metadata) : null,
+      metadata: event.metadata,
     }));
 
     return NextResponse.json({
@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
         entityId,
         title,
         description,
-        metadata: metadata ? JSON.stringify(metadata) : null,
+        metadata: metadata || undefined,
         status,
         duration,
       },
@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       event: {
         ...event,
-        metadata: event.metadata ? JSON.parse(event.metadata) : null,
+        metadata: event.metadata,
       },
     });
   } catch (error) {
@@ -282,7 +282,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({
       event: {
         ...updatedEvent,
-        metadata: updatedEvent.metadata ? JSON.parse(updatedEvent.metadata) : null,
+        metadata: updatedEvent.metadata,
       },
     });
   } catch (error) {

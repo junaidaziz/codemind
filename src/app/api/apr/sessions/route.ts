@@ -32,13 +32,13 @@ export async function GET(request: NextRequest) {
       prisma.autoFixSession.findMany({
         where,
         include: {
-          attempts: {
+          AutoFixAttempt: {
             orderBy: { attemptNumber: 'asc' },
           },
-          validations: {
-            orderBy: { attemptNumber: 'desc' },
+          AutoFixResult: {
+            orderBy: { createdAt: 'desc' },
           },
-          reviews: {
+          AutoFixReview: {
             orderBy: { createdAt: 'desc' },
           },
         },

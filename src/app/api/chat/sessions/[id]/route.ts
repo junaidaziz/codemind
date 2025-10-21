@@ -25,7 +25,7 @@ export async function GET(
     const session = await prisma.chatSession.findUnique({
       where: { id: sessionId },
       include: {
-        messages: {
+        Message: {
           orderBy: { createdAt: 'asc' },
           select: {
             id: true,
@@ -36,13 +36,13 @@ export async function GET(
             createdAt: true
           }
         },
-        project: {
+        Project: {
           select: {
             id: true,
             name: true
           }
         },
-        user: {
+        User: {
           select: {
             id: true,
             name: true,
