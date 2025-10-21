@@ -59,7 +59,7 @@ export class AIFixService {
       // Get issue from database
       const issue = await prisma.issue.findUnique({
         where: { id: issueId },
-        include: { project: true },
+        include: { Project: true },
       });
 
       if (!issue) {
@@ -67,7 +67,7 @@ export class AIFixService {
       }
 
       // Extract repository info from GitHub URL
-      const repoMatch = issue.project.githubUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+      const repoMatch = issue.Project.githubUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
       if (!repoMatch) {
         throw new Error('Invalid GitHub URL format');
       }
@@ -96,7 +96,7 @@ export class AIFixService {
       // Track successful analysis
       const timeTaken = (Date.now() - startTime) / 1000; // Convert to seconds
       await AnalyticsTracker.trackAIFixSession({
-        projectId: issue.project.id,
+        projectId: issue.Project.id,
         issueId,
         confidence: fixSuggestion?.confidence || 0,
         timeTaken,
@@ -142,14 +142,14 @@ export class AIFixService {
       // Get issue details
       const issue = await prisma.issue.findUnique({
         where: { id: issueId },
-        include: { project: true },
+        include: { Project: true },
       });
 
       if (!issue) {
         throw new Error(`Issue ${issueId} not found`);
       }
 
-      const repoMatch = issue.project.githubUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+      const repoMatch = issue.Project.githubUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
       if (!repoMatch) {
         throw new Error('Invalid GitHub URL format');
       }
@@ -188,7 +188,7 @@ export class AIFixService {
 
       // Track PR creation event
       await AnalyticsTracker.trackPullRequestEvent({
-        projectId: issue.project.id,
+        projectId: issue.Project.id,
         pullRequestId: pullRequest.number.toString(),
         issueId,
         eventType: 'pr_created',

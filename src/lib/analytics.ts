@@ -210,17 +210,17 @@ class AnalyticsService {
       const projects = await prisma.project.findMany({
         where: whereClause,
         include: {
-          sessions: {
+          ChatSession: {
             select: {
               id: true,
               createdAt: true,
               userId: true,
-              messages: {
+              Message: {
                 select: { id: true },
               },
             },
           },
-          files: {
+          ProjectFile: {
             select: {
               id: true,
               tokenCount: true,
@@ -230,9 +230,9 @@ class AnalyticsService {
       });
 
       return projects.map((project: typeof projects[0]) => {
-        const sessions = project.sessions;
+        const sessions = project.ChatSession;
         const uniqueUsers = new Set(sessions.map((s: { userId: string }) => s.userId)).size;
-        const totalQueries = sessions.reduce((sum: number, s: { messages: { length: number } }) => sum + s.messages.length, 0);
+        const totalQueries = sessions.reduce((sum: number, s: { Message: { length: number } }) => sum + s.Message.length, 0);
         const lastActivity = sessions.length > 0 
           ? new Date(Math.max(...sessions.map((s: { createdAt: { getTime: () => number } }) => s.createdAt.getTime())))
           : project.updatedAt;
@@ -246,8 +246,8 @@ class AnalyticsService {
           avgSessionDuration: 0, // Would need session end times
           lastActivity,
           indexingStatus: project.status as 'pending' | 'running' | 'completed' | 'failed',
-          chunksCount: project.files.length,
-          tokensCount: project.files.reduce((sum: number, chunk: { tokenCount: number }) => sum + chunk.tokenCount, 0),
+          chunksCount: project.ProjectFile.length,
+          tokensCount: project.ProjectFile.reduce((sum: number, chunk: { tokenCount: number }) => sum + chunk.tokenCount, 0),
         };
       });
     });

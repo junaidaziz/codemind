@@ -73,7 +73,7 @@ export class CodeMindChatMemory extends BaseMemory {
       const session = await prisma.chatSession.findUnique({
         where: { id: this.config.sessionId },
         include: {
-          messages: {
+          Message: {
             orderBy: { createdAt: 'desc' },
             take: this.config.maxMessages,
           },
@@ -88,10 +88,10 @@ export class CodeMindChatMemory extends BaseMemory {
       }
 
       // Convert database messages to LangChain format
-      const messages: BaseMessage[] = session.messages
+      const messages: BaseMessage[] = session.Message
         .reverse() // Restore chronological order
-        .filter((msg: typeof session.messages[0]) => this.config.includeSystemMessages || msg.role !== 'system')
-        .map((msg: typeof session.messages[0]) => {
+        .filter((msg: typeof session.Message[0]) => this.config.includeSystemMessages || msg.role !== 'system')
+        .map((msg: typeof session.Message[0]) => {
           switch (msg.role) {
             case 'user':
               return new HumanMessage(msg.content);
@@ -153,6 +153,7 @@ export class CodeMindChatMemory extends BaseMemory {
         // Save user message
         prisma.message.create({
           data: {
+            id: crypto.randomUUID(),
             sessionId: this.config.sessionId,
             role: 'user',
             content: inputText,
@@ -164,6 +165,7 @@ export class CodeMindChatMemory extends BaseMemory {
         // Save assistant message
         prisma.message.create({
           data: {
+            id: crypto.randomUUID(),
             sessionId: this.config.sessionId,
             role: 'assistant',
             content: outputText,
@@ -415,7 +417,7 @@ export class CodeMindChatMemory extends BaseMemory {
       include: {
         _count: {
           select: {
-            messages: true,
+            Message: true,
           },
         },
       },
@@ -434,7 +436,7 @@ export class CodeMindChatMemory extends BaseMemory {
 
     return {
       sessionId: this.config.sessionId,
-      totalMessages: session._count.messages,
+      totalMessages: session._count.Message,
       activeMessages,
       totalTokens: session.totalTokens,
       hasSummary: !!session.summary,

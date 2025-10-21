@@ -154,6 +154,7 @@ export async function generateAnswer(input: GenerateAnswerInput): Promise<Genera
     if (!finalSessionId) {
       const session = await prisma.chatSession.create({
         data: {
+          id: crypto.randomUUID(),
           projectId,
           userId,
           title: query.substring(0, 50) + (query.length > 50 ? '...' : ''),
@@ -165,6 +166,7 @@ export async function generateAnswer(input: GenerateAnswerInput): Promise<Genera
     // Save user message
     await prisma.message.create({
       data: {
+        id: crypto.randomUUID(),
         sessionId: finalSessionId,
         role: 'user',
         content: query,
@@ -202,6 +204,7 @@ export async function generateAnswer(input: GenerateAnswerInput): Promise<Genera
     // Save assistant message
     await prisma.message.create({
       data: {
+        id: crypto.randomUUID(),
         sessionId: finalSessionId,
         role: 'assistant',
         content: answer,
@@ -284,6 +287,7 @@ export async function generateAnswerStream(
     if (!finalSessionId) {
       const session = await prisma.chatSession.create({
         data: {
+          id: crypto.randomUUID(),
           projectId,
           userId,
           title: query.substring(0, 50) + (query.length > 50 ? '...' : ''),
@@ -295,6 +299,7 @@ export async function generateAnswerStream(
     // Save user message
     await prisma.message.create({
       data: {
+        id: crypto.randomUUID(),
         sessionId: finalSessionId,
         role: 'user',
         content: query,
@@ -369,6 +374,7 @@ Answer:`);
     
     await prisma.message.create({
       data: {
+        id: crypto.randomUUID(),
         sessionId: finalSessionId,
         role: 'assistant',
         content: fullAnswer,

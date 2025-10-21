@@ -87,10 +87,12 @@ export class AnalyticsTracker {
         // Create new metrics record
         metrics = await prisma.autoFixMetrics.create({
           data: {
+            id: crypto.randomUUID(),
             projectId,
             period,
             periodStart,
             periodEnd,
+            updatedAt: new Date(),
             totalSessions: 0,
             successfulSessions: 0,
             failedSessions: 0,

@@ -308,6 +308,7 @@ export class ToolAnalyticsTracker {
       // Save events to database
       await prisma.toolExecution.createMany({
         data: eventsToFlush.map(event => ({
+          id: crypto.randomUUID(),
           toolName: event.toolName,
           projectId: event.projectId,
           userId: event.userId,
