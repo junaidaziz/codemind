@@ -12,7 +12,6 @@ import { GenerateCommandHandler } from './generate-handler';
 import { TestCommandHandler } from './test-handler';
 import { RefactorCommandHandler } from './refactor-handler';
 import { ExplainCommandHandler } from './explain-handler';
-import { ScaffoldCommandHandler } from './scaffold-handler';
 
 let initialized = false;
 
@@ -21,7 +20,7 @@ let initialized = false;
  * 
  * Call this once during app startup to register all handlers.
  */
-export function initializeCommandHandlers(): void {
+export async function initializeCommandHandlers(): Promise<void> {
   if (initialized) {
     console.log('Command handlers already initialized');
     return;
@@ -36,19 +35,33 @@ export function initializeCommandHandlers(): void {
   registry.register(CommandType.TEST, new TestCommandHandler());
   registry.register(CommandType.REFACTOR, new RefactorCommandHandler());
   registry.register(CommandType.EXPLAIN, new ExplainCommandHandler());
-  registry.register(CommandType.SCAFFOLD, new ScaffoldCommandHandler());
+  
+  // Only register scaffold handler on server-side (uses Node.js fs APIs)
+  if (typeof window === 'undefined') {
+    try {
+      const { ScaffoldCommandHandler } = await import('./scaffold-handler');
+      registry.register(CommandType.SCAFFOLD, new ScaffoldCommandHandler());
+    } catch (error) {
+      console.warn('Could not load ScaffoldCommandHandler (server-only module):', error);
+    }
+  }
 
   initialized = true;
 
-  console.log('✅ Command handlers initialized:', [
+  const handlers = [
     'help',
     'fix',
     'generate',
     'test',
     'refactor',
     'explain',
-    'scaffold',
-  ]);
+  ];
+  
+  if (typeof window === 'undefined') {
+    handlers.push('scaffold (server-only)');
+  }
+
+  console.log('✅ Command handlers initialized:', handlers);
 }
 
 /**

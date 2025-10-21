@@ -4,6 +4,8 @@
  * Generates code scaffolds using the Smart Scaffolder system.
  * Uses AI-powered analysis to understand project conventions and generate
  * contextually appropriate code structures.
+ * 
+ * @server-only This module uses Node.js fs APIs and should only run on the server
  */
 
 import { Command } from '../command-parser';

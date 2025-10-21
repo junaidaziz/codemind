@@ -4,6 +4,8 @@
  * Main orchestrator for the Smart Scaffolder Mode.
  * Coordinates prompt parsing, convention analysis, template selection,
  * file generation, and application of changes.
+ * 
+ * @server-only This module uses Node.js fs APIs and should only run on the server
  */
 
 import type {

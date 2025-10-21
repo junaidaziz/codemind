@@ -13,7 +13,8 @@ export * from './generate-handler';
 export * from './test-handler';
 export * from './refactor-handler';
 export * from './explain-handler';
-export * from './scaffold-handler';
+// Note: scaffold-handler is NOT exported here - it uses Node.js fs APIs
+// and can only be loaded server-side via dynamic import in init.ts
 
 // Re-export command parser types for convenience
 export type { Command } from '../command-parser';

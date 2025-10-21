@@ -3,6 +3,8 @@
  * 
  * Analyzes project codebases to detect naming conventions, import styles,
  * folder structures, and framework patterns. Results are cached per project.
+ * 
+ * @server-only This module uses Node.js fs APIs and should only run on the server
  */
 
 import fs from 'fs';

@@ -122,6 +122,17 @@ const nextConfig: NextConfig = {
 
   // Webpack configuration for production optimizations
   webpack: (config, { dev, isServer }) => {
+    // Exclude Node.js modules from client-side bundle
+    if (!isServer) {
+      config.resolve = config.resolve || {};
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        'fs/promises': false,
+      };
+    }
+
     // Production optimizations
     if (!dev) {
       config.optimization.splitChunks = {
