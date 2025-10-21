@@ -34,9 +34,9 @@ export async function GET(
     const organization = await prisma.organization.findUnique({
       where: { id: organizationId },
       include: {
-        members: {
+        OrganizationMember: {
           include: {
-            user: {
+            User_OrganizationMember_userIdToUser: {
               select: {
                 id: true,
                 email: true,
@@ -46,7 +46,7 @@ export async function GET(
             },
           },
         },
-        projects: {
+        Project: {
           select: {
             id: true,
             name: true,
@@ -55,9 +55,9 @@ export async function GET(
             githubUrl: true,
           },
         },
-        invites: {
+        OrganizationInvite: {
           include: {
-            inviter: {
+            User: {
               select: {
                 id: true,
                 name: true,
@@ -68,8 +68,8 @@ export async function GET(
         },
         _count: {
           select: {
-            members: true,
-            projects: true,
+            OrganizationMember: true,
+            Project: true,
           },
         },
       },
@@ -83,7 +83,7 @@ export async function GET(
     }
 
     // Check if user is member or owner
-    const userMembership = organization.members.find(
+    const userMembership = organization.OrganizationMember.find(
       (member: { userId: string }) => member.userId === userId
     );
 
@@ -100,8 +100,8 @@ export async function GET(
     logger.info('Organization details fetched successfully', {
       organizationId,
       userId,
-      memberCount: organization._count.members,
-      projectCount: organization._count.projects,
+      memberCount: organization._count.OrganizationMember,
+      projectCount: organization._count.Project,
     });
 
     return NextResponse.json(
@@ -147,7 +147,7 @@ export async function PATCH(
     const organization = await prisma.organization.findUnique({
       where: { id: organizationId },
       include: {
-        members: {
+        OrganizationMember: {
           where: { userId },
         },
       },
@@ -160,7 +160,7 @@ export async function PATCH(
       );
     }
 
-    const userMembership = organization.members[0];
+    const userMembership = organization.OrganizationMember[0];
     const userRole = organization.ownerId === userId ? 'OWNER' : userMembership?.role || null;
 
     if (!userRole) {
@@ -187,9 +187,9 @@ export async function PATCH(
         ...(body.avatarUrl !== undefined && { avatarUrl: body.avatarUrl }),
       },
       include: {
-        members: {
+        OrganizationMember: {
           include: {
-            user: {
+            User_OrganizationMember_userIdToUser: {
               select: {
                 id: true,
                 email: true,
@@ -199,7 +199,7 @@ export async function PATCH(
             },
           },
         },
-        projects: {
+        Project: {
           select: {
             id: true,
             name: true,
@@ -209,8 +209,8 @@ export async function PATCH(
         },
         _count: {
           select: {
-            members: true,
-            projects: true,
+            OrganizationMember: true,
+            Project: true,
           },
         },
       },
@@ -267,8 +267,8 @@ export async function DELETE(
         ownerId: true,
         _count: {
           select: {
-            projects: true,
-            members: true,
+            Project: true,
+            OrganizationMember: true,
           },
         },
       },
@@ -289,7 +289,7 @@ export async function DELETE(
     }
 
     // Check if there are projects that need to be handled
-    if (organization._count.projects > 0) {
+    if (organization._count.Project > 0) {
       return NextResponse.json(
         createApiError(
           'Cannot delete organization with projects. Please delete or transfer all projects first.',

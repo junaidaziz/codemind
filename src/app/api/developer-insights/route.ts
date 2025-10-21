@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
           }
         },
         include: {
-          results: true
+          AutoFixResult: true
         }
       })
     ]);

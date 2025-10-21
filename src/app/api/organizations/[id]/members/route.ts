@@ -35,9 +35,9 @@ export async function GET(
     const organization = await prisma.organization.findUnique({
       where: { id: organizationId },
       include: {
-        members: {
+        OrganizationMember: {
           include: {
-            user: {
+            User_OrganizationMember_userIdToUser: {
               select: {
                 id: true,
                 email: true,
@@ -59,7 +59,7 @@ export async function GET(
     }
 
     // Check if user is member
-    const userMembership = organization.members.find(
+    const userMembership = organization.OrganizationMember.find(
       (member: { userId: string }) => member.userId === userId
     );
 
@@ -72,13 +72,13 @@ export async function GET(
 
     logger.info('Organization members fetched successfully', {
       organizationId,
-      memberCount: organization.members.length,
+      memberCount: organization.OrganizationMember.length,
     });
 
     return NextResponse.json(
       createApiSuccess({
-        members: organization.members,
-        total: organization.members.length,
+        members: organization.OrganizationMember,
+        total: organization.OrganizationMember.length,
       })
     );
 
@@ -130,7 +130,7 @@ export async function POST(
     const organization = await prisma.organization.findUnique({
       where: { id: organizationId },
       include: {
-        members: {
+        OrganizationMember: {
           where: { userId },
         },
       },
@@ -143,7 +143,7 @@ export async function POST(
       );
     }
 
-    const userMembership = organization.members[0];
+    const userMembership = organization.OrganizationMember[0];
     const userRole = organization.ownerId === userId ? 'OWNER' : userMembership?.role || null;
 
     if (!userRole) {
@@ -202,6 +202,7 @@ export async function POST(
     // Create organization invite
     const invite = await prisma.organizationInvite.create({
       data: {
+        id: `orginvite_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         organizationId,
         email: body.email,
         role: body.role,
@@ -210,13 +211,13 @@ export async function POST(
         invitedBy: userId,
       },
       include: {
-        organization: {
+        Organization: {
           select: {
             name: true,
             slug: true,
           },
         },
-        inviter: {
+        User: {
           select: {
             name: true,
             email: true,

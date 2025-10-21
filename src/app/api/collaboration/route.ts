@@ -43,14 +43,14 @@ export async function GET(req: NextRequest): Promise<Response> {
       const session = await prisma.chatSession.findUnique({
         where: { id: sessionId },
         include: {
-          user: {
+          User: {
             select: { id: true, name: true, email: true }
           },
-          project: {
+          Project: {
             select: { id: true, name: true }
           },
           _count: {
-            select: { messages: true }
+            select: { Message: true }
           }
         }
       });
@@ -75,8 +75,8 @@ export async function GET(req: NextRequest): Promise<Response> {
       const sessionState = {
         sessionId: session.id,
         participants: [{
-          userId: session.user.id,
-          userName: session.user.name,
+          userId: session.User.id,
+          userName: session.User.name,
           role: 'owner',
           joinedAt: session.createdAt.toISOString(),
           lastActiveAt: session.lastActiveAt.toISOString(),
@@ -87,12 +87,12 @@ export async function GET(req: NextRequest): Promise<Response> {
           },
         }],
         lastActivity: session.lastActiveAt.toISOString(),
-        messageCount: session._count.messages,
+        messageCount: session._count.Message,
       };
 
       return NextResponse.json(createApiSuccess({
         session: sessionState,
-        project: session.project,
+        project: session.Project,
       }));
     }
 
@@ -109,14 +109,14 @@ export async function GET(req: NextRequest): Promise<Response> {
     const sessions = await prisma.chatSession.findMany({
       where: whereClause,
       include: {
-        user: {
+        User: {
           select: { id: true, name: true, email: true }
         },
-        project: {
+        Project: {
           select: { id: true, name: true }
         },
         _count: {
-          select: { messages: true }
+          select: { Message: true }
         }
       },
       orderBy: { lastActiveAt: 'desc' },
@@ -126,10 +126,10 @@ export async function GET(req: NextRequest): Promise<Response> {
     const collaborationSessions = sessions.map(session => ({
       sessionId: session.id,
       projectId: session.projectId,
-      projectName: session.project.name,
+      projectName: session.Project.name,
       participants: [{
-        userId: session.user.id,
-        userName: session.user.name,
+        userId: session.User.id,
+        userName: session.User.name,
         role: 'owner' as const,
         joinedAt: session.createdAt.toISOString(),
         lastActiveAt: session.lastActiveAt.toISOString(),
@@ -140,7 +140,7 @@ export async function GET(req: NextRequest): Promise<Response> {
         },
       }],
       lastActivity: session.lastActiveAt.toISOString(),
-      messageCount: session._count.messages,
+      messageCount: session._count.Message,
       createdAt: session.createdAt.toISOString(),
     }));
 
@@ -172,10 +172,10 @@ export async function POST(req: NextRequest): Promise<Response> {
     const session = await prisma.chatSession.findUnique({
       where: { id: sessionId },
       include: {
-        user: {
+        User: {
           select: { id: true, name: true, email: true }
         },
-        project: {
+        Project: {
           select: { id: true, name: true }
         }
       }
@@ -198,8 +198,8 @@ export async function POST(req: NextRequest): Promise<Response> {
     // For now, create a participant entry
     // In a full implementation, this would be stored in a separate participants table
     const participant = {
-      userId: session.user.id, // This should be the requesting user's ID
-      userName: session.user.name,
+      userId: session.User.id, // This should be the requesting user's ID
+      userName: session.User.name,
       role,
       joinedAt: new Date().toISOString(),
       lastActiveAt: new Date().toISOString(),
@@ -250,7 +250,7 @@ export async function PUT(req: NextRequest): Promise<Response> {
     const session = await prisma.chatSession.findUnique({
       where: { id: sessionId },
       include: {
-        user: {
+        User: {
           select: { id: true, name: true }
         }
       }

@@ -83,6 +83,7 @@ async function createProjectHandler(req: NextRequest): Promise<NextResponse<ApiR
       try {
         defaultUser = await prisma.user.create({
           data: {
+            id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             email: 'default@codemind.dev',
             name: 'Default User',
             role: 'user'
@@ -96,6 +97,7 @@ async function createProjectHandler(req: NextRequest): Promise<NextResponse<ApiR
           logger.warn('Database schema mismatch during user creation, creating without role column');
           defaultUser = await prisma.user.create({
             data: {
+              id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
               email: 'default@codemind.dev',
               name: 'Default User',
             },
@@ -113,9 +115,11 @@ async function createProjectHandler(req: NextRequest): Promise<NextResponse<ApiR
   // Create a project
   const project = await prisma.project.create({
     data: {
+      id: `project_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       name: data.name,
       githubUrl: data.githubUrl,
-      ownerId: userId
+      ownerId: userId,
+      updatedAt: new Date()
     }
   });
 

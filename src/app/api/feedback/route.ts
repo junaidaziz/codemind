@@ -52,10 +52,10 @@ export async function GET(req: NextRequest): Promise<Response> {
       prisma.agentFeedback.findMany({
         where: whereClause,
         include: {
-          user: {
+          User: {
             select: { id: true, name: true, email: true }
           },
-          message: {
+          Message: {
             select: { 
               id: true, 
               content: true, 
@@ -127,8 +127,8 @@ export async function GET(req: NextRequest): Promise<Response> {
         responseTime: feedback.responseTime,
         contextData: feedback.contextData ? JSON.parse(JSON.stringify(feedback.contextData)) : null,
         createdAt: feedback.createdAt,
-        user: feedback.user,
-        message: feedback.message,
+        user: feedback.User,
+        message: feedback.Message,
       })),
       pagination: {
         page,
@@ -166,10 +166,10 @@ export async function POST(req: NextRequest): Promise<Response> {
     const message = await prisma.message.findUnique({
       where: { id: feedbackData.messageId },
       include: {
-        session: {
+        ChatSession: {
           include: {
-            project: true,
-            user: true,
+            Project: true,
+            User: true,
           },
         },
       },
@@ -182,7 +182,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
     }
 
-    if (message.session.projectId !== feedbackData.projectId) {
+    if (message.ChatSession.projectId !== feedbackData.projectId) {
       return NextResponse.json(
         createApiError('Project ID mismatch', 'VALIDATION_ERROR'),
         { status: 400 }
@@ -193,7 +193,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     const existingFeedback = await prisma.agentFeedback.findFirst({
       where: {
         messageId: feedbackData.messageId,
-        userId: message.session.userId,
+        userId: message.ChatSession.userId,
       },
     });
 
@@ -216,10 +216,11 @@ export async function POST(req: NextRequest): Promise<Response> {
       // Create new feedback
       feedback = await prisma.agentFeedback.create({
         data: {
+          id: `feedback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           messageId: feedbackData.messageId,
           sessionId: feedbackData.sessionId,
           projectId: feedbackData.projectId,
-          userId: message.session.userId,
+          userId: message.ChatSession.userId,
           feedbackType: feedbackData.feedbackType,
           rating: feedbackData.rating,
           comment: feedbackData.comment,
@@ -240,7 +241,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     const analyticsRecord = await prisma.feedbackAnalytics.findFirst({
       where: {
         projectId: feedbackData.projectId,
-        userId: message.session.userId,
+        userId: message.ChatSession.userId,
         period: 'day',
         periodStart: {
           gte: periodStart,
@@ -254,7 +255,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       const allTodayFeedbacks = await prisma.agentFeedback.findMany({
         where: {
           projectId: feedbackData.projectId,
-          userId: message.session.userId,
+          userId: message.ChatSession.userId,
           createdAt: {
             gte: periodStart,
             lt: periodEnd,
@@ -296,8 +297,9 @@ export async function POST(req: NextRequest): Promise<Response> {
       // Create new analytics record
       await prisma.feedbackAnalytics.create({
         data: {
+          id: `analytics_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           projectId: feedbackData.projectId,
-          userId: message.session.userId,
+          userId: message.ChatSession.userId,
           period: 'day',
           periodStart,
           periodEnd,
@@ -305,6 +307,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           avgRating: feedbackData.rating,
           ratingCounts: JSON.parse(JSON.stringify({ [feedbackData.rating.toString()]: 1 })),
           categoryBreakdown: JSON.parse(JSON.stringify({ [feedbackData.category]: feedbackData.rating })),
+          updatedAt: new Date(),
         },
       });
     }

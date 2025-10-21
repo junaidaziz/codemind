@@ -150,7 +150,7 @@ export class PromptParser {
     const references: Reference[] = [];
     
     // Look for "similar to X", "like X", "based on X"
-    const patterns: Array<{ type: ReferenceType; patterns: RegExp[] }> = [
+    const referencePatterns: Array<{ type: ReferenceType; patterns: RegExp[] }> = [
       {
         type: 'file',
         patterns: [
@@ -168,7 +168,7 @@ export class PromptParser {
       },
     ];
 
-    for (const { type, patterns } of patterns) {
+    for (const { type, patterns } of referencePatterns) {
       for (const pattern of patterns) {
         const matches = [...prompt.matchAll(pattern)];
         for (const match of matches) {

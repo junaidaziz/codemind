@@ -202,6 +202,7 @@ async function processWebhookEvent(
     const description = getEventDescription(parsedEvent);
     await prisma.message.create({
       data: {
+        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         sessionId: `webhook-${projectId}`,
         role: 'system',
         content: `GitHub Webhook: ${description}`,
@@ -413,6 +414,7 @@ async function processWebhookEvent(
     // Store failed webhook log
     await prisma.message.create({
       data: {
+        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         sessionId: `webhook-error-${projectId}`,
         role: 'system',
         content: `GitHub Webhook Error: Failed to process ${eventType} event: ${(error as Error).message}`,

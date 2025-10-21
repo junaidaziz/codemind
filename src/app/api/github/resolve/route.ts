@@ -30,9 +30,9 @@ export async function POST(request: NextRequest) {
     const issue = await prisma.issue.findFirst({
       where: {
         id: issueId,
-        ...(userId && !devFallback ? { project: { ownerId: userId } } : {}),
+        ...(userId && !devFallback ? { Project: { ownerId: userId } } : {}),
       },
-      include: { project: true },
+      include: { Project: true },
     });
 
     if (!issue) {
@@ -74,8 +74,8 @@ export async function POST(request: NextRequest) {
       // Derive real owner/repo from the project's GitHub URL (fallback to placeholders if parse fails)
       let owner = 'unknown';
       let repo = 'repo';
-      if (issue.project?.githubUrl) {
-        const match = issue.project.githubUrl.match(/github\.com\/([^\/]+)\/([^\/#]+)(?:\.git)?/i);
+      if (issue.Project?.githubUrl) {
+        const match = issue.Project.githubUrl.match(/github\.com\/([^\/]+)\/([^\/#]+)(?:\.git)?/i);
         if (match) {
           owner = match[1];
           repo = match[2].replace(/\.git$/i, '');

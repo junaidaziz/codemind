@@ -9,13 +9,11 @@
 import type {
   ScaffoldRequest,
   ScaffoldResult,
-  ScaffoldStatus,
   GeneratedFile,
   PreviewData,
   ParsedIntent,
   ProjectConventions,
   DependencyGraph,
-  ScaffoldingError,
 } from './types';
 import { ConventionAnalyzer } from './ConventionAnalyzer';
 import { PromptParser } from './PromptParser';
@@ -240,7 +238,7 @@ export class ScaffoldingService {
     return this.graphBuilder.build(files);
   }
 
-  private async createPreview(files: GeneratedFile[], projectId: string): Promise<PreviewData> {
+  private async createPreview(files: GeneratedFile[], _projectId: string): Promise<PreviewData> {
     // TODO: Implement preview creation
     // - Build file tree
     // - Calculate summary statistics
@@ -300,12 +298,12 @@ export class ScaffoldingService {
     return variables;
   }
 
-  private async writeFile(path: string, content: string, projectId: string): Promise<void> {
+  private async writeFile(path: string, content: string, _projectId: string): Promise<void> {
     // TODO: Implement actual file writing to the project
     console.log(`Would write file: ${path} (${content.length} bytes)`);
   }
 
-  private async deleteFile(path: string, projectId: string): Promise<void> {
+  private async deleteFile(path: string, _projectId: string): Promise<void> {
     // TODO: Implement actual file deletion
     console.log(`Would delete file: ${path}`);
   }

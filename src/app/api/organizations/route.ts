@@ -25,9 +25,9 @@ export async function GET() {
     const ownedOrganizations = await prisma.organization.findMany({
       where: { ownerId: userId },
       include: {
-        members: {
+        OrganizationMember: {
           include: {
-            user: {
+            User_OrganizationMember_userIdToUser: {
               select: {
                 id: true,
                 email: true,
@@ -37,7 +37,7 @@ export async function GET() {
             },
           },
         },
-        projects: {
+        Project: {
           select: {
             id: true,
             name: true,
@@ -47,8 +47,8 @@ export async function GET() {
         },
         _count: {
           select: {
-            members: true,
-            projects: true,
+            OrganizationMember: true,
+            Project: true,
           },
         },
       },
@@ -58,7 +58,7 @@ export async function GET() {
     // Fetch organizations where user is a member (but not owner)
     const memberOrganizations = await prisma.organization.findMany({
       where: {
-        members: {
+        OrganizationMember: {
           some: {
             userId,
           },
@@ -66,9 +66,9 @@ export async function GET() {
         ownerId: { not: userId },
       },
       include: {
-        members: {
+        OrganizationMember: {
           include: {
-            user: {
+            User_OrganizationMember_userIdToUser: {
               select: {
                 id: true,
                 email: true,
@@ -78,7 +78,7 @@ export async function GET() {
             },
           },
         },
-        projects: {
+        Project: {
           select: {
             id: true,
             name: true,
@@ -88,17 +88,44 @@ export async function GET() {
         },
         _count: {
           select: {
-            members: true,
-            projects: true,
+            OrganizationMember: true,
+            Project: true,
           },
         },
       },
       orderBy: { createdAt: 'desc' },
     });
 
+    // Transform the data to match the expected type
+    const transformedOwned = ownedOrganizations.map((org) => ({
+      ...org,
+      members: org.OrganizationMember.map((member) => ({
+        ...member,
+        user: member.User_OrganizationMember_userIdToUser,
+      })),
+      projects: org.Project,
+      _count: {
+        members: org._count.OrganizationMember,
+        projects: org._count.Project,
+      },
+    }));
+
+    const transformedMember = memberOrganizations.map((org) => ({
+      ...org,
+      members: org.OrganizationMember.map((member) => ({
+        ...member,
+        user: member.User_OrganizationMember_userIdToUser,
+      })),
+      projects: org.Project,
+      _count: {
+        members: org._count.OrganizationMember,
+        projects: org._count.Project,
+      },
+    }));
+
     const userOrganizations: UserOrganizations = {
-      owned: ownedOrganizations,
-      member: memberOrganizations,
+      owned: transformedOwned,
+      member: transformedMember,
     };
 
     logger.info('Organizations fetched successfully', {
@@ -163,15 +190,17 @@ export async function POST(req: NextRequest) {
     // Create organization
     const organization = await prisma.organization.create({
       data: {
+        id: `org_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name: body.name,
         description: body.description,
         slug: body.slug,
         ownerId: userId,
+        updatedAt: new Date(),
       },
       include: {
-        members: {
+        OrganizationMember: {
           include: {
-            user: {
+            User_OrganizationMember_userIdToUser: {
               select: {
                 id: true,
                 email: true,
@@ -181,7 +210,7 @@ export async function POST(req: NextRequest) {
             },
           },
         },
-        projects: {
+        Project: {
           select: {
             id: true,
             name: true,
@@ -191,8 +220,8 @@ export async function POST(req: NextRequest) {
         },
         _count: {
           select: {
-            members: true,
-            projects: true,
+            OrganizationMember: true,
+            Project: true,
           },
         },
       },
@@ -201,6 +230,7 @@ export async function POST(req: NextRequest) {
     // Create owner membership
     await prisma.organizationMember.create({
       data: {
+        id: `member_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         organizationId: organization.id,
         userId,
         role: 'OWNER',

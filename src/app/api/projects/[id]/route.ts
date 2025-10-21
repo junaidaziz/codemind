@@ -25,16 +25,16 @@ export async function GET(
     const project = await prisma.project.findUnique({
       where: { id: projectId },
       include: {
-        owner: true,
-        sessions: {
+        User: true,
+        ChatSession: {
           select: { id: true, title: true, createdAt: true }
         },
-        files: {
+        ProjectFile: {
           select: {
             id: true,
-            path: true,
-            startLine: true,
-            endLine: true,
+            relativePath: true,
+            fileType: true,
+            language: true,
             updatedAt: true
           }
         }
@@ -100,7 +100,7 @@ export async function DELETE(
       // Delete messages first (they reference chat sessions)
       await tx.message.deleteMany({
         where: {
-          session: {
+          ChatSession: {
             projectId: projectId
           }
         }

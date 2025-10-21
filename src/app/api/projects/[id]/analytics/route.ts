@@ -95,10 +95,10 @@ export async function GET(request: NextRequest, { params }: AnalyticsParams) {
   type PRMinimal = { id: string; state: string; createdAt: Date; updatedAt: Date; mergedAt: Date | null; number?: number; title?: string; authorLogin?: string; additions?: number | null; deletions?: number | null };
   type IssueMinimal = { id: string; state: string; createdAt: Date; updatedAt: Date; number?: number; title?: string; body?: string | null; htmlUrl?: string; authorLogin?: string; closedAt?: Date | null; labels?: string[]; assignees?: string[] };
   interface ProjectShape { pullRequests: PRMinimal[]; issues: IssueMinimal[] }
-  let project: ProjectShape | null = await prisma.project.findFirst({
+  const projectData = await prisma.project.findFirst({
       where: { id },
       include: {
-        pullRequests: {
+        PullRequest: {
           where: prFilters,
           orderBy: { createdAt: 'desc' },
           select: {
@@ -114,7 +114,7 @@ export async function GET(request: NextRequest, { params }: AnalyticsParams) {
             deletions: true
           }
         },
-        issues: {
+        Issue: {
           where: issueFilters,
             orderBy: { createdAt: 'desc' },
             select: {
@@ -135,25 +135,36 @@ export async function GET(request: NextRequest, { params }: AnalyticsParams) {
       }
     });
 
+    let project: ProjectShape | null = projectData ? {
+      pullRequests: projectData.PullRequest,
+      issues: projectData.Issue
+    } : null;
+
     // Defensive fallback: if we still encounter a missing-column error (e.g. during hot reload race)
     // we retry with an even more minimal selection.
     if (!project) {
       try {
-        project = await prisma.project.findFirst({
+        const retryProject = await prisma.project.findFirst({
           where: { id },
           include: {
-            pullRequests: {
+            PullRequest: {
               where: prFilters,
               orderBy: { createdAt: 'desc' },
               select: { id: true, state: true, createdAt: true, updatedAt: true, mergedAt: true }
             },
-            issues: {
+            Issue: {
               where: issueFilters,
               orderBy: { createdAt: 'desc' },
               select: { id: true, state: true, createdAt: true, updatedAt: true }
             }
           }
         });
+        if (retryProject) {
+          project = {
+            pullRequests: retryProject.PullRequest,
+            issues: retryProject.Issue
+          };
+        }
       } catch (secondaryErr) {
         // Allow outer catch to handle
         throw secondaryErr;

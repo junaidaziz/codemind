@@ -36,7 +36,7 @@ export async function GET(request: NextRequest, { params }: TasksParams) {
     const project = await prisma.project.findUnique({
       where: { id },
       include: {
-        projectConfigs: true
+        ProjectConfig: true
       }
     });
 
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest, { params }: TasksParams) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    const config = project.projectConfigs[0]; // eslint-disable-line @typescript-eslint/no-unused-vars
+    const config = project.ProjectConfig; // eslint-disable-line @typescript-eslint/no-unused-vars
     const allTasks: UnifiedTask[] = [];
 
     // Fetch GitHub Issues

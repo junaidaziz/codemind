@@ -129,7 +129,7 @@ export class ConventionAnalyzer {
     };
   }
 
-  private detectFramework(projectId: string): FrameworkInfo {
+  private detectFramework(_projectId: string): FrameworkInfo {
     // TODO: Actually detect framework from package.json and file structure
     return {
       name: 'nextjs',
@@ -141,7 +141,7 @@ export class ConventionAnalyzer {
     };
   }
 
-  private detectTypeScript(projectId: string): TypeScriptConfig {
+  private detectTypeScript(_projectId: string): TypeScriptConfig {
     // TODO: Read from tsconfig.json
     return {
       enabled: true,
@@ -158,7 +158,7 @@ export class ConventionAnalyzer {
     };
   }
 
-  private detectTesting(projectId: string): TestingConfig | undefined {
+  private detectTesting(_projectId: string): TestingConfig | undefined {
     // TODO: Detect testing framework from package.json
     return {
       framework: 'jest',
@@ -168,7 +168,7 @@ export class ConventionAnalyzer {
     };
   }
 
-  private detectStyling(projectId: string): StylingConfig | undefined {
+  private detectStyling(_projectId: string): StylingConfig | undefined {
     // TODO: Detect styling approach from files and config
     return {
       approach: 'tailwind',

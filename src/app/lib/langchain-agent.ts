@@ -601,6 +601,7 @@ User query: ${message}`;
       if (!finalSessionId) {
         const session = await prisma.chatSession.create({
           data: {
+            id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             projectId,
             userId,
             title: query.substring(0, 50) + (query.length > 50 ? '...' : ''),
@@ -612,6 +613,7 @@ User query: ${message}`;
       // Save user message
       await prisma.message.create({
         data: {
+          id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           sessionId: finalSessionId,
           role: 'user',
           content: query,
@@ -648,6 +650,7 @@ User query: ${message}`;
       // Save assistant message
       await prisma.message.create({
         data: {
+          id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           sessionId: finalSessionId,
           role: 'assistant',
           content: agentResult.output,

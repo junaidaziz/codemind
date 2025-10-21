@@ -63,14 +63,14 @@ export async function GET(request: NextRequest, { params }: ContributorParams) {
         username: username
       },
       include: {
-        commits: {
+        Commit: {
           where: {
             date: { gte: startDate }
           },
           orderBy: { date: 'desc' },
           take: 50
         },
-        pullRequests: {
+        PullRequest: {
           where: {
             createdAt: { gte: startDate }
           },
@@ -104,7 +104,7 @@ export async function GET(request: NextRequest, { params }: ContributorParams) {
     }
 
     // Count commits per day
-    contributor.commits.forEach((commit: any) => {
+    contributor.Commit.forEach((commit: any) => {
       const dateKey = commit.date.toISOString().split('T')[0];
       const activity = activityMap.get(dateKey);
       if (activity) {
@@ -126,7 +126,7 @@ export async function GET(request: NextRequest, { params }: ContributorParams) {
       deletions: number;
     }>();
 
-    contributor.commits.forEach((commit: any) => {
+    contributor.Commit.forEach((commit: any) => {
       commit.filesChanged.forEach((filename: string) => {
         const existing = fileMap.get(filename) || {
           filename,
@@ -161,7 +161,7 @@ export async function GET(request: NextRequest, { params }: ContributorParams) {
       totalPRs: contributor.totalPRs,
       lastActiveAt: contributor.lastActiveAt?.toISOString(),
       joinedAt: contributor.joinedAt.toISOString(),
-      commits: contributor.commits.map((commit: any) => ({
+      commits: contributor.Commit.map((commit: any) => ({
         id: commit.id,
         sha: commit.sha,
         message: commit.message,
@@ -171,7 +171,7 @@ export async function GET(request: NextRequest, { params }: ContributorParams) {
         filesChanged: commit.filesChanged,
         url: commit.url
       })),
-      pullRequests: contributor.pullRequests.map((pr: any) => ({
+      pullRequests: contributor.PullRequest.map((pr: any) => ({
         id: pr.id,
         number: pr.number,
         title: pr.title,

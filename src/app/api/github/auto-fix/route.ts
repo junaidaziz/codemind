@@ -171,17 +171,20 @@ async function createAutoFixSession(
   try {
     const session = await prisma.autoFixSession.create({
       data: {
+        id: `autofix_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         projectId,
         userId: userId || null,
         status: 'ANALYZING',
-  triggerType: mapTrigger(triggerType),
+	triggerType: mapTrigger(triggerType),
         issuesDetected: JSON.stringify(issues || []),
-        analysisResult: 'Analyzing build / log content...'
+        analysisResult: 'Analyzing build / log content...',
+        updatedAt: new Date(),
       }
     });
     // Activity log
     await prisma.activityLog.create({
       data: {
+        id: `actlog_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         projectId,
         userId: userId || null,
         activityType: 'AI_FIX_STARTED',
@@ -226,6 +229,7 @@ async function finalizeAutoFixSession(
     });
     await prisma.activityLog.create({
       data: {
+        id: `actlog_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         projectId: (await prisma.autoFixSession.findUnique({ where: { id: sessionId }, select: { projectId: true } }))!.projectId,
         activityType: success ? 'AI_FIX_COMPLETED' : 'AI_FIX_FAILED',
         entityType: 'ai_fix',

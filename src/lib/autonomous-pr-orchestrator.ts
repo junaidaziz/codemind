@@ -328,12 +328,14 @@ export class AutonomousPROrchestrator {
 
     return await prisma.autoFixSession.create({
       data: {
+        id: `autofix_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         projectId: config.projectId,
         userId: config.userId,
         issuesDetected: config.issueDescription,
         branchName,
         status: 'ANALYZING',
-        triggerType: 'MANUAL'
+        triggerType: 'MANUAL',
+        updatedAt: new Date(),
       }
     });
   }
@@ -438,6 +440,7 @@ Format as JSON: {
     // Store attempt
     const attempt = await prisma.autoFixAttempt.create({
       data: {
+        id: `attempt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         sessionId,
         attemptNumber: 1,
         filesModified: codeChanges.changes?.map((c: CodeChange) => c.file) || [],
@@ -572,6 +575,7 @@ Format as JSON: {
     for (const step of validationSummary.steps) {
       await prisma.autoFixValidation.create({
         data: {
+          id: `validation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           sessionId,
           attemptNumber,
           validationType: (step.step === 'tests' ? 'UNIT_TEST' : step.step.toUpperCase()) as 'LINT' | 'TYPECHECK' | 'UNIT_TEST' | 'E2E_TEST' | 'SECURITY_SCAN' | 'PERFORMANCE',
@@ -647,6 +651,7 @@ Format as JSON: {
       // Store the self-heal attempt
       await prisma.autoFixAttempt.create({
         data: {
+          id: `attempt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           sessionId,
           attemptNumber,
           filesModified: healPatch.fixes?.map((f: HealFix) => f.file) || [],
@@ -731,6 +736,7 @@ Format as JSON: {
     for (const finding of findings) {
       await prisma.autoFixReview.create({
         data: {
+          id: `review_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           sessionId,
           reviewType: finding.type as 'CODE_QUALITY' | 'PERFORMANCE' | 'SECURITY' | 'BEST_PRACTICES' | 'POTENTIAL_BUG' | 'N_PLUS_ONE' | 'MEMORY_LEAK' | 'ERROR_HANDLING',
           severity: finding.severity as 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO',
@@ -862,6 +868,7 @@ ${analysis.testingPlan || 'Test the fix thoroughly before merging.'}
     // Store PR in database
     await prisma.pullRequest.create({
       data: {
+        id: `pr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         projectId: config.projectId,
         number: pr.number,
         title: pr.title,
@@ -1041,13 +1048,13 @@ export async function getAPRSession(sessionId: string) {
   const session = await prisma.autoFixSession.findUnique({
     where: { id: sessionId },
     include: {
-      attempts: {
+      AutoFixAttempt: {
         orderBy: { attemptNumber: 'asc' }
       },
-      validations: {
+      AutoFixValidation: {
         orderBy: { executedAt: 'asc' }
       },
-      reviews: {
+      AutoFixReview: {
         orderBy: { severity: 'asc' }
       }
     }
@@ -1073,9 +1080,9 @@ export async function listAPRSessions(projectId: string, filters?: {
     include: {
       _count: {
         select: {
-          attempts: true,
-          validations: true,
-          reviews: true
+          AutoFixAttempt: true,
+          AutoFixValidation: true,
+          AutoFixReview: true
         }
       }
     }

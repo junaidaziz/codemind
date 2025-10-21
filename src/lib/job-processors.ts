@@ -651,6 +651,7 @@ async function prAnalysisProcessor(
     // Store analysis results in database for future reference
     await prisma.message.create({
       data: {
+        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         sessionId: `pr-analysis-${data.projectId}-${data.pullRequest.number}`,
         role: 'system',
         content: JSON.stringify({

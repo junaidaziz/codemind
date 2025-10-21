@@ -60,8 +60,8 @@ export class TemplateEngine {
     // Process each template file
     for (const templateFile of template.files) {
       // Check if file is conditional
-      if (templateFile.optional && templateFile.conditionalOn) {
-        const shouldGenerate = context.variables[templateFile.conditionalOn];
+      if (templateFile.optional && templateFile.condition) {
+        const shouldGenerate = context.variables[templateFile.condition];
         if (!shouldGenerate) continue;
       }
 

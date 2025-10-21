@@ -33,14 +33,14 @@ export async function GET(req: NextRequest): Promise<Response> {
     const session = await prisma.chatSession.findUnique({
       where: { id: sessionId },
       include: {
-        user: {
+        User: {
           select: { 
             id: true, 
             name: true, 
             email: true,
           }
         },
-        project: {
+        Project: {
           select: { id: true, name: true }
         }
       }
@@ -56,9 +56,9 @@ export async function GET(req: NextRequest): Promise<Response> {
     // For now, return the session owner as the only participant
     // In a full implementation, this would query a separate participants table
     const participants = [{
-      userId: session.user.id,
-      userName: session.user.name,
-      userEmail: session.user.email,
+      userId: session.User.id,
+      userName: session.User.name,
+      userEmail: session.User.email,
       role: 'owner' as const,
       joinedAt: session.createdAt.toISOString(),
       lastActiveAt: session.lastActiveAt.toISOString(),
@@ -73,7 +73,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       sessionId,
       participants,
       total: participants.length,
-      project: session.project,
+      project: session.Project,
     }));
 
   } catch (error) {
@@ -95,10 +95,10 @@ export async function POST(req: NextRequest): Promise<Response> {
     const session = await prisma.chatSession.findUnique({
       where: { id: sessionId },
       include: {
-        user: {
+        User: {
           select: { id: true, name: true, email: true }
         },
-        project: {
+        Project: {
           select: { id: true, name: true }
         }
       }
@@ -149,7 +149,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         canViewHistory: true,
         canManageSession: false,
       },
-      invitedBy: session.user.name,
+      invitedBy: session.User.name,
       inviteMessage: message,
     };
 
@@ -204,7 +204,7 @@ export async function PUT(req: NextRequest): Promise<Response> {
     const session = await prisma.chatSession.findUnique({
       where: { id: sessionId },
       include: {
-        user: {
+        User: {
           select: { id: true, name: true }
         }
       }

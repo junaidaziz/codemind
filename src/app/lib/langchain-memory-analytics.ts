@@ -65,6 +65,7 @@ export class AgentMemoryTracker {
     try {
       await prisma.agentMemory.create({
         data: {
+          id: `memory_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           sessionId: validatedSnapshot.sessionId,
           projectId: validatedSnapshot.projectId,
           userId: validatedSnapshot.userId,

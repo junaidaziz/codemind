@@ -71,10 +71,10 @@ export async function GET(req: NextRequest): Promise<Response> {
     const feedbacks = await prisma.agentFeedback.findMany({
       where: feedbackWhere,
       include: {
-        user: {
+        User: {
           select: { id: true, name: true, email: true }
         },
-        message: {
+        Message: {
           select: { id: true, content: true, role: true, createdAt: true }
         }
       },
