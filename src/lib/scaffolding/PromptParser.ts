@@ -61,15 +61,112 @@ export class PromptParser {
   async parse(prompt: string): Promise<ParsedIntent> {
     const normalized = this.normalizePrompt(prompt);
     
+    const intent = this.extractIntent(normalized);
+    const entities = this.extractEntities(normalized);
+    const modifiers = this.extractModifiers(normalized);
+    const references = this.extractReferences(normalized);
+    
     return {
       raw: prompt,
-      intent: this.extractIntent(normalized),
-      entities: this.extractEntities(normalized),
-      modifiers: this.extractModifiers(normalized),
-      references: this.extractReferences(normalized),
-      confidence: this.calculateConfidence(normalized),
-      ambiguities: this.detectAmbiguities(normalized),
+      intent,
+      entities,
+      modifiers,
+      references,
+      confidence: this.calculateConfidence(normalized, intent, entities),
+      ambiguities: this.detectAmbiguities(normalized, intent, entities),
     };
+  }
+
+  /**
+   * Suggest file paths for generated files based on entities and conventions
+   */
+  suggestFilePaths(intent: ParsedIntent, projectRoot: string): string[] {
+    const paths: string[] = [];
+    
+    for (const entity of intent.entities) {
+      const basePath = this.getBasePath(entity.type);
+      const fileName = this.getFileName(entity.name, entity.type);
+      paths.push(`${projectRoot}/${basePath}/${fileName}`);
+      
+      // Add test file if requested
+      if (intent.modifiers.some(m => m.type === 'with-tests')) {
+        const testPath = this.getTestPath(entity.type);
+        const testFileName = this.getTestFileName(entity.name, entity.type);
+        paths.push(`${projectRoot}/${testPath}/${testFileName}`);
+      }
+    }
+    
+    return paths;
+  }
+
+  /**
+   * Match prompt to appropriate template(s)
+   */
+  matchTemplates(intent: ParsedIntent): string[] {
+    const templates: string[] = [];
+    
+    for (const entity of intent.entities) {
+      switch (entity.type) {
+        case 'component':
+          templates.push('react-component');
+          break;
+        case 'route':
+          templates.push('nextjs-api-route');
+          break;
+        case 'module':
+          templates.push('nextjs-crud-module');
+          break;
+        case 'utility':
+          templates.push('utility-function');
+          break;
+        case 'test':
+          templates.push('test-suite');
+          break;
+        default:
+          templates.push('generic-file');
+      }
+    }
+    
+    // Check for full module generation
+    if (intent.intent === 'scaffold' || intent.intent === 'generate') {
+      if (intent.entities.length > 0) {
+        templates.push('nextjs-crud-module');
+      }
+    }
+    
+    return [...new Set(templates)]; // Remove duplicates
+  }
+
+  /**
+   * Extract variables from prompt for template rendering
+   */
+  extractVariables(intent: ParsedIntent): Record<string, unknown> {
+    const variables: Record<string, unknown> = {};
+    
+    // Add entity names
+    for (const entity of intent.entities) {
+      variables[`${entity.type}Name`] = entity.name;
+      
+      // Add common naming variants
+      if (entity.name) {
+        variables.componentName = entity.name;
+        variables.moduleName = entity.name;
+        variables.fileName = entity.name;
+      }
+    }
+    
+    // Add modifiers as boolean flags
+    for (const modifier of intent.modifiers) {
+      variables[modifier.type.replace(/-/g, '')] = true;
+    }
+    
+    // Add references
+    if (intent.references.length > 0) {
+      variables.referenceFiles = intent.references.map(r => r.target);
+      variables.similarTo = intent.references[0]?.target;
+    }
+    
+    return variables;
   }
 
   // ============================================================================
@@ -184,16 +281,16 @@ export class PromptParser {
     return references;
   }
 
-  private calculateConfidence(prompt: string): number {
+  private calculateConfidence(prompt: string, intent: IntentType, entities: Entity[]): number {
     let confidence = 0.5; // Base confidence
     
     // Increase confidence for clear intent
-    if (this.extractIntent(prompt) !== 'unknown') {
+    if (intent !== 'unknown') {
       confidence += 0.2;
     }
 
     // Increase confidence for detected entities
-    const entityCount = this.extractEntities(prompt).length;
+    const entityCount = entities.length;
     confidence += Math.min(entityCount * 0.1, 0.2);
 
     // Increase confidence for specific keywords
@@ -207,17 +304,15 @@ export class PromptParser {
     return Math.min(confidence, 1.0);
   }
 
-  private detectAmbiguities(prompt: string): string[] {
+  private detectAmbiguities(prompt: string, intent: IntentType, entities: Entity[]): string[] {
     const ambiguities: string[] = [];
 
     // Check for missing entity name
-    const entities = this.extractEntities(prompt);
     if (entities.length === 0) {
       ambiguities.push('No entity name detected. What should it be called?');
     }
 
     // Check for ambiguous intent
-    const intent = this.extractIntent(prompt);
     if (intent === 'unknown') {
       ambiguities.push('Intent unclear. What do you want to create/generate?');
     }
@@ -232,7 +327,98 @@ export class PromptParser {
   }
 
   // ============================================================================
-  // Helper Methods
+  // Path and File Name Helpers
+  // ============================================================================
+
+  private getBasePath(entityType: EntityType): string {
+    const pathMap: Record<EntityType, string> = {
+      component: 'src/components',
+      route: 'src/app/api',
+      model: 'src/models',
+      service: 'src/services',
+      utility: 'src/lib',
+      test: 'src/__tests__',
+      migration: 'prisma/migrations',
+      config: 'src/config',
+      module: 'src/modules',
+    };
+    
+    return pathMap[entityType] || 'src';
+  }
+
+  private getTestPath(entityType: EntityType): string {
+    const testPathMap: Record<EntityType, string> = {
+      component: 'src/components/__tests__',
+      route: 'src/app/api/__tests__',
+      service: 'src/services/__tests__',
+      utility: 'src/lib/__tests__',
+      model: 'src/models/__tests__',
+      test: 'src/__tests__',
+      migration: 'prisma/__tests__',
+      config: 'src/config/__tests__',
+      module: 'src/modules/__tests__',
+    };
+    
+    return testPathMap[entityType] || 'src/__tests__';
+  }
+
+  private getFileName(name: string, entityType: EntityType): string {
+    const normalized = this.toCamelCase(name);
+    
+    switch (entityType) {
+      case 'component':
+        return `${this.toPascalCase(name)}.tsx`;
+      case 'route':
+        return `${normalized}/route.ts`;
+      case 'model':
+        return `${normalized}.ts`;
+      case 'service':
+        return `${normalized}.service.ts`;
+      case 'utility':
+        return `${normalized}.ts`;
+      case 'test':
+        return `${normalized}.test.ts`;
+      case 'migration':
+        return `${Date.now()}_${normalized}.sql`;
+      case 'config':
+        return `${normalized}.config.ts`;
+      case 'module':
+        return `${normalized}/index.ts`;
+      default:
+        return `${normalized}.ts`;
+    }
+  }
+
+  private getTestFileName(name: string, entityType: EntityType): string {
+    const normalized = this.toCamelCase(name);
+    
+    switch (entityType) {
+      case 'component':
+        return `${this.toPascalCase(name)}.test.tsx`;
+      case 'service':
+        return `${normalized}.service.test.ts`;
+      default:
+        return `${normalized}.test.ts`;
+    }
+  }
+
+  // ============================================================================
+  // Naming Convention Helpers
+  // ============================================================================
+
+  private toPascalCase(str: string): string {
+    return str
+      .replace(/[-_\s]+(.)?/g, (_, char) => char ? char.toUpperCase() : '')
+      .replace(/^(.)/, (char) => char.toUpperCase());
+  }
+
+  private toCamelCase(str: string): string {
+    const pascal = this.toPascalCase(str);
+    return pascal.charAt(0).toLowerCase() + pascal.slice(1);
+  }
+
+  // ============================================================================
+  // Original Helper Methods
   // ============================================================================
 
   private normalizeName(name: string): string {
