@@ -19,6 +19,7 @@ import { ConventionAnalyzer } from './ConventionAnalyzer';
 import { PromptParser } from './PromptParser';
 import { TemplateEngine } from './TemplateEngine';
 import { DependencyGraphBuilder } from './DependencyGraphBuilder';
+import { registerAllTemplates } from './templates';
 
 export class ScaffoldingService {
   private conventionAnalyzer: ConventionAnalyzer;
@@ -33,6 +34,9 @@ export class ScaffoldingService {
     this.templateEngine = new TemplateEngine();
     this.graphBuilder = new DependencyGraphBuilder();
     this.scaffoldCache = new Map();
+    
+    // Register all production templates
+    registerAllTemplates(this.templateEngine);
   }
 
   /**

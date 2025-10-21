@@ -11,6 +11,7 @@ import { ICommandHandler, CommandContext, CommandResult, CodeChange } from './ty
 import { PromptParser } from '../scaffolding/PromptParser';
 import { ConventionAnalyzer } from '../scaffolding/ConventionAnalyzer';
 import { TemplateEngine } from '../scaffolding/TemplateEngine';
+import { registerAllTemplates } from '../scaffolding/templates';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -23,6 +24,9 @@ export class ScaffoldCommandHandler implements ICommandHandler {
     this.promptParser = new PromptParser();
     this.conventionAnalyzer = new ConventionAnalyzer();
     this.templateEngine = new TemplateEngine();
+    
+    // Register all production templates
+    registerAllTemplates(this.templateEngine);
   }
 
   async execute(command: Command, context: CommandContext): Promise<CommandResult> {
