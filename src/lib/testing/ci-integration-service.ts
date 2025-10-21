@@ -47,6 +47,14 @@ interface CoverageFile {
   statements?: { total: number; covered: number };
 }
 
+interface TestFailure {
+  testName: string;
+  filePath: string;
+  message: string;
+  stack?: string;
+  type: 'failure';
+}
+
 /**
  * CI environment detection
  */
@@ -189,9 +197,7 @@ async runPipeline(): Promise<{
       // Generate tests if enabled
       if (this.options.generateTests) {
         console.log('📝 Generating tests...');
-        results.generationResults = await this.orchestrator.generateForHighPriority(
-          { batchSize: 10 }
-        );
+        results.generationResults = await this.orchestrator.generateForHighPriority();
 
         if (this.checksService && env.commit && this.options.updateChecks) {
           await this.checksService.createTestGenerationCheck(
@@ -302,16 +308,16 @@ async runPipeline(): Promise<{
 
       const result = JSON.parse(jsonLine) as JestOutput;
 
-      const failures = result.testResults
+      const failures: TestFailure[] = result.testResults
         ?.flatMap((suite) =>
           suite.assertionResults
             ?.filter((test) => test.status === 'failed')
-            .map((test) => ({
+            .map((test): TestFailure => ({
               testName: test.title,
               filePath: suite.name,
               message: test.failureMessages?.[0] || 'Test failed',
               stack: test.failureMessages?.join('\n'),
-              type: 'failure' as const,
+              type: 'failure',
             }))
         )
         .filter((f): f is TestFailure => f !== undefined) || [];
@@ -410,7 +416,7 @@ async runPipeline(): Promise<{
   private calculateOverallCoverage(coverageReport: CoverageReport): number {
     if (!coverageReport?.files) return 0;
 
-    const tested = coverageReport.files.filter((f) => f.isTested).length;
+    const tested = coverageReport.files.filter((f) => f.hasTests).length;
     const total = coverageReport.files.length;
 
     return (tested / total) * 100;
