@@ -63,6 +63,8 @@ export interface CIEnvironment {
  * CI integration options
  */
 export interface CIIntegrationOptions {
+  projectRoot?: string;
+  openAIKey?: string;
   githubToken?: string;
   owner?: string;
   repo?: string;
@@ -85,11 +87,10 @@ export class CIIntegrationService {
   private analyzer: CoverageAnalyzer;
 
   constructor(private options: CIIntegrationOptions = {}) {
-    const aiTestGenerator = {
-      generateTests: async () => ({ testContent: '', testCount: 0, framework: 'jest' as const }),
-    };
-    this.orchestrator = new TestGenerationOrchestrator(aiTestGenerator);
-    this.analyzer = new CoverageAnalyzer(process.cwd());
+    // Initialize orchestrator with project root
+    const projectRoot = options.projectRoot || process.cwd();
+    this.orchestrator = new TestGenerationOrchestrator(projectRoot, options.openAIKey);
+    this.analyzer = new CoverageAnalyzer(projectRoot);
 
     if (options.githubToken && options.owner && options.repo) {
       this.checksService = new GitHubChecksService(
@@ -189,7 +190,7 @@ async runPipeline(): Promise<{
       if (this.options.generateTests) {
         console.log('📝 Generating tests...');
         results.generationResults = await this.orchestrator.generateForHighPriority(
-          { maxFiles: 10 }
+          { batchSize: 10 }
         );
 
         if (this.checksService && env.commit && this.options.updateChecks) {
@@ -313,7 +314,7 @@ async runPipeline(): Promise<{
               type: 'failure' as const,
             }))
         )
-        .filter(Boolean) || [];
+        .filter((f): f is TestFailure => f !== undefined) || [];
 
       return {
         success: result.success,
@@ -355,20 +356,20 @@ async runPipeline(): Promise<{
     const totals = files.reduce(
       (acc, file) => ({
         lines: {
-          total: acc.lines.total + (file.lines?.total || 0),
-          covered: acc.lines.covered + (file.lines?.covered || 0),
+          total: (acc.lines?.total || 0) + (file.lines?.total || 0),
+          covered: (acc.lines?.covered || 0) + (file.lines?.covered || 0),
         },
         functions: {
-          total: acc.functions.total + (file.functions?.total || 0),
-          covered: acc.functions.covered + (file.functions?.covered || 0),
+          total: (acc.functions?.total || 0) + (file.functions?.total || 0),
+          covered: (acc.functions?.covered || 0) + (file.functions?.covered || 0),
         },
         branches: {
-          total: acc.branches.total + (file.branches?.total || 0),
-          covered: acc.branches.covered + (file.branches?.covered || 0),
+          total: (acc.branches?.total || 0) + (file.branches?.total || 0),
+          covered: (acc.branches?.covered || 0) + (file.branches?.covered || 0),
         },
         statements: {
-          total: acc.statements.total + (file.statements?.total || 0),
-          covered: acc.statements.covered + (file.statements?.covered || 0),
+          total: (acc.statements?.total || 0) + (file.statements?.total || 0),
+          covered: (acc.statements?.covered || 0) + (file.statements?.covered || 0),
         },
       }),
       {
@@ -381,20 +382,24 @@ async runPipeline(): Promise<{
 
     return {
       lines: {
-        ...totals.lines,
-        percentage: (totals.lines.covered / totals.lines.total) * 100 || 0,
+        total: totals.lines?.total || 0,
+        covered: totals.lines?.covered || 0,
+        percentage: ((totals.lines?.covered || 0) / (totals.lines?.total || 1)) * 100,
       },
       functions: {
-        ...totals.functions,
-        percentage: (totals.functions.covered / totals.functions.total) * 100 || 0,
+        total: totals.functions?.total || 0,
+        covered: totals.functions?.covered || 0,
+        percentage: ((totals.functions?.covered || 0) / (totals.functions?.total || 1)) * 100,
       },
       branches: {
-        ...totals.branches,
-        percentage: (totals.branches.covered / totals.branches.total) * 100 || 0,
+        total: totals.branches?.total || 0,
+        covered: totals.branches?.covered || 0,
+        percentage: ((totals.branches?.covered || 0) / (totals.branches?.total || 1)) * 100,
       },
       statements: {
-        ...totals.statements,
-        percentage: (totals.statements.covered / totals.statements.total) * 100 || 0,
+        total: totals.statements?.total || 0,
+        covered: totals.statements?.covered || 0,
+        percentage: ((totals.statements?.covered || 0) / (totals.statements?.total || 1)) * 100,
       },
     };
   }
