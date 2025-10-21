@@ -218,7 +218,7 @@ export class CoverageAnalyzer {
               endLine: node.loc?.end.line || 0,
               params: node.params.map(p => this.getParamName(p)),
               isAsync: node.async || false,
-              isExported: path.parentPath?.parentPath ? this.isExported(path.parentPath.parentPath) : false,
+              isExported: (path.parentPath?.parentPath && this.isExported(path.parentPath.parentPath)) || false,
               complexity: this.calculateComplexity(path),
               type: 'arrow',
             });
