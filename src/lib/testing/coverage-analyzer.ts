@@ -10,8 +10,8 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { parse } from '@babel/parser';
-import traverse from '@babel/traverse';
-import type { File, Node } from '@babel/types';
+import traverse, { NodePath } from '@babel/traverse';
+import type { Node as BabelNode } from '@babel/types';
 
 /**
  * Represents a function or method in the codebase
@@ -267,7 +267,7 @@ export class CoverageAnalyzer {
   /**
    * Calculate cyclomatic complexity of a function
    */
-  private calculateComplexity(path: any): number {
+  private calculateComplexity(path: NodePath): number {
     let complexity = 1;
 
     path.traverse({
@@ -277,8 +277,9 @@ export class CoverageAnalyzer {
       WhileStatement: () => complexity++,
       DoWhileStatement: () => complexity++,
       CaseClause: () => complexity++,
-      LogicalExpression: (path: any) => {
-        if (path.node.operator === '&&' || path.node.operator === '||') {
+      LogicalExpression: (logicalPath: NodePath) => {
+        const node = logicalPath.node as { operator?: string };
+        if (node.operator === '&&' || node.operator === '||') {
           complexity++;
         }
       },
@@ -291,7 +292,7 @@ export class CoverageAnalyzer {
   /**
    * Check if a node is exported
    */
-  private isExported(path: any): boolean {
+  private isExported(path: NodePath): boolean {
     let current = path;
     while (current) {
       if (
@@ -308,13 +309,13 @@ export class CoverageAnalyzer {
   /**
    * Get parameter name from node
    */
-  private getParamName(param: any): string {
+  private getParamName(param: { type: string; name?: string; argument?: { type: string; name?: string }; left?: { type: string; name?: string } }): string {
     if (param.type === 'Identifier') {
-      return param.name;
-    } else if (param.type === 'RestElement' && param.argument.type === 'Identifier') {
-      return `...${param.argument.name}`;
-    } else if (param.type === 'AssignmentPattern' && param.left.type === 'Identifier') {
-      return param.left.name;
+      return param.name || 'unknown';
+    } else if (param.type === 'RestElement' && param.argument?.type === 'Identifier') {
+      return `...${param.argument.name || 'unknown'}`;
+    } else if (param.type === 'AssignmentPattern' && param.left?.type === 'Identifier') {
+      return param.left.name || 'unknown';
     }
     return 'unknown';
   }
@@ -322,11 +323,12 @@ export class CoverageAnalyzer {
   /**
    * Get class name from method path
    */
-  private getClassName(path: any): string {
-    let current = path;
+  private getClassName(path: NodePath): string {
+    let current: NodePath | null = path;
     while (current) {
-      if (current.isClassDeclaration() && current.node.id) {
-        return current.node.id.name;
+      const node = current.node as { type?: string; id?: { name?: string } };
+      if (node.type === 'ClassDeclaration' && node.id) {
+        return node.id.name || 'Unknown';
       }
       current = current.parentPath;
     }
@@ -336,7 +338,7 @@ export class CoverageAnalyzer {
   /**
    * Get method name from key
    */
-  private getMethodName(key: any): string {
+  private getMethodName(key: { type: string; name?: string; value?: string }): string {
     if (key.type === 'Identifier') {
       return key.name;
     } else if (key.type === 'StringLiteral') {

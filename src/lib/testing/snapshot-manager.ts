@@ -7,8 +7,9 @@
  * @module testing/snapshot-manager
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+import * as fs from 'fs';
+import * as fsPromises from 'fs/promises';
+import * as path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
@@ -93,7 +94,7 @@ export class SnapshotManager {
    */
   private async scanDirectory(dir: string, snapshots: SnapshotFile[]): Promise<void> {
     try {
-      const entries = await fs.readdir(dir, { withFileTypes: true });
+      const entries = await fsPromises.readdir(dir, { withFileTypes: true });
 
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
@@ -145,7 +146,7 @@ export class SnapshotManager {
     snapshotDir: string,
     snapshots: SnapshotFile[]
   ): Promise<void> {
-    const entries = await fs.readdir(snapshotDir);
+    const entries = await fsPromises.readdir(snapshotDir);
 
     for (const entry of entries) {
       if (entry.endsWith('.snap')) {
@@ -165,8 +166,8 @@ export class SnapshotManager {
     snapshots: SnapshotFile[]
   ): Promise<void> {
     try {
-      const stats = await fs.stat(filePath);
-      const content = await fs.readFile(filePath, 'utf-8');
+      const stats = await fsPromises.stat(filePath);
+      const content = await fsPromises.readFile(filePath, 'utf-8');
       
       // Count snapshots (exports statements)
       const snapshotCount = (content.match(/exports\[`/g) || []).length;
@@ -215,7 +216,7 @@ export class SnapshotManager {
    */
   private fileExistsSync(filePath: string): boolean {
     try {
-      require('fs').accessSync(filePath);
+      fs.accessSync(filePath);
       return true;
     } catch {
       return false;
@@ -380,7 +381,7 @@ export class SnapshotManager {
         confidence,
         autoUpdateSafe,
       };
-    } catch (error) {
+    } catch {
       return {
         affectedSnapshots: [],
         recommendation: 'Unable to analyze diff. Manual review recommended.',
@@ -506,7 +507,7 @@ export class SnapshotManager {
 
       // Check if test file exists
       try {
-        await fs.access(snapshot.testFile);
+        await fsPromises.access(snapshot.testFile);
       } catch {
         obsolete.push(snapshot.relativePath);
       }
