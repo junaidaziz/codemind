@@ -84,6 +84,15 @@ importers:
         specifier: ^4.1.12
         version: 4.1.12
     devDependencies:
+      '@babel/parser':
+        specifier: ^7.28.4
+        version: 7.28.4
+      '@babel/traverse':
+        specifier: ^7.28.4
+        version: 7.28.4
+      '@babel/types':
+        specifier: ^7.28.4
+        version: 7.28.4
       '@eslint/eslintrc':
         specifier: ^3
         version: 3.3.1
@@ -108,6 +117,9 @@ importers:
       '@testing-library/user-event':
         specifier: ^14.6.1
         version: 14.6.1(@testing-library/dom@10.4.1)
+      '@types/babel__traverse':
+        specifier: ^7.28.0
+        version: 7.28.0
       '@types/jest':
         specifier: ^30.0.0
         version: 30.0.0
