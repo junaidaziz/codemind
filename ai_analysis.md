@@ -1,3 +1,22 @@
+# 🔍 Vercel Build Failure Analysis
+
+**Generated on:** 2025-10-21 15:14:18 UTC
+**Deployment ID:** 
+**Repository:** junaidaziz/codemind
+**Branch:** main
+**Commit:** 628141c0cecf86d5083d7953b222ee3a7d391fdf
+
+## ❌ Build Failure Summary
+Build failed due to missing Node.js modules.
+
+## 🔍 Root Cause Analysis
+Unknown cause
+
+## 🛠️ Suggested Fix
+See analysis for details
+
+## 📊 Full Analysis
+```json
 {
   "deployment": {
     "uid": "dpl_EZ9TPRevrcsjwed3NbvWyn8Bziki",
@@ -58,3 +77,7 @@
   },
   "timestamp": "2025-10-21T15:14:18.563Z"
 }
+```
+
+---
+*This analysis was generated automatically by our AI-powered build failure analyzer.*
