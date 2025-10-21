@@ -246,6 +246,7 @@ export class FullRepositoryIndexer {
         isIndexed: existingFile?.isIndexed ?? false,
       },
       create: {
+        id: crypto.randomUUID(),
         projectId: this.projectId,
         relativePath: treeItem.path,
         fileType,
@@ -256,6 +257,7 @@ export class FullRepositoryIndexer {
         lastModified: new Date(),
         gitSha: actualSha,
         isIndexed: false,
+        updatedAt: new Date(),
       },
     });
 
@@ -337,6 +339,7 @@ export class FullRepositoryIndexer {
 
       const codeChunk = await prisma.codeChunk.create({
         data: {
+          id: crypto.randomUUID(),
           projectId: this.projectId,
           path: filePath,
           sha: chunkSha,
@@ -345,6 +348,7 @@ export class FullRepositoryIndexer {
           endLine: chunk.endLine,
           content: chunk.content,
           tokenCount: chunk.tokenCount ?? 0,
+          updatedAt: new Date(),
         },
       });
       // Reference codeChunk.id to avoid unused variable lint (future embedding logic may use it)

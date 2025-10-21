@@ -166,10 +166,7 @@ export async function getProjectConfig(projectId: string): Promise<ResolvedConfi
     const projectWithConfig = await prisma.project.findUnique({
       where: { id: projectId },
       include: {
-        projectConfigs: {
-          orderBy: { createdAt: 'desc' },
-          take: 1
-        }
+        ProjectConfig: true
       }
     });
 
@@ -177,7 +174,8 @@ export async function getProjectConfig(projectId: string): Promise<ResolvedConfi
       throw new Error(`Project ${projectId} not found`);
     }
 
-    const config = projectWithConfig.projectConfigs[0];
+    // Get the config (one-to-one relationship)
+    const config = projectWithConfig.ProjectConfig;
     
     // Build resolved configuration
     const resolvedConfig: ResolvedConfig = {

@@ -348,6 +348,7 @@ export class CIIntegrationService {
     // Store in messages table for now - in production you'd have a dedicated analysis table
     await prisma.message.create({
       data: {
+        id: crypto.randomUUID(),
         sessionId: `analysis-${result.projectId}`,
         role: 'system',
         content: JSON.stringify({

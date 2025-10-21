@@ -35,6 +35,7 @@ export class GitHubService {
               }
             },
             create: {
+              id: crypto.randomUUID(),
               projectId,
               number: pr.number,
               title: pr.title,
@@ -106,6 +107,7 @@ export class GitHubService {
               }
             },
             create: {
+              id: crypto.randomUUID(),
               projectId,
               number: issue.number,
               title: issue.title,
@@ -388,6 +390,7 @@ export class GitHubService {
                 sha: commit.sha
               },
               create: {
+                id: crypto.randomUUID(),
                 projectId,
                 sha: commit.sha,
                 message: commit.commit.message,
@@ -484,6 +487,7 @@ export class GitHubService {
               // Create new contributor
               return await prisma.contributor.create({
                 data: {
+                  id: crypto.randomUUID(),
                   projectId,
                   // Only set githubId if it doesn't exist elsewhere
                   githubId: existingGithubId ? null : contributor.id?.toString(),

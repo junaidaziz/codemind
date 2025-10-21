@@ -132,6 +132,7 @@ export const createGitHubIssueTool: ChatTool = {
     // Store in database
     await prisma.issue.create({
       data: {
+        id: crypto.randomUUID(),
         projectId: context.projectId,
         number: issue.number,
         title: issue.title,
@@ -351,6 +352,7 @@ export const createGitHubPullRequestTool: ChatTool = {
     // Store PR in database
     await prisma.pullRequest.create({
       data: {
+        id: crypto.randomUUID(),
         projectId: context.projectId,
         number: pr.number,
         title: pr.title,
@@ -1163,6 +1165,7 @@ ${analysis.explanation || 'See individual file changes for details'}
     // Store in database
     await prisma.pullRequest.create({
       data: {
+        id: crypto.randomUUID(),
         projectId: context.projectId,
         number: pr.number,
         title: pr.title,
@@ -1354,6 +1357,7 @@ ${codeGeneration.tests ? '### Tests\nTests have been generated and included.\n' 
     // Store in database
     await prisma.pullRequest.create({
       data: {
+        id: crypto.randomUUID(),
         projectId: context.projectId,
         number: pr.number,
         title: pr.title,

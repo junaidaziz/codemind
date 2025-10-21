@@ -90,10 +90,12 @@ export async function startAutoFix(options: AutoFixStartOptions): Promise<AutoFi
 
   const session = await prisma.autoFixSession.create({
     data: {
+      id: crypto.randomUUID(),
       projectId,
       userId: userId || null,
       status: 'ANALYZING',
       triggerType: 'MANUAL',
+      updatedAt: new Date(),
       issuesDetected: resolvedIssueId ? JSON.stringify([resolvedIssueId]) : '[]',
       analysisResult: 'Collecting context...',
     },
@@ -103,6 +105,7 @@ export async function startAutoFix(options: AutoFixStartOptions): Promise<AutoFi
   try {
     await prisma.activityLog.create({
       data: {
+        id: crypto.randomUUID(),
         projectId,
         userId: userId || null,
         activityType: 'AI_FIX_STARTED',
@@ -254,6 +257,7 @@ export async function generatePatchPlan(sessionId: string): Promise<PatchGenerat
 
   const result = await prisma.autoFixResult.create({
     data: {
+      id: crypto.randomUUID(),
       sessionId: session.id,
       success: true,
       message: 'Generated initial header insertion patch',
@@ -287,6 +291,7 @@ export async function generatePatchPlan(sessionId: string): Promise<PatchGenerat
       const hunkCount = storedPatch.stats.hunks;
       await prisma.activityLog.create({
         data: {
+          id: crypto.randomUUID(),
           projectId: session.projectId,
           userId: session.userId,
           activityType: 'AI_FIX_DIFF_METRICS',
@@ -406,6 +411,7 @@ Respond with only updated file content inside <file>...</file>.`;
 
   const result = await prisma.autoFixResult.create({
     data: {
+      id: crypto.randomUUID(),
       sessionId: session.id,
       success: true,
       message: 'Generated LLM-style patch stub',
@@ -501,6 +507,7 @@ export async function generateLLMMultiPatchPlan(sessionId: string, desiredCount 
     const diff = buildUnifiedSingleLineDiff(f.path, original, updated, insertion);
     const result = await prisma.autoFixResult.create({
       data: {
+        id: crypto.randomUUID(),
         sessionId: session.id,
         success: true,
         message: 'Generated LLM-style patch stub (multi)',
@@ -586,6 +593,7 @@ export async function generateMultiPatchPlan(sessionId: string, desiredCount = 3
 
     const result = await prisma.autoFixResult.create({
       data: {
+        id: crypto.randomUUID(),
         sessionId: session.id,
         success: true,
         message: 'Generated header insertion patch (multi)',
@@ -624,6 +632,7 @@ export async function generateMultiPatchPlan(sessionId: string, desiredCount = 3
         const hunkCount = (patch.unifiedDiff.match(/^@@/gm) || []).length;
         await prisma.activityLog.create({
           data: {
+            id: crypto.randomUUID(),
             projectId: session.projectId,
             userId: session.userId,
             activityType: 'AI_FIX_DIFF_METRICS',
@@ -685,6 +694,7 @@ export async function applyAutoFix(sessionId: string, { simulate = true }: { sim
     try {
       await prisma.activityLog.create({
         data: {
+          id: crypto.randomUUID(),
           projectId: session.projectId,
           userId: session.userId,
             activityType: 'AI_FIX_FAILED',
@@ -762,6 +772,7 @@ export async function applyAutoFix(sessionId: string, { simulate = true }: { sim
     // Validation success (only log once per apply call)
     await prisma.activityLog.create({
       data: {
+        id: crypto.randomUUID(),
         projectId: session.projectId,
         userId: session.userId,
         activityType: 'AI_FIX_COMPLETED',
@@ -782,6 +793,7 @@ export async function applyAutoFix(sessionId: string, { simulate = true }: { sim
     if (prUrl) {
       await prisma.activityLog.create({
         data: {
+          id: crypto.randomUUID(),
           projectId: session.projectId,
           userId: session.userId,
           activityType: 'PR_CREATED',
@@ -836,6 +848,7 @@ export async function regenerateAutoFix(sessionId: string): Promise<{ sessionId:
   try {
     await prisma.activityLog.create({
       data: {
+        id: crypto.randomUUID(),
         projectId: session.projectId,
         userId: session.userId,
         activityType: 'AI_FIX_REGENERATED',
@@ -846,7 +859,7 @@ export async function regenerateAutoFix(sessionId: string): Promise<{ sessionId:
         metadata: JSON.stringify({ sessionId: session.id, action: 'regenerate', regenCount }),
       },
     });
-  } catch { /* ignore */ }
+  } catch { /* ignore log */ }
   return { sessionId: session.id, status: 'ANALYZING', message: 'Session reset; generate a new patch plan.' };
 }
 
@@ -863,6 +876,7 @@ export async function cancelAutoFix(sessionId: string): Promise<{ sessionId: str
   try {
     await prisma.activityLog.create({
       data: {
+        id: crypto.randomUUID(),
         projectId: session.projectId,
         userId: session.userId,
         activityType: 'AI_FIX_CANCELLED',

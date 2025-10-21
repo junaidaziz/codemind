@@ -31,7 +31,6 @@ export class TemplateEngine {
   ): Promise<Template | null> {
     // Try to find template by intent
     const category = this.intentToCategory(intent.intent);
-    const entityType = intent.entities[0]?.type;
 
     // Look for matching templates
     const candidates = Array.from(this.templates.values()).filter(t => {
@@ -236,7 +235,6 @@ export class TemplateEngine {
           type: 'array',
           description: 'List of entity fields',
           required: false,
-          default: [],
         },
       ],
       version: '1.0.0',
@@ -538,7 +536,7 @@ export class TemplateEngine {
     const matches = content.matchAll(importRegex);
 
     for (const match of matches) {
-      const [_, defaultImport, namedImports, from] = match;
+      const [, defaultImport, namedImports, from] = match;
       const isType = match[0].includes('type');
       const isRelative = from.startsWith('.');
 

@@ -380,6 +380,7 @@ If no issues found, return empty array.`;
     // Store in database
     await prisma.pullRequest.create({
       data: {
+        id: crypto.randomUUID(),
         projectId: this.context.projectId,
         number: pr.number,
         title: pr.title,

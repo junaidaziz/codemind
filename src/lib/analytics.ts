@@ -220,7 +220,7 @@ class AnalyticsService {
               },
             },
           },
-          ProjectFile: {
+          CodeChunk: {
             select: {
               id: true,
               tokenCount: true,
@@ -246,8 +246,8 @@ class AnalyticsService {
           avgSessionDuration: 0, // Would need session end times
           lastActivity,
           indexingStatus: project.status as 'pending' | 'running' | 'completed' | 'failed',
-          chunksCount: project.ProjectFile.length,
-          tokensCount: project.ProjectFile.reduce((sum: number, chunk: { tokenCount: number }) => sum + chunk.tokenCount, 0),
+          chunksCount: project.CodeChunk.length,
+          tokensCount: project.CodeChunk.reduce((sum: number, chunk: { tokenCount: number }) => sum + chunk.tokenCount, 0),
         };
       });
     });
@@ -354,7 +354,7 @@ class AnalyticsService {
         ...(userId ? { userId } : {}),
       },
       include: {
-        messages: {
+        Message: {
           select: { id: true },
         },
       },
@@ -363,8 +363,8 @@ class AnalyticsService {
     return this.aggregateByPeriod(
       sessions.map((s: typeof sessions[0]) => ({ 
         timestamp: s.createdAt, 
-        value: s.messages.length,
-        label: `${s.messages.length} messages`,
+        value: s.Message.length,
+        label: `${s.Message.length} messages`,
       })),
       period
     );
@@ -585,7 +585,7 @@ class AnalyticsService {
   private async getTotalQueries(since: Date): Promise<number> {
     const result = await prisma.message.count({
       where: {
-        session: {
+        ChatSession: {
           createdAt: { gte: since },
         },
       },

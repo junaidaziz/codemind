@@ -79,8 +79,8 @@ export async function getUserProjectRole(userId: string, projectId: string): Pro
     const orgMember = await prisma.organizationMember.findFirst({
       where: {
         userId: userId,
-        organization: {
-          projects: {
+        Organization: {
+          Project: {
             some: {
               id: projectId
             }
