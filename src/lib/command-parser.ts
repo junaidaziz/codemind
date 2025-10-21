@@ -13,6 +13,7 @@ export enum CommandType {
   TEST = 'test',
   REFACTOR = 'refactor',
   EXPLAIN = 'explain',
+  SCAFFOLD = 'scaffold',
   HELP = 'help',
 }
 
@@ -43,11 +44,12 @@ export class CommandParser {
     test: /^\/test(?:\s+(.*))?$/im,
     refactor: /^\/refactor(?:\s+(.+))?$/im,
     explain: /^\/explain(?:\s+(.+))?$/im,
+    scaffold: /^\/scaf(?:fold)?(?:\s+(.+))?$/im,
     help: /^\/help(?:\s+(.*))?$/im,
   };
 
   // Combined pattern to detect any slash command
-  private static readonly ANY_COMMAND = /^\/(fix|gen|generate|test|refactor|explain|help)(?:\s|$)/im;
+  private static readonly ANY_COMMAND = /^\/(fix|gen|generate|test|refactor|explain|scaffold|scaf|help)(?:\s|$)/im;
 
   /**
    * Parse a message to detect and extract slash commands
@@ -112,6 +114,9 @@ export class CommandParser {
         return CommandType.REFACTOR;
       case 'explain':
         return CommandType.EXPLAIN;
+      case 'scaf':
+      case 'scaffold':
+        return CommandType.SCAFFOLD;
       case 'help':
         return CommandType.HELP;
       default:

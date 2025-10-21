@@ -13,6 +13,7 @@ export * from './generate-handler';
 export * from './test-handler';
 export * from './refactor-handler';
 export * from './explain-handler';
+export * from './scaffold-handler';
 
 // Re-export command parser types for convenience
 export type { Command } from '../command-parser';

@@ -12,6 +12,7 @@ import { GenerateCommandHandler } from './generate-handler';
 import { TestCommandHandler } from './test-handler';
 import { RefactorCommandHandler } from './refactor-handler';
 import { ExplainCommandHandler } from './explain-handler';
+import { ScaffoldCommandHandler } from './scaffold-handler';
 
 let initialized = false;
 
@@ -35,6 +36,7 @@ export function initializeCommandHandlers(): void {
   registry.register(CommandType.TEST, new TestCommandHandler());
   registry.register(CommandType.REFACTOR, new RefactorCommandHandler());
   registry.register(CommandType.EXPLAIN, new ExplainCommandHandler());
+  registry.register(CommandType.SCAFFOLD, new ScaffoldCommandHandler());
 
   initialized = true;
 
@@ -45,6 +47,7 @@ export function initializeCommandHandlers(): void {
     'test',
     'refactor',
     'explain',
+    'scaffold',
   ]);
 }
 
