@@ -721,6 +721,24 @@ model User {
   Project                                               Project[]
   TimeTracking                                          TimeTracking[]
   ToolExecution                                         ToolExecution[]
+  Workspace                                             Workspace[]
+}
+
+model Workspace {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  userId         String
+  organizationId String?
+  repositories   Json     @default("[]")
+  settings       Json     @default("{}")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  User           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([createdAt])
 }
 
 enum ActivityEventStatus {
