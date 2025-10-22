@@ -38,16 +38,23 @@ interface CodebaseInsights {
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = await getUserId(request);
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get('projectId');
     const days = parseInt(searchParams.get('days') || '90');
     const limit = parseInt(searchParams.get('limit') || '20');
     const forceRefresh = searchParams.get('refresh') === 'true';
+
+    // Get userId with projectId for development fallback
+    const userId = await getUserId(request, projectId || undefined);
+    
+    if (!userId) {
+      console.error('Codebase Insights: No userId found', { 
+        hasProjectId: !!projectId,
+        projectId,
+        url: request.url 
+      });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     if (!projectId) {
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
