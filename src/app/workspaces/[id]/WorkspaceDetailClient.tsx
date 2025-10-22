@@ -61,6 +61,8 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
     autoSync: false,
     syncInterval: 60,
   });
+  const [editingRepo, setEditingRepo] = useState<{ owner: string; name: string } | null>(null);
+  const [editRepoUrl, setEditRepoUrl] = useState('');
 
   const fetchWorkspace = async () => {
     try {
@@ -247,6 +249,71 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
       setError(err instanceof Error ? err.message : 'Failed to remove repository');
     } finally {
       setRemoving(null);
+    }
+  };
+
+  const handleEditRepository = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editRepoUrl.trim() || !editingRepo) {
+      setError('Repository URL is required');
+      return;
+    }
+
+    try {
+      setUpdating(true);
+      setError(null);
+
+      // Parse new GitHub URL
+      let newOwner = '';
+      let newName = '';
+
+      if (editRepoUrl.includes('github.com')) {
+        const match = editRepoUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
+        if (match) {
+          newOwner = match[1];
+          newName = match[2].replace('.git', '');
+        }
+      } else if (editRepoUrl.includes('/')) {
+        [newOwner, newName] = editRepoUrl.split('/');
+      }
+
+      if (!newOwner || !newName) {
+        setError('Invalid repository URL. Use format: owner/repo or https://github.com/owner/repo');
+        return;
+      }
+
+      // Remove old repository
+      await apiPost(`/api/workspaces/${workspaceId}/repositories`, {
+        action: 'remove',
+        owner: editingRepo.owner,
+        name: editingRepo.name,
+      });
+
+      // Add new repository
+      await apiPost(`/api/workspaces/${workspaceId}/repositories`, {
+        action: 'add',
+        owner: newOwner.trim(),
+        name: newName.trim(),
+      });
+
+      setEditingRepo(null);
+      setEditRepoUrl('');
+      await fetchWorkspace();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update repository');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return 'Recently';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Recently';
+      return date.toLocaleDateString();
+    } catch {
+      return 'Recently';
     }
   };
 
@@ -545,17 +612,26 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                             )}
                             <div className="flex items-center gap-1">
                               <span>📅</span>
-                              <span>Added {new Date(repo.addedAt).toLocaleDateString()}</span>
+                              <span>Added {formatDate(repo.addedAt)}</span>
                             </div>
                             {repo.lastSyncedAt && (
                               <div className="flex items-center gap-1">
                                 <span>🔄</span>
-                                <span>Synced {new Date(repo.lastSyncedAt).toLocaleDateString()}</span>
+                                <span>Synced {formatDate(repo.lastSyncedAt)}</span>
                               </div>
                             )}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              setEditingRepo({ owner: repo.owner, name: repo.name });
+                              setEditRepoUrl(`${repo.owner}/${repo.name}`);
+                            }}
+                            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                          >
+                            ✏️ Edit
+                          </button>
                           <button
                             onClick={() => handleSyncRepository(repo.owner, repo.name)}
                             disabled={syncing === `${repo.owner}/${repo.name}`}
@@ -783,6 +859,62 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                         setError(null);
                       }}
                       disabled={adding}
+                      className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Repository Modal */}
+        {editingRepo && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+              <div className="p-6">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                  Edit Repository
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  Currently: <strong>{editingRepo.owner}/{editingRepo.name}</strong>
+                </p>
+                <form onSubmit={handleEditRepository}>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      New Repository URL or Owner/Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={editRepoUrl}
+                      onChange={(e) => setEditRepoUrl(e.target.value)}
+                      placeholder="owner/repo or https://github.com/owner/repo"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                      required
+                      autoFocus
+                    />
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                      ⚠️ This will remove the current repository and add the new one
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="submit"
+                      disabled={updating}
+                      className="flex-1 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {updating ? <InlineSpinner /> : 'Update Repository'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingRepo(null);
+                        setEditRepoUrl('');
+                        setError(null);
+                      }}
+                      disabled={updating}
                       className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Cancel
