@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api-client';
 import { InlineSpinner } from '@/components/ui';
+import { useToast } from '@/hooks/use-toast';
 import DependenciesTab from './DependenciesTab';
 import CrossRepoLinksTab from './CrossRepoLinksTab';
 import GitHubActionsTab from './GitHubActionsTab';
@@ -42,6 +43,7 @@ type Tab = 'repositories' | 'dependencies' | 'cross-repo-links' | 'github-action
 
 export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailClientProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -205,9 +207,18 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
         owner,
         name,
       });
-      await fetchWorkspace();
+      // Show success toast instead of reloading entire workspace
+      toast({
+        title: 'Repository synced',
+        description: `${owner}/${name} has been synced successfully`,
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sync repository');
+      toast({
+        title: 'Sync failed',
+        description: err instanceof Error ? err.message : 'Failed to sync repository',
+        variant: 'destructive',
+      });
     } finally {
       setSyncing(null);
     }
