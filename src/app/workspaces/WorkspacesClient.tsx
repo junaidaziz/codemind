@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiGet, apiPost, apiDelete } from '@/lib/api-client';
 import { InlineSpinner } from '@/components/ui';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 interface Workspace {
   id: string;

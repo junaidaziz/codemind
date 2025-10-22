@@ -1,16 +1,7 @@
-/**
- * Cross-Repository Links API
- * 
- * GET /api/workspaces/[workspaceId]/cross-repo-links
- * - Get all cross-repository links in workspace
- * 
- * POST /api/workspaces/[workspaceId]/cross-repo-links
- * - Analyze cross-repo relationships
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { CrossRepoLinker } from '@/lib/multi-repo/cross-repo-linker';
+import { getUserId } from '@/lib/auth-server';
 
 /**
  * GET - Scan workspace for cross-repo links
@@ -20,11 +11,10 @@ export async function GET(
   context: { params: Promise<{ workspaceId: string }> }
 ) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
     const params = await context.params;
@@ -43,6 +33,7 @@ export async function GET(
     }
 
     // Parse optional parameters
+    const { searchParams } = new URL(request.url);
     const state = (searchParams.get('state') as 'open' | 'closed' | 'all') || 'all';
     const sinceParam = searchParams.get('since');
     const since = sinceParam ? new Date(sinceParam) : undefined;
@@ -90,12 +81,14 @@ export async function POST(
   context: { params: Promise<{ workspaceId: string }> }
 ) {
   try {
-    const body = await request.json();
-    const { userId, analysisType, owner, repo, number } = body;
+    const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+
+    const body = await request.json();
+    const { analysisType, owner, repo, number } = body;
 
     const params = await context.params;
     const { workspaceId } = params;

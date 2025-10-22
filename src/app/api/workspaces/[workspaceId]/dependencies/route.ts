@@ -1,17 +1,8 @@
-/**
- * Dependency Graph API Endpoint
- * 
- * GET /api/workspaces/[workspaceId]/dependencies/graph?userId=xxx
- * - Builds and returns the dependency graph for a workspace
- * 
- * POST /api/workspaces/[workspaceId]/dependencies/analyze
- * - Analyzes the dependency graph and returns insights
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { DependencyGraphManager } from '@/lib/multi-repo/dependency-graph';
 import { GraphAnalyzer } from '@/lib/multi-repo/graph-analyzer';
+import { getUserId } from '@/lib/auth-server';
 
 /**
  * GET - Build and return dependency graph for workspace
@@ -21,11 +12,10 @@ export async function GET(
   context: { params: Promise<{ workspaceId: string }> }
 ) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
     const params = await context.params;
@@ -44,6 +34,7 @@ export async function GET(
     }
 
     // Parse URL search params
+    const { searchParams } = new URL(request.url);
     const includeDevDeps = searchParams.get('includeDevDeps') === 'true';
     const includePeerDeps = searchParams.get('includePeerDeps') === 'true';
     const includeTransitive = searchParams.get('includeTransitive') === 'true';
@@ -113,12 +104,14 @@ export async function POST(
   context: { params: Promise<{ workspaceId: string }> }
 ) {
   try {
-    const body = await request.json();
-    const { userId, analysisType, targetNodeId } = body;
+    const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+
+    const body = await request.json();
+    const { analysisType, targetNodeId } = body;
 
     const params = await context.params;
     const { workspaceId } = params;

@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { WorkspaceManager } from '@/lib/multi-repo/workspace-manager';
 import type { WorkspaceSettings } from '@/lib/multi-repo/types';
+import { getUserId } from '@/lib/auth-server';
 
 /**
- * GET /api/workspaces?userId=xxx
- * List all workspaces for the specified user
+ * GET /api/workspaces
+ * List all workspaces for the authenticated user
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const userId = await getUserId(request);
 
     if (!userId) {
       return NextResponse.json(
-        { success: false, error: 'User ID is required' },
-        { status: 400 }
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
       );
     }
 
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: workspaces,
+      workspaces,
     });
   } catch (error) {
     console.error('Failed to list workspaces:', error);
@@ -42,7 +42,6 @@ export async function GET(request: NextRequest) {
  * Create a new workspace
  * 
  * Body: {
- *   userId: string;
  *   name: string;
  *   description?: string;
  *   settings?: WorkspaceSettings;
@@ -50,15 +49,17 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { userId, name, description, settings } = body;
+    const userId = await getUserId(request);
 
-    if (!userId || typeof userId !== 'string') {
+    if (!userId) {
       return NextResponse.json(
-        { success: false, error: 'User ID is required and must be a string' },
-        { status: 400 }
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
       );
     }
+
+    const body = await request.json();
+    const { name, description, settings } = body;
 
     if (!name || typeof name !== 'string') {
       return NextResponse.json(
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: workspace,
+      workspace,
     }, { status: 201 });
   } catch (error) {
     console.error('Failed to create workspace:', error);

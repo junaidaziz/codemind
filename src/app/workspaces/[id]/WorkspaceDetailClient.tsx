@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api-client';
 import { InlineSpinner } from '@/components/ui';
-import { useAuth } from '@/app/contexts/AuthContext';
 import DependenciesTab from './DependenciesTab';
 import CrossRepoLinksTab from './CrossRepoLinksTab';
 
@@ -40,7 +39,6 @@ type Tab = 'repositories' | 'dependencies' | 'cross-repo-links' | 'settings' | '
 
 export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailClientProps) {
   const router = useRouter();
-  const { user } = useAuth();
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -560,29 +558,11 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
         )}
 
         {activeTab === 'dependencies' && (
-          user ? (
-            <DependenciesTab workspaceId={workspaceId} userId={user.id} />
-          ) : (
-            <div className="flex items-center justify-center min-h-[400px]">
-              <div className="text-center">
-                <p className="text-gray-600 dark:text-gray-400 mb-4">Loading user information...</p>
-                <InlineSpinner />
-              </div>
-            </div>
-          )
+          <DependenciesTab workspaceId={workspaceId} />
         )}
 
         {activeTab === 'cross-repo-links' && (
-          user ? (
-            <CrossRepoLinksTab workspaceId={workspaceId} userId={user.id} />
-          ) : (
-            <div className="flex items-center justify-center min-h-[400px]">
-              <div className="text-center">
-                <p className="text-gray-600 dark:text-gray-400 mb-4">Loading user information...</p>
-                <InlineSpinner />
-              </div>
-            </div>
-          )
+          <CrossRepoLinksTab workspaceId={workspaceId} />
         )}
 
         {activeTab === 'settings' && (

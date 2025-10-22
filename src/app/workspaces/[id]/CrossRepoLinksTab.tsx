@@ -33,10 +33,9 @@ interface WorkspaceLinks {
 
 interface CrossRepoLinksTabProps {
   workspaceId: string;
-  userId: string;
 }
 
-export default function CrossRepoLinksTab({ workspaceId, userId }: CrossRepoLinksTabProps) {
+export default function CrossRepoLinksTab({ workspaceId }: CrossRepoLinksTabProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [links, setLinks] = useState<WorkspaceLinks | null>(null);
@@ -64,7 +63,7 @@ export default function CrossRepoLinksTab({ workspaceId, userId }: CrossRepoLink
     try {
       setLoading(true);
       setError(null);
-      const params = new URLSearchParams({ userId, state: 'all' });
+      const params = new URLSearchParams({ state: 'all' });
       const data = await apiGet<WorkspaceLinks>(`/api/workspaces/${workspaceId}/cross-repo-links?${params}`);
       setLinks(data);
     } catch (err) {
@@ -80,7 +79,6 @@ export default function CrossRepoLinksTab({ workspaceId, userId }: CrossRepoLink
       setCreating(true);
       setError(null);
       await apiPost(`/api/workspaces/${workspaceId}/cross-repo-links`, {
-        userId,
         analysisType: 'create-link',
         source: {
           owner: linkData.sourceOwner,

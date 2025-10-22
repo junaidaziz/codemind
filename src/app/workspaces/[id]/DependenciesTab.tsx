@@ -34,10 +34,9 @@ interface DependencyGraph {
 
 interface DependenciesTabProps {
   workspaceId: string;
-  userId: string;
 }
 
-export default function DependenciesTab({ workspaceId, userId }: DependenciesTabProps) {
+export default function DependenciesTab({ workspaceId }: DependenciesTabProps) {
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +55,6 @@ export default function DependenciesTab({ workspaceId, userId }: DependenciesTab
       setLoading(true);
       setError(null);
       const params = new URLSearchParams({
-        userId,
         includeDevDeps: graphOptions.includeDevDeps.toString(),
         includePeerDeps: graphOptions.includePeerDeps.toString(),
         includeTransitive: graphOptions.includeTransitive.toString(),
@@ -77,7 +75,6 @@ export default function DependenciesTab({ workspaceId, userId }: DependenciesTab
       setError(null);
       setActiveAnalysis(analysisType);
       const result = await apiPost(`/api/workspaces/${workspaceId}/dependencies/analyze`, {
-        userId,
         analysisType,
       });
       setAnalysis(result as Record<string, unknown>);
