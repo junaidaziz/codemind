@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { WorkspaceManager } from '@/lib/multi-repo/workspace-manager';
+import { getUserId } from '@/lib/auth-server';
 import type { WorkspaceSettings } from '@/lib/multi-repo/types';
 
 type RouteContext = {
@@ -7,7 +8,7 @@ type RouteContext = {
 };
 
 /**
- * GET /api/workspaces/[workspaceId]?userId=xxx
+ * GET /api/workspaces/[workspaceId]
  * Get a specific workspace by ID
  */
 export async function GET(
@@ -16,13 +17,12 @@ export async function GET(
 ) {
   try {
     const { workspaceId } = await context.params;
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const userId = await getUserId(request);
 
     if (!userId) {
       return NextResponse.json(
-        { success: false, error: 'User ID is required' },
-        { status: 400 }
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
       );
     }
 
@@ -38,7 +38,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: workspace,
+      workspace: workspace,
     });
   } catch (error) {
     console.error('Failed to get workspace:', error);
@@ -57,7 +57,6 @@ export async function GET(
  * Update a workspace
  * 
  * Body: {
- *   userId: string;
  *   name?: string;
  *   description?: string;
  *   settings?: Partial<WorkspaceSettings>;
@@ -69,15 +68,17 @@ export async function PUT(
 ) {
   try {
     const { workspaceId } = await context.params;
-    const body = await request.json();
-    const { userId, name, description, settings } = body;
+    const userId = await getUserId(request);
 
-    if (!userId || typeof userId !== 'string') {
+    if (!userId) {
       return NextResponse.json(
-        { success: false, error: 'User ID is required and must be a string' },
-        { status: 400 }
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
       );
     }
+
+    const body = await request.json();
+    const { name, description, settings } = body;
 
     const manager = new WorkspaceManager(userId);
     const result = await manager.updateWorkspace(workspaceId, {
@@ -104,7 +105,7 @@ export async function PUT(
 }
 
 /**
- * DELETE /api/workspaces/[workspaceId]?userId=xxx
+ * DELETE /api/workspaces/[workspaceId]
  * Delete a workspace
  */
 export async function DELETE(
@@ -113,13 +114,12 @@ export async function DELETE(
 ) {
   try {
     const { workspaceId } = await context.params;
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const userId = await getUserId(request);
 
     if (!userId) {
       return NextResponse.json(
-        { success: false, error: 'User ID is required' },
-        { status: 400 }
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
       );
     }
 
