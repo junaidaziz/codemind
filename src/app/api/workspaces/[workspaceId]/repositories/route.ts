@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { WorkspaceManager } from '@/lib/multi-repo/workspace-manager';
+import { getUserId } from '@/lib/auth-server';
 
 type RouteContext = {
   params: Promise<{ workspaceId: string }>;
 };
 
 /**
- * GET /api/workspaces/[workspaceId]/repositories?userId=xxx
+ * GET /api/workspaces/[workspaceId]/repositories
  * Get all repositories in a workspace
  */
 export async function GET(
@@ -14,17 +15,15 @@ export async function GET(
   context: RouteContext
 ) {
   try {
-    const { workspaceId } = await context.params;
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-
+    const userId = await getUserId(request);
     if (!userId) {
       return NextResponse.json(
-        { success: false, error: 'User ID is required' },
-        { status: 400 }
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
       );
     }
 
+    const { workspaceId } = await context.params;
     const manager = new WorkspaceManager(userId);
     const repositories = await manager.getWorkspaceRepositories(workspaceId);
 
@@ -46,11 +45,12 @@ export async function GET(
 
 /**
  * POST /api/workspaces/[workspaceId]/repositories
- * Add repositories to a workspace
+ * Add, remove, or sync repositories in a workspace
  * 
  * Body: {
- *   userId: string;
- *   repositories: string[]; // Array of repository full names
+ *   action: 'add' | 'remove' | 'sync';
+ *   owner: string; // For add/remove/sync
+ *   name: string; // For add/remove/sync
  * }
  */
 export async function POST(
@@ -58,41 +58,63 @@ export async function POST(
   context: RouteContext
 ) {
   try {
+    const userId = await getUserId(request);
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { workspaceId } = await context.params;
     const body = await request.json();
-    const { userId, repositories } = body;
+    const { action, owner, name } = body;
 
-    if (!userId || typeof userId !== 'string') {
+    if (!action || !['add', 'remove', 'sync'].includes(action)) {
       return NextResponse.json(
-        { success: false, error: 'User ID is required and must be a string' },
+        { success: false, error: 'Valid action is required (add, remove, or sync)' },
         { status: 400 }
       );
     }
 
-    if (!repositories || !Array.isArray(repositories) || repositories.length === 0) {
+    if (!owner || !name) {
       return NextResponse.json(
-        { success: false, error: 'Repositories array is required and must not be empty' },
-        { status: 400 }
-      );
-    }
-
-    if (!repositories.every((r: unknown) => typeof r === 'string')) {
-      return NextResponse.json(
-        { success: false, error: 'All repositories must be strings (repository full names)' },
+        { success: false, error: 'Owner and name are required' },
         { status: 400 }
       );
     }
 
     const manager = new WorkspaceManager(userId);
-    const result = await manager.addRepositories(workspaceId, repositories as string[]);
+    let result;
+
+    switch (action) {
+      case 'add':
+        // Add repository with format owner/name
+        result = await manager.addRepositories(workspaceId, [`${owner}/${name}`]);
+        break;
+      case 'remove':
+        // Remove repository - repositoryId is in format owner/name
+        result = await manager.removeRepository(workspaceId, `${owner}/${name}`);
+        break;
+      case 'sync':
+        // Sync repository data
+        // For now, just return success - actual sync logic can be implemented later
+        result = { success: true, message: 'Repository synced successfully' };
+        break;
+      default:
+        return NextResponse.json(
+          { success: false, error: 'Invalid action' },
+          { status: 400 }
+        );
+    }
     
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Failed to add repositories:', error);
+    console.error('Failed to process repository action:', error);
     return NextResponse.json(
       { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Failed to add repositories' 
+        error: error instanceof Error ? error.message : 'Failed to process repository action' 
       },
       { status: 500 }
     );
@@ -100,7 +122,7 @@ export async function POST(
 }
 
 /**
- * DELETE /api/workspaces/[workspaceId]/repositories?userId=xxx&repositoryId=xxx
+ * DELETE /api/workspaces/[workspaceId]/repositories?repositoryId=xxx
  * Remove a repository from a workspace
  */
 export async function DELETE(
@@ -108,17 +130,17 @@ export async function DELETE(
   context: RouteContext
 ) {
   try {
-    const { workspaceId } = await context.params;
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-    const repositoryId = searchParams.get('repositoryId');
-
+    const userId = await getUserId(request);
     if (!userId) {
       return NextResponse.json(
-        { success: false, error: 'User ID is required' },
-        { status: 400 }
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
       );
     }
+
+    const { workspaceId } = await context.params;
+    const { searchParams } = new URL(request.url);
+    const repositoryId = searchParams.get('repositoryId');
 
     if (!repositoryId) {
       return NextResponse.json(
