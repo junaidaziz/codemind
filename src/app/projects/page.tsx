@@ -260,22 +260,26 @@ function ProjectsPageContent() {
             </div>
           </div>
 
-          {/* Active Indexing Jobs Widget */}
-          <div className="mt-6">
-            <IndexingProgressWidget 
-              refreshInterval={3000} 
-              showCompleted={false}
-              maxJobs={5}
-            />
-          </div>
+          {/* Active Indexing Jobs Widget - Only show if there are projects */}
+          {projects.length > 0 && (
+            <div className="mt-6">
+              <IndexingProgressWidget 
+                refreshInterval={3000} 
+                showCompleted={false}
+                maxJobs={5}
+              />
+            </div>
+          )}
 
-          {/* Codebase Insights Widget */}
-          <div className="mt-6">
-            <CodebaseInsightsWidget 
-              days={90}
-              autoRefresh={false}
-            />
-          </div>
+          {/* Codebase Insights Widget - Only show if there are projects */}
+          {projects.length > 0 && (
+            <div className="mt-6">
+              <CodebaseInsightsWidget 
+                days={90}
+                autoRefresh={false}
+              />
+            </div>
+          )}
         </div>
 
         {/* Error Message */}

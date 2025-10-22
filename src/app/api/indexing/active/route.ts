@@ -28,7 +28,11 @@ export async function GET(request: NextRequest) {
     const projectIds = userProjects.map(p => p.id);
 
     if (projectIds.length === 0) {
-      return NextResponse.json({ jobs: [] });
+      return NextResponse.json({ 
+        jobs: [], 
+        count: 0,
+        message: 'No projects found' 
+      });
     }
 
     // Find active indexing events (IN_PROGRESS status)
