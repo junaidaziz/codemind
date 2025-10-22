@@ -559,12 +559,30 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
           </div>
         )}
 
-        {activeTab === 'dependencies' && user && (
-          <DependenciesTab workspaceId={workspaceId} userId={user.id} />
+        {activeTab === 'dependencies' && (
+          user ? (
+            <DependenciesTab workspaceId={workspaceId} userId={user.id} />
+          ) : (
+            <div className="flex items-center justify-center min-h-[400px]">
+              <div className="text-center">
+                <p className="text-gray-600 dark:text-gray-400 mb-4">Loading user information...</p>
+                <InlineSpinner />
+              </div>
+            </div>
+          )
         )}
 
-        {activeTab === 'cross-repo-links' && user && (
-          <CrossRepoLinksTab workspaceId={workspaceId} userId={user.id} />
+        {activeTab === 'cross-repo-links' && (
+          user ? (
+            <CrossRepoLinksTab workspaceId={workspaceId} userId={user.id} />
+          ) : (
+            <div className="flex items-center justify-center min-h-[400px]">
+              <div className="text-center">
+                <p className="text-gray-600 dark:text-gray-400 mb-4">Loading user information...</p>
+                <InlineSpinner />
+              </div>
+            </div>
+          )
         )}
 
         {activeTab === 'settings' && (
