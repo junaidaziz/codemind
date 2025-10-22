@@ -39,7 +39,7 @@ function AuthCallbackContent() {
           
           // Redirect to dashboard after successful authentication
           setTimeout(() => {
-            router.push('/');
+            router.push('/dashboard');
           }, 2000);
           return;
         }
@@ -69,7 +69,7 @@ function AuthCallbackContent() {
           
           // Redirect to dashboard after successful verification
           setTimeout(() => {
-            router.push('/');
+            router.push('/dashboard');
           }, 2000);
         } else {
           // Handle auth errors
