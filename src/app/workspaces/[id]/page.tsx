@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   description: 'Manage your workspace and repositories',
 };
 
-export default function WorkspaceDetailPage({ params }: { params: { id: string } }) {
-  return <WorkspaceDetailClient workspaceId={params.id} />;
+export default async function WorkspaceDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <WorkspaceDetailClient workspaceId={id} />;
 }
