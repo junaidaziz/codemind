@@ -1,0 +1,588 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api-client';
+import { InlineSpinner } from '@/components/ui';
+
+interface Repository {
+  owner: string;
+  name: string;
+  url: string;
+  addedAt: string;
+  lastSyncedAt?: string;
+  private?: boolean;
+  defaultBranch?: string;
+}
+
+interface Workspace {
+  id: string;
+  name: string;
+  description: string | null;
+  repositories: Repository[];
+  settings: {
+    autoSync?: boolean;
+    syncInterval?: number;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface WorkspaceDetailClientProps {
+  workspaceId: string;
+}
+
+type Tab = 'repositories' | 'settings' | 'health';
+
+export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailClientProps) {
+  const router = useRouter();
+  const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<Tab>('repositories');
+  const [showAddRepo, setShowAddRepo] = useState(false);
+  const [showEditWorkspace, setShowEditWorkspace] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [removing, setRemoving] = useState<string | null>(null);
+  const [updating, setUpdating] = useState(false);
+  const [repoUrl, setRepoUrl] = useState('');
+  const [editData, setEditData] = useState({ name: '', description: '' });
+
+  const fetchWorkspace = async () => {
+    try {
+      setLoading(true);
+      const data = await apiGet<{ workspace: Workspace }>(`/api/workspaces/${workspaceId}`);
+      setWorkspace(data.workspace);
+      setEditData({
+        name: data.workspace.name,
+        description: data.workspace.description || '',
+      });
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load workspace');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWorkspace();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workspaceId]);
+
+  const handleAddRepository = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!repoUrl.trim()) {
+      setError('Repository URL is required');
+      return;
+    }
+
+    try {
+      setAdding(true);
+      setError(null);
+
+      // Parse GitHub URL (supports https://github.com/owner/repo or owner/repo format)
+      let owner = '';
+      let name = '';
+
+      if (repoUrl.includes('github.com')) {
+        const match = repoUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
+        if (match) {
+          owner = match[1];
+          name = match[2].replace('.git', '');
+        }
+      } else if (repoUrl.includes('/')) {
+        [owner, name] = repoUrl.split('/');
+      }
+
+      if (!owner || !name) {
+        setError('Invalid repository URL. Use format: owner/repo or https://github.com/owner/repo');
+        return;
+      }
+
+      await apiPost(`/api/workspaces/${workspaceId}/repositories`, {
+        action: 'add',
+        owner: owner.trim(),
+        name: name.trim(),
+      });
+
+      setShowAddRepo(false);
+      setRepoUrl('');
+      await fetchWorkspace();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add repository');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const handleRemoveRepository = async (owner: string, name: string) => {
+    if (!confirm(`Remove ${owner}/${name} from this workspace?`)) {
+      return;
+    }
+
+    try {
+      const repoId = `${owner}/${name}`;
+      setRemoving(repoId);
+      setError(null);
+      await apiPost(`/api/workspaces/${workspaceId}/repositories`, {
+        action: 'remove',
+        owner,
+        name,
+      });
+      await fetchWorkspace();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to remove repository');
+    } finally {
+      setRemoving(null);
+    }
+  };
+
+  const handleUpdateWorkspace = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editData.name.trim()) {
+      setError('Workspace name is required');
+      return;
+    }
+
+    try {
+      setUpdating(true);
+      setError(null);
+      await apiPut(`/api/workspaces/${workspaceId}`, {
+        name: editData.name.trim(),
+        description: editData.description.trim() || undefined,
+      });
+      setShowEditWorkspace(false);
+      await fetchWorkspace();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update workspace');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleDeleteWorkspace = async () => {
+    if (!workspace) return;
+    if (!confirm(`Are you sure you want to delete workspace "${workspace.name}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      setError(null);
+      await apiDelete(`/api/workspaces/${workspaceId}`);
+      router.push('/workspaces');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete workspace');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <InlineSpinner />
+      </div>
+    );
+  }
+
+  if (!workspace) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-8 text-center">
+            <p className="text-red-800 dark:text-red-200 mb-4">Workspace not found</p>
+            <Link
+              href="/workspaces"
+              className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors inline-block"
+            >
+              Back to Workspaces
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Link
+              href="/workspaces"
+              className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
+            >
+              ← Back to Workspaces
+            </Link>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                {workspace.name}
+              </h1>
+              {workspace.description && (
+                <p className="text-gray-600 dark:text-gray-400">
+                  {workspace.description}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowEditWorkspace(true)}
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                Edit
+              </button>
+              <button
+                onClick={handleDeleteWorkspace}
+                className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Error Banner */}
+        {error && (
+          <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <span className="text-red-600 dark:text-red-400 text-xl">⚠️</span>
+              <div className="flex-1">
+                <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+              </div>
+              <button
+                onClick={() => setError(null)}
+                className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Tabs */}
+        <div className="mb-6 border-b border-gray-200 dark:border-gray-700">
+          <nav className="flex gap-8">
+            <button
+              onClick={() => setActiveTab('repositories')}
+              className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'repositories'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
+            >
+              📁 Repositories ({workspace.repositories?.length || 0})
+            </button>
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'settings'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
+            >
+              ⚙️ Settings
+            </button>
+            <button
+              onClick={() => setActiveTab('health')}
+              className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'health'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
+            >
+              💚 Health
+            </button>
+          </nav>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'repositories' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                Repositories
+              </h2>
+              <button
+                onClick={() => setShowAddRepo(true)}
+                className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                + Add Repository
+              </button>
+            </div>
+
+            {workspace.repositories?.length === 0 ? (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+                <div className="text-6xl mb-6">📦</div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                  No Repositories Yet
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  Add your first repository to start managing them together in this workspace.
+                </p>
+                <button
+                  onClick={() => setShowAddRepo(true)}
+                  className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Add Repository
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4">
+                {workspace.repositories.map((repo) => (
+                  <div
+                    key={`${repo.owner}/${repo.name}`}
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <a
+                            href={repo.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-lg font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                          >
+                            {repo.owner}/{repo.name}
+                          </a>
+                          {repo.private && (
+                            <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs font-medium rounded">
+                              Private
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                          {repo.defaultBranch && (
+                            <div className="flex items-center gap-1">
+                              <span>🌿</span>
+                              <span>{repo.defaultBranch}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-1">
+                            <span>📅</span>
+                            <span>Added {new Date(repo.addedAt).toLocaleDateString()}</span>
+                          </div>
+                          {repo.lastSyncedAt && (
+                            <div className="flex items-center gap-1">
+                              <span>🔄</span>
+                              <span>Synced {new Date(repo.lastSyncedAt).toLocaleDateString()}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveRepository(repo.owner, repo.name)}
+                        disabled={removing === `${repo.owner}/${repo.name}`}
+                        className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {removing === `${repo.owner}/${repo.name}` ? <InlineSpinner size="sm" /> : 'Remove'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
+              Workspace Settings
+            </h2>
+            <div className="space-y-6">
+              <div>
+                <label className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={workspace.settings?.autoSync || false}
+                    onChange={(e) => {
+                      // TODO: Implement settings update
+                      console.log('Auto-sync:', e.target.checked);
+                    }}
+                    className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  />
+                  <div>
+                    <div className="font-medium text-gray-900 dark:text-gray-100">Auto-sync repositories</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Automatically sync repository data at regular intervals
+                    </div>
+                  </div>
+                </label>
+              </div>
+              {workspace.settings?.autoSync && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Sync Interval (minutes)
+                  </label>
+                  <input
+                    type="number"
+                    value={workspace.settings?.syncInterval || 60}
+                    onChange={(e) => {
+                      // TODO: Implement settings update
+                      console.log('Sync interval:', e.target.value);
+                    }}
+                    min={5}
+                    max={1440}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                  />
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    How often to sync repository data (5-1440 minutes)
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'health' && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
+              Workspace Health
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                <div className="text-3xl mb-2">✅</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Status</div>
+                <div className="text-xl font-semibold text-gray-900 dark:text-gray-100">Healthy</div>
+              </div>
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div className="text-3xl mb-2">📊</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Repositories</div>
+                <div className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                  {workspace.repositories?.length || 0}
+                </div>
+              </div>
+              <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+                <div className="text-3xl mb-2">⏰</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Last Updated</div>
+                <div className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                  {new Date(workspace.updatedAt).toLocaleDateString()}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Repository Modal */}
+        {showAddRepo && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+              <div className="p-6">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                  Add Repository
+                </h2>
+                <form onSubmit={handleAddRepository}>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Repository URL or Owner/Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={repoUrl}
+                      onChange={(e) => setRepoUrl(e.target.value)}
+                      placeholder="owner/repo or https://github.com/owner/repo"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                      required
+                      autoFocus
+                    />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="submit"
+                      disabled={adding}
+                      className="flex-1 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {adding ? <InlineSpinner /> : 'Add Repository'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddRepo(false);
+                        setRepoUrl('');
+                        setError(null);
+                      }}
+                      disabled={adding}
+                      className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Workspace Modal */}
+        {showEditWorkspace && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+              <div className="p-6">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                  Edit Workspace
+                </h2>
+                <form onSubmit={handleUpdateWorkspace}>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Workspace Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={editData.name}
+                        onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                        placeholder="My Awesome Workspace"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                        required
+                        autoFocus
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Description
+                      </label>
+                      <textarea
+                        value={editData.description}
+                        onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                        placeholder="A workspace for managing related microservices..."
+                        rows={3}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 resize-none"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 mt-6">
+                    <button
+                      type="submit"
+                      disabled={updating}
+                      className="flex-1 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {updating ? <InlineSpinner /> : 'Save Changes'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowEditWorkspace(false);
+                        setEditData({
+                          name: workspace.name,
+                          description: workspace.description || '',
+                        });
+                        setError(null);
+                      }}
+                      disabled={updating}
+                      className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

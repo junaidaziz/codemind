@@ -75,6 +75,26 @@ export async function apiPost<T>(url: string, body?: unknown): Promise<T> {
 }
 
 /**
+ * Make an authenticated PUT request and parse JSON response
+ */
+export async function apiPut<T>(url: string, body?: unknown): Promise<T> {
+  const response = await authenticatedFetch(url, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+  }
+  
+  return response.json();
+}
+
+/**
  * Make an authenticated PATCH request and parse JSON response
  */
 export async function apiPatch<T>(url: string, body?: unknown): Promise<T> {
