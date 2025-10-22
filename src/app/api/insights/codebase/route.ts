@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { getAuthenticatedUser } from '@/lib/auth-utils';
+import { getUserId } from '@/lib/auth-server';
 
 interface FileStats {
   path: string;
@@ -38,8 +38,8 @@ interface CodebaseInsights {
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getAuthenticatedUser(request);
-    if (!user) {
+    const userId = await getUserId(request);
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     const project = await prisma.project.findFirst({
       where: {
         id: projectId,
-        ownerId: user.id
+        ownerId: userId
       }
     });
 

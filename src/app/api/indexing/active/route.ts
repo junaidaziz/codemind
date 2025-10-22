@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { getAuthenticatedUser } from '@/lib/auth-utils';
+import { getUserId } from '@/lib/auth-server';
 
 /**
  * GET /api/indexing/active
@@ -11,8 +11,8 @@ import { getAuthenticatedUser } from '@/lib/auth-utils';
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user
-    const user = await getAuthenticatedUser(request);
-    if (!user) {
+    const userId = await getUserId(request);
+    if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
     // Get user's projects
     const userProjects = await prisma.project.findMany({
-      where: { ownerId: user.id },
+      where: { ownerId: userId },
       select: { id: true }
     });
     
