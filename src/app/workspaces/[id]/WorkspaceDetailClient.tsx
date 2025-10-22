@@ -7,6 +7,8 @@ import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api-client';
 import { InlineSpinner } from '@/components/ui';
 import DependenciesTab from './DependenciesTab';
 import CrossRepoLinksTab from './CrossRepoLinksTab';
+import GitHubActionsTab from './GitHubActionsTab';
+import BranchPolicyTab from './BranchPolicyTab';
 
 interface Repository {
   owner: string;
@@ -35,7 +37,7 @@ interface WorkspaceDetailClientProps {
   workspaceId: string;
 }
 
-type Tab = 'repositories' | 'dependencies' | 'cross-repo-links' | 'settings' | 'health';
+type Tab = 'repositories' | 'dependencies' | 'cross-repo-links' | 'github-actions' | 'branch-policy' | 'settings' | 'health';
 
 export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailClientProps) {
   const router = useRouter();
@@ -405,6 +407,26 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
               🔀 Cross-Repo Links
             </button>
             <button
+              onClick={() => setActiveTab('github-actions')}
+              className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'github-actions'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
+            >
+              🔄 GitHub Actions
+            </button>
+            <button
+              onClick={() => setActiveTab('branch-policy')}
+              className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'branch-policy'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
+            >
+              🛡️ Branch Policy
+            </button>
+            <button
               onClick={() => setActiveTab('settings')}
               className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'settings'
@@ -563,6 +585,14 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
 
         {activeTab === 'cross-repo-links' && (
           <CrossRepoLinksTab workspaceId={workspaceId} />
+        )}
+
+        {activeTab === 'github-actions' && (
+          <GitHubActionsTab workspaceId={workspaceId} />
+        )}
+
+        {activeTab === 'branch-policy' && (
+          <BranchPolicyTab workspaceId={workspaceId} />
         )}
 
         {activeTab === 'settings' && (
