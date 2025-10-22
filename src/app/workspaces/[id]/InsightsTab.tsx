@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { apiGet } from '@/lib/api-client';
 import { InlineSpinner } from '@/components/ui';
 
 interface InsightsTabProps {
@@ -66,86 +67,12 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
       }
       setError(null);
 
-      // For now, we'll create mock insights data
-      // TODO: Replace with actual API call when backend is ready
-      const mockInsights: WorkspaceInsights = {
-        overview: {
-          totalCommits: 1247,
-          totalPullRequests: 156,
-          totalIssues: 89,
-          totalContributors: 12,
-          activeRepositories: repositories.length,
-        },
-        recentActivity: [
-          {
-            id: '1',
-            eventType: 'PR_MERGED',
-            title: 'Feature: Add user authentication',
-            description: 'Merged pull request #45',
-            createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            id: '2',
-            eventType: 'COMMIT',
-            title: 'Fix: Resolve API endpoint bug',
-            description: 'Committed to main branch',
-            createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            id: '3',
-            eventType: 'ISSUE_OPENED',
-            title: 'Bug: Login form validation',
-            description: 'New issue #78 opened',
-            createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            id: '4',
-            eventType: 'PR_OPENED',
-            title: 'Feature: Dashboard improvements',
-            description: 'New pull request #46',
-            createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            id: '5',
-            eventType: 'COMMIT',
-            title: 'Update: Dependencies upgraded',
-            description: 'Committed to develop branch',
-            createdAt: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString(),
-          },
-        ],
-        repositoryStats: repositories.slice(0, 5).map((repo) => {
-          const [owner, name] = repo.split('/');
-          return {
-            owner,
-            repo: name,
-            commits: Math.floor(Math.random() * 500) + 100,
-            pullRequests: Math.floor(Math.random() * 50) + 10,
-            issues: Math.floor(Math.random() * 30) + 5,
-            contributors: Math.floor(Math.random() * 10) + 2,
-            lastActivity: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-          };
-        }),
-        topContributors: [
-          { login: 'johndoe', contributions: 347 },
-          { login: 'janesminth', contributions: 289 },
-          { login: 'bobbuilder', contributions: 201 },
-          { login: 'alicewonder', contributions: 156 },
-          { login: 'charliedev', contributions: 123 },
-        ],
-        activityTrend: Array.from({ length: 7 }, (_, i) => ({
-          date: new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-          }),
-          commits: Math.floor(Math.random() * 50) + 10,
-          prs: Math.floor(Math.random() * 10) + 2,
-          issues: Math.floor(Math.random() * 8) + 1,
-        })),
-      };
+      // Fetch real insights from API
+      const data = await apiGet<WorkspaceInsights>(
+        `/api/workspaces/${workspaceId}/insights?timeRange=${timeRange}${forceRefresh ? '&refresh=true' : ''}`
+      );
 
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      setInsights(mockInsights);
+      setInsights(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load insights');
     } finally {
