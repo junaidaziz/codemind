@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api-client';
 import { InlineSpinner } from '@/components/ui';
+import { useAuth } from '@/app/contexts/AuthContext';
+import DependenciesTab from './DependenciesTab';
+import CrossRepoLinksTab from './CrossRepoLinksTab';
 
 interface Repository {
   owner: string;
@@ -33,10 +36,11 @@ interface WorkspaceDetailClientProps {
   workspaceId: string;
 }
 
-type Tab = 'repositories' | 'settings' | 'health';
+type Tab = 'repositories' | 'dependencies' | 'cross-repo-links' | 'settings' | 'health';
 
 export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailClientProps) {
   const router = useRouter();
+  const { user } = useAuth();
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -383,6 +387,26 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
               📁 Repositories ({workspace.repositories?.length || 0})
             </button>
             <button
+              onClick={() => setActiveTab('dependencies')}
+              className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'dependencies'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
+            >
+              🔗 Dependencies
+            </button>
+            <button
+              onClick={() => setActiveTab('cross-repo-links')}
+              className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'cross-repo-links'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
+            >
+              🔀 Cross-Repo Links
+            </button>
+            <button
               onClick={() => setActiveTab('settings')}
               className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'settings'
@@ -533,6 +557,14 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === 'dependencies' && user && (
+          <DependenciesTab workspaceId={workspaceId} userId={user.id} />
+        )}
+
+        {activeTab === 'cross-repo-links' && user && (
+          <CrossRepoLinksTab workspaceId={workspaceId} userId={user.id} />
         )}
 
         {activeTab === 'settings' && (
