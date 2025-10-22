@@ -47,7 +47,16 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
   const [removing, setRemoving] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
   const [repoUrl, setRepoUrl] = useState('');
+  const [bulkRepoUrls, setBulkRepoUrls] = useState('');
+  const [showBulkAdd, setShowBulkAdd] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [syncing, setSyncing] = useState<string | null>(null);
+  const [updatingSettings, setUpdatingSettings] = useState(false);
   const [editData, setEditData] = useState({ name: '', description: '' });
+  const [settingsData, setSettingsData] = useState({
+    autoSync: false,
+    syncInterval: 60,
+  });
 
   const fetchWorkspace = async () => {
     try {
@@ -57,6 +66,10 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
       setEditData({
         name: data.workspace.name,
         description: data.workspace.description || '',
+      });
+      setSettingsData({
+        autoSync: data.workspace.settings?.autoSync || false,
+        syncInterval: data.workspace.settings?.syncInterval || 60,
       });
       setError(null);
     } catch (err) {
@@ -114,6 +127,100 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
       setError(err instanceof Error ? err.message : 'Failed to add repository');
     } finally {
       setAdding(false);
+    }
+  };
+
+  const handleBulkAddRepositories = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bulkRepoUrls.trim()) {
+      setError('At least one repository URL is required');
+      return;
+    }
+
+    try {
+      setAdding(true);
+      setError(null);
+
+      // Split by newlines and parse each URL
+      const urls = bulkRepoUrls.split('\n').filter(url => url.trim());
+      const repos: Array<{ owner: string; name: string }> = [];
+
+      for (const url of urls) {
+        let owner = '';
+        let name = '';
+
+        if (url.includes('github.com')) {
+          const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
+          if (match) {
+            owner = match[1];
+            name = match[2].replace('.git', '');
+          }
+        } else if (url.includes('/')) {
+          [owner, name] = url.split('/');
+        }
+
+        if (owner && name) {
+          repos.push({ owner: owner.trim(), name: name.trim() });
+        }
+      }
+
+      if (repos.length === 0) {
+        setError('No valid repository URLs found. Use format: owner/repo or https://github.com/owner/repo');
+        return;
+      }
+
+      // Add repositories sequentially
+      for (const repo of repos) {
+        await apiPost(`/api/workspaces/${workspaceId}/repositories`, {
+          action: 'add',
+          owner: repo.owner,
+          name: repo.name,
+        });
+      }
+
+      setShowBulkAdd(false);
+      setBulkRepoUrls('');
+      await fetchWorkspace();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add repositories');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const handleSyncRepository = async (owner: string, name: string) => {
+    try {
+      const repoId = `${owner}/${name}`;
+      setSyncing(repoId);
+      setError(null);
+      await apiPost(`/api/workspaces/${workspaceId}/repositories`, {
+        action: 'sync',
+        owner,
+        name,
+      });
+      await fetchWorkspace();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to sync repository');
+    } finally {
+      setSyncing(null);
+    }
+  };
+
+  const handleUpdateSettings = async () => {
+    try {
+      setUpdatingSettings(true);
+      setError(null);
+      await apiPut(`/api/workspaces/${workspaceId}`, {
+        settings: {
+          autoSync: settingsData.autoSync,
+          syncInterval: settingsData.syncInterval,
+        },
+      });
+      await fetchWorkspace();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update settings');
+    } finally {
+      setUpdatingSettings(false);
     }
   };
 
@@ -301,16 +408,30 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
         {/* Tab Content */}
         {activeTab === 'repositories' && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                Repositories
-              </h2>
-              <button
-                onClick={() => setShowAddRepo(true)}
-                className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                + Add Repository
-              </button>
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <div className="flex-1">
+                <input
+                  type="text"
+                  placeholder="Search repositories..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowBulkAdd(true)}
+                  className="px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors whitespace-nowrap"
+                >
+                  + Bulk Add
+                </button>
+                <button
+                  onClick={() => setShowAddRepo(true)}
+                  className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
+                >
+                  + Add Repository
+                </button>
+              </div>
             </div>
 
             {workspace.repositories?.length === 0 ? (
@@ -322,66 +443,93 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
                   Add your first repository to start managing them together in this workspace.
                 </p>
-                <button
-                  onClick={() => setShowAddRepo(true)}
-                  className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Add Repository
-                </button>
+                <div className="flex items-center justify-center gap-3">
+                  <button
+                    onClick={() => setShowAddRepo(true)}
+                    className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Add Repository
+                  </button>
+                  <button
+                    onClick={() => setShowBulkAdd(true)}
+                    className="px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Bulk Add Repositories
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4">
-                {workspace.repositories.map((repo) => (
-                  <div
-                    key={`${repo.owner}/${repo.name}`}
-                    className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <a
-                            href={repo.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-lg font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-                          >
-                            {repo.owner}/{repo.name}
-                          </a>
-                          {repo.private && (
-                            <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs font-medium rounded">
-                              Private
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                          {repo.defaultBranch && (
-                            <div className="flex items-center gap-1">
-                              <span>🌿</span>
-                              <span>{repo.defaultBranch}</span>
-                            </div>
-                          )}
-                          <div className="flex items-center gap-1">
-                            <span>📅</span>
-                            <span>Added {new Date(repo.addedAt).toLocaleDateString()}</span>
+                {workspace.repositories
+                  .filter((repo) => {
+                    if (!searchQuery) return true;
+                    const query = searchQuery.toLowerCase();
+                    return (
+                      repo.name.toLowerCase().includes(query) ||
+                      repo.owner.toLowerCase().includes(query) ||
+                      `${repo.owner}/${repo.name}`.toLowerCase().includes(query)
+                    );
+                  })
+                  .map((repo) => (
+                    <div
+                      key={`${repo.owner}/${repo.name}`}
+                      className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <a
+                              href={repo.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-lg font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                            >
+                              {repo.owner}/{repo.name}
+                            </a>
+                            {repo.private && (
+                              <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs font-medium rounded">
+                                Private
+                              </span>
+                            )}
                           </div>
-                          {repo.lastSyncedAt && (
+                          <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                            {repo.defaultBranch && (
+                              <div className="flex items-center gap-1">
+                                <span>🌿</span>
+                                <span>{repo.defaultBranch}</span>
+                              </div>
+                            )}
                             <div className="flex items-center gap-1">
-                              <span>🔄</span>
-                              <span>Synced {new Date(repo.lastSyncedAt).toLocaleDateString()}</span>
+                              <span>📅</span>
+                              <span>Added {new Date(repo.addedAt).toLocaleDateString()}</span>
                             </div>
-                          )}
+                            {repo.lastSyncedAt && (
+                              <div className="flex items-center gap-1">
+                                <span>🔄</span>
+                                <span>Synced {new Date(repo.lastSyncedAt).toLocaleDateString()}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleSyncRepository(repo.owner, repo.name)}
+                            disabled={syncing === `${repo.owner}/${repo.name}`}
+                            className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {syncing === `${repo.owner}/${repo.name}` ? <InlineSpinner size="sm" /> : '🔄 Sync'}
+                          </button>
+                          <button
+                            onClick={() => handleRemoveRepository(repo.owner, repo.name)}
+                            disabled={removing === `${repo.owner}/${repo.name}`}
+                            className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {removing === `${repo.owner}/${repo.name}` ? <InlineSpinner size="sm" /> : 'Remove'}
+                          </button>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleRemoveRepository(repo.owner, repo.name)}
-                        disabled={removing === `${repo.owner}/${repo.name}`}
-                        className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {removing === `${repo.owner}/${repo.name}` ? <InlineSpinner size="sm" /> : 'Remove'}
-                      </button>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             )}
           </div>
@@ -389,18 +537,26 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
 
         {activeTab === 'settings' && (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
-              Workspace Settings
-            </h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                Workspace Settings
+              </h2>
+              <button
+                onClick={handleUpdateSettings}
+                disabled={updatingSettings}
+                className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {updatingSettings ? <InlineSpinner size="sm" /> : 'Save Settings'}
+              </button>
+            </div>
             <div className="space-y-6">
               <div>
-                <label className="flex items-center gap-3">
+                <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={workspace.settings?.autoSync || false}
+                    checked={settingsData.autoSync}
                     onChange={(e) => {
-                      // TODO: Implement settings update
-                      console.log('Auto-sync:', e.target.checked);
+                      setSettingsData({ ...settingsData, autoSync: e.target.checked });
                     }}
                     className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                   />
@@ -412,17 +568,17 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                   </div>
                 </label>
               </div>
-              {workspace.settings?.autoSync && (
+              {settingsData.autoSync && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Sync Interval (minutes)
                   </label>
                   <input
                     type="number"
-                    value={workspace.settings?.syncInterval || 60}
+                    value={settingsData.syncInterval}
                     onChange={(e) => {
-                      // TODO: Implement settings update
-                      console.log('Sync interval:', e.target.value);
+                      const value = parseInt(e.target.value) || 60;
+                      setSettingsData({ ...settingsData, syncInterval: Math.max(5, Math.min(1440, value)) });
                     }}
                     min={5}
                     max={1440}
@@ -433,6 +589,15 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                   </p>
                 </div>
               )}
+              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Sync Information</h3>
+                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                  <p>• Repository data includes metadata, branches, commits, and contributors</p>
+                  <p>• Auto-sync helps keep your workspace up-to-date with GitHub changes</p>
+                  <p>• Manual sync is always available via the repository list</p>
+                  <p>• Lower intervals mean more API calls to GitHub</p>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -502,6 +667,59 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                       onClick={() => {
                         setShowAddRepo(false);
                         setRepoUrl('');
+                        setError(null);
+                      }}
+                      disabled={adding}
+                      className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bulk Add Repositories Modal */}
+        {showBulkAdd && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full">
+              <div className="p-6">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                  Bulk Add Repositories
+                </h2>
+                <form onSubmit={handleBulkAddRepositories}>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Repository URLs (one per line) *
+                    </label>
+                    <textarea
+                      value={bulkRepoUrls}
+                      onChange={(e) => setBulkRepoUrls(e.target.value)}
+                      placeholder="owner/repo&#10;https://github.com/owner/another-repo&#10;owner/third-repo"
+                      rows={10}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 resize-none font-mono text-sm"
+                      required
+                      autoFocus
+                    />
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                      Each line can be in format: <code className="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded">owner/repo</code> or full GitHub URL
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="submit"
+                      disabled={adding}
+                      className="flex-1 px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {adding ? <InlineSpinner /> : 'Add All Repositories'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowBulkAdd(false);
+                        setBulkRepoUrls('');
                         setError(null);
                       }}
                       disabled={adding}

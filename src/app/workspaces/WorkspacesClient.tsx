@@ -39,6 +39,7 @@ export default function WorkspacesClient() {
     name: '',
     description: '',
   });
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchWorkspaces();
@@ -127,6 +128,19 @@ export default function WorkspacesClient() {
           </button>
         </div>
 
+        {/* Search Bar */}
+        {workspaces.length > 0 && (
+          <div className="mb-6">
+            <input
+              type="text"
+              placeholder="Search workspaces by name or description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+            />
+          </div>
+        )}
+
         {/* Error Banner */}
         {error && (
           <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
@@ -167,7 +181,16 @@ export default function WorkspacesClient() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {workspaces.map((workspace) => (
+            {workspaces
+              .filter((workspace) => {
+                if (!searchQuery) return true;
+                const query = searchQuery.toLowerCase();
+                return (
+                  workspace.name.toLowerCase().includes(query) ||
+                  workspace.description?.toLowerCase().includes(query)
+                );
+              })
+              .map((workspace) => (
               <div
                 key={workspace.id}
                 className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow overflow-hidden"
