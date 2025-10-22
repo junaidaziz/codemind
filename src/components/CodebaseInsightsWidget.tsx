@@ -85,17 +85,35 @@ export default function CodebaseInsightsWidget({
         ...(projectId && { projectId })
       });
 
+      console.log('Fetching codebase insights:', {
+        url: `/api/insights/codebase?${params}`,
+        projectId,
+        selectedPeriod,
+        forceRefresh
+      });
+
       const response = await fetch(`/api/insights/codebase?${params}`);
       
+      console.log('Response status:', response.status, response.statusText);
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch codebase insights');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('API Error Response:', errorData);
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
+      console.log('Codebase insights loaded:', data);
       setInsights(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-      console.error('Insights fetch error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      console.error('Insights fetch error:', {
+        error: err,
+        message: errorMessage,
+        projectId,
+        selectedPeriod
+      });
+      setError(errorMessage);
     } finally {
       setLoading(false);
       setRefreshing(false);

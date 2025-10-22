@@ -275,6 +275,7 @@ function ProjectsPageContent() {
           {projects.length > 0 && (
             <div className="mt-6">
               <CodebaseInsightsWidget 
+                projectId={projects[0]?.id}
                 days={90}
                 autoRefresh={false}
               />
