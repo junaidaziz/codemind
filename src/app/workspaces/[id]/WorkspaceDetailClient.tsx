@@ -10,6 +10,7 @@ import DependenciesTab from './DependenciesTab';
 import CrossRepoLinksTab from './CrossRepoLinksTab';
 import GitHubActionsTab from './GitHubActionsTab';
 import BranchPolicyTab from './BranchPolicyTab';
+import InsightsTab from './InsightsTab';
 
 interface Repository {
   fullName: string; // e.g., "owner/repo"
@@ -39,7 +40,7 @@ interface WorkspaceDetailClientProps {
   workspaceId: string;
 }
 
-type Tab = 'repositories' | 'dependencies' | 'cross-repo-links' | 'github-actions' | 'branch-policy' | 'settings' | 'health';
+type Tab = 'repositories' | 'dependencies' | 'cross-repo-links' | 'github-actions' | 'branch-policy' | 'settings' | 'insights';
 
 export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailClientProps) {
   const router = useRouter();
@@ -530,14 +531,14 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
               ⚙️ Settings
             </button>
             <button
-              onClick={() => setActiveTab('health')}
+              onClick={() => setActiveTab('insights')}
               className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'health'
+                activeTab === 'insights'
                   ? 'border-blue-600 text-blue-600 dark:text-blue-400'
                   : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
-              💚 Health
+              � Insights
             </button>
           </nav>
         </div>
@@ -765,33 +766,8 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
           </div>
         )}
 
-        {activeTab === 'health' && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
-              Workspace Health
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                <div className="text-3xl mb-2">✅</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Status</div>
-                <div className="text-xl font-semibold text-gray-900 dark:text-gray-100">Healthy</div>
-              </div>
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <div className="text-3xl mb-2">📊</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Repositories</div>
-                <div className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                  {workspace.repositories?.length || 0}
-                </div>
-              </div>
-              <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
-                <div className="text-3xl mb-2">⏰</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Last Updated</div>
-                <div className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                  {new Date(workspace.updatedAt).toLocaleDateString()}
-                </div>
-              </div>
-            </div>
-          </div>
+        {activeTab === 'insights' && (
+          <InsightsTab workspaceId={workspaceId} repositories={workspace.repositories} />
         )}
 
         {/* Add Repository Modal */}
