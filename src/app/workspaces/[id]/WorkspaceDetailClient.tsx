@@ -11,10 +11,11 @@ import GitHubActionsTab from './GitHubActionsTab';
 import BranchPolicyTab from './BranchPolicyTab';
 
 interface Repository {
+  fullName: string; // e.g., "owner/repo"
   owner: string;
   name: string;
   url: string;
-  addedAt: string;
+  addedAt?: string;
   lastSyncedAt?: string;
   private?: boolean;
   defaultBranch?: string;
@@ -24,7 +25,7 @@ interface Workspace {
   id: string;
   name: string;
   description: string | null;
-  repositories: Repository[];
+  repositories: string[]; // Array of "owner/repo" strings from backend
   settings: {
     autoSync?: boolean;
     syncInterval?: number;
@@ -317,6 +318,20 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
     }
   };
 
+  const parseRepository = (repoString: string): Repository => {
+    const [owner, name] = repoString.split('/');
+    return {
+      fullName: repoString,
+      owner: owner || 'unknown',
+      name: name || 'unknown',
+      url: `https://github.com/${repoString}`,
+      addedAt: undefined,
+      lastSyncedAt: undefined,
+      private: false,
+      defaultBranch: 'main',
+    };
+  };
+
   const handleUpdateWorkspace = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editData.name.trim()) {
@@ -572,18 +587,19 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
             ) : (
               <div className="grid grid-cols-1 gap-4">
                 {workspace.repositories
+                  .map(parseRepository)
                   .filter((repo) => {
                     if (!searchQuery) return true;
                     const query = searchQuery.toLowerCase();
                     return (
                       repo.name.toLowerCase().includes(query) ||
                       repo.owner.toLowerCase().includes(query) ||
-                      `${repo.owner}/${repo.name}`.toLowerCase().includes(query)
+                      repo.fullName.toLowerCase().includes(query)
                     );
                   })
                   .map((repo) => (
                     <div
-                      key={`${repo.owner}/${repo.name}`}
+                      key={repo.fullName}
                       className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
                     >
                       <div className="flex items-start justify-between">
@@ -626,7 +642,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                           <button
                             onClick={() => {
                               setEditingRepo({ owner: repo.owner, name: repo.name });
-                              setEditRepoUrl(`${repo.owner}/${repo.name}`);
+                              setEditRepoUrl(repo.fullName);
                             }}
                             className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
                           >
@@ -634,17 +650,17 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                           </button>
                           <button
                             onClick={() => handleSyncRepository(repo.owner, repo.name)}
-                            disabled={syncing === `${repo.owner}/${repo.name}`}
+                            disabled={syncing === repo.fullName}
                             className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {syncing === `${repo.owner}/${repo.name}` ? <InlineSpinner size="sm" /> : '🔄 Sync'}
+                            {syncing === repo.fullName ? <InlineSpinner size="sm" /> : '🔄 Sync'}
                           </button>
                           <button
                             onClick={() => handleRemoveRepository(repo.owner, repo.name)}
-                            disabled={removing === `${repo.owner}/${repo.name}`}
+                            disabled={removing === repo.fullName}
                             className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {removing === `${repo.owner}/${repo.name}` ? <InlineSpinner size="sm" /> : 'Remove'}
+                            {removing === repo.fullName ? <InlineSpinner size="sm" /> : 'Remove'}
                           </button>
                         </div>
                       </div>
