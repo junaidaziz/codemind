@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Spinner } from '../../components/ui';
 import Logo from '@/components/shared/Logo';
 
 export function AppHeader() {
@@ -28,12 +27,15 @@ export function AppHeader() {
   }, []);
 
   if (loading) {
+    // Reserve space but don't show anything during initial load
+    // This prevents layout shift when auth resolves
     return (
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Logo />
-            <Spinner size="sm" />
+            {/* Reserve space for user menu to prevent layout shift */}
+            <div className="w-32 h-10"></div>
           </div>
         </div>
       </header>
@@ -41,7 +43,7 @@ export function AppHeader() {
   }
 
   if (!user) {
-    return null; // Don't show header on auth pages
+    return null; // Don't show header on public pages
   }
 
   const userName = user.user_metadata?.name || user.email?.split('@')[0] || 'User';

@@ -8,14 +8,14 @@ import Logo from './shared/Logo';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  // Hide public header if user is logged in
-  if (user) {
+  // Hide public header if user is logged in OR still loading auth state
+  if (user || loading) {
     return null;
   }
 
