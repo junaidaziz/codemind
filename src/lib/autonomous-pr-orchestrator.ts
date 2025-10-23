@@ -12,10 +12,9 @@
  */
 
 import { Octokit } from '@octokit/rest';
-import OpenAI from 'openai';
+import { aiModelService } from './ai-model-service';
 import prisma from '@/lib/db';
 import { getGitHubToken } from './config-helper';
-import { env } from '@/types/env';
 import { runValidationSimulation } from './validation-runner';
 import { calculatePRRisk, type RiskScore } from './pr-risk-scorer';
 import { logAPRPhase, updateActivity } from '@/lib/activity-logger';
@@ -105,11 +104,10 @@ export interface CodeGenerationResult {
 // ============================================================================
 
 export class AutonomousPROrchestrator {
-  private openai: OpenAI;
   private auditTrail: AuditEntry[] = [];
 
   constructor() {
-    this.openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
+    // AI model service is now used instead of direct OpenAI client
   }
 
   /**
@@ -365,8 +363,10 @@ Format your response as JSON: {
   "testingPlan": "how to test the fix"
 }`;
 
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4-turbo-preview',
+    const response = await aiModelService.chatCompletion({
+      projectId: config.projectId,
+      userId: config.userId,
+      operation: 'apr-analysis',
       messages: [
         {
           role: 'system',
@@ -375,10 +375,9 @@ Format your response as JSON: {
         { role: 'user', content: prompt }
       ],
       temperature: 0.3,
-      response_format: { type: 'json_object' }
     });
 
-    const analysis = JSON.parse(response.choices[0].message.content || '{}');
+    const analysis = JSON.parse(response.content || '{}');
 
     // Store analysis in session
     await prisma.autoFixSession.update({
@@ -422,8 +421,12 @@ Format as JSON: {
   "dependencies": []
 }`;
 
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4-turbo-preview',
+    const response = await aiModelService.chatCompletion({
+      projectId: (await prisma.autoFixSession.findUnique({
+        where: { id: sessionId },
+        select: { projectId: true }
+      }))?.projectId || '',
+      operation: 'apr-generate-fixes',
       messages: [
         {
           role: 'system',
@@ -432,10 +435,9 @@ Format as JSON: {
         { role: 'user', content: prompt }
       ],
       temperature: 0.4,
-      response_format: { type: 'json_object' }
     });
 
-    const codeChanges = JSON.parse(response.choices[0].message.content || '{}');
+    const codeChanges = JSON.parse(response.content || '{}');
 
     // Store attempt
     const attempt = await prisma.autoFixAttempt.create({
@@ -445,7 +447,7 @@ Format as JSON: {
         attemptNumber: 1,
         filesModified: codeChanges.changes?.map((c: CodeChange) => c.file) || [],
         prompt,
-        aiResponse: response.choices[0].message.content || '',
+        aiResponse: response.content || '',
         codeSnippets: JSON.stringify(codeChanges.changes || [])
       }
     });
@@ -628,8 +630,12 @@ Format as JSON: {
   ]
 }`;
 
-      const response = await this.openai.chat.completions.create({
-        model: 'gpt-4-turbo-preview',
+      const response = await aiModelService.chatCompletion({
+        projectId: (await prisma.autoFixSession.findUnique({
+          where: { id: sessionId },
+          select: { projectId: true }
+        }))?.projectId || '',
+        operation: 'apr-self-heal',
         messages: [
           {
             role: 'system',
@@ -638,10 +644,9 @@ Format as JSON: {
           { role: 'user', content: prompt }
         ],
         temperature: 0.2, // Lower temperature for fixing errors
-        response_format: { type: 'json_object' }
       });
 
-      const healPatch = JSON.parse(response.choices[0].message.content || '{}');
+      const healPatch = JSON.parse(response.content || '{}');
 
       interface HealFix {
         file: string;
@@ -656,7 +661,7 @@ Format as JSON: {
           attemptNumber,
           filesModified: healPatch.fixes?.map((f: HealFix) => f.file) || [],
           prompt,
-          aiResponse: response.choices[0].message.content || '',
+          aiResponse: response.content || '',
           codeSnippets: JSON.stringify(healPatch.fixes || []),
           success: false // Will be updated after validation
         }
@@ -716,8 +721,12 @@ Format as JSON: {
   ]
 }`;
 
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4-turbo-preview',
+    const response = await aiModelService.chatCompletion({
+      projectId: (await prisma.autoFixSession.findUnique({
+        where: { id: sessionId },
+        select: { projectId: true }
+      }))?.projectId || '',
+      operation: 'apr-ai-review',
       messages: [
         {
           role: 'system',
@@ -728,7 +737,7 @@ Format as JSON: {
       temperature: 0.3
     });
 
-    const reviewContent = response.choices[0].message.content || '{}';
+    const reviewContent = response.content || '{}';
     const review = JSON.parse(reviewContent);
 
     // Store review findings
