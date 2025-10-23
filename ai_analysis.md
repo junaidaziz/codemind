@@ -1,3 +1,22 @@
+# 🔍 Vercel Build Failure Analysis
+
+**Generated on:** 2025-10-23 16:55:44 UTC
+**Deployment ID:** 
+**Repository:** junaidaziz/codemind
+**Branch:** main
+**Commit:** f90fa5a8be9c976835503741ccc434985be8e590
+
+## ❌ Build Failure Summary
+Build failed due to ESLint errors and warnings.
+
+## 🔍 Root Cause Analysis
+Unknown cause
+
+## 🛠️ Suggested Fix
+See analysis for details
+
+## 📊 Full Analysis
+```json
 {
   "deployment": {
     "uid": "dpl_9XmR5uxJuvf83EgxV8th42pjHi7i",
@@ -58,3 +77,7 @@
   },
   "timestamp": "2025-10-23T16:55:44.896Z"
 }
+```
+
+---
+*This analysis was generated automatically by our AI-powered build failure analyzer.*
