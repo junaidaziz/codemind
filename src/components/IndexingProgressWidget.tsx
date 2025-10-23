@@ -47,17 +47,25 @@ export default function IndexingProgressWidget({
       if (showCompleted) params.set('includeCompleted', 'true');
       params.set('limit', maxJobs.toString());
 
-      const response = await fetch(`/api/indexing/active?${params.toString()}`);
+      const url = `/api/indexing/active?${params.toString()}`;
+      console.log('[IndexingProgressWidget] Fetching:', url);
+      console.log('[IndexingProgressWidget] Params:', { projectId, showCompleted, maxJobs });
+
+      const response = await fetch(url);
+      console.log('[IndexingProgressWidget] Response status:', response.status);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch indexing jobs');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('[IndexingProgressWidget] Error response:', errorData);
+        throw new Error(errorData.error || `Failed to fetch indexing jobs (${response.status})`);
       }
 
       const data = await response.json();
+      console.log('[IndexingProgressWidget] Success:', data);
       setJobs(data.jobs || []);
       setError(null);
     } catch (err) {
-      console.error('Error fetching indexing jobs:', err);
+      console.error('[IndexingProgressWidget] Error fetching indexing jobs:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);

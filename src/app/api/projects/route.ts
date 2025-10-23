@@ -21,6 +21,7 @@ async function getProjectsHandler(): Promise<NextResponse<ApiResponse<ProjectRes
       name: true,
       status: true,
       lastIndexedAt: true,
+      githubUrl: true,
       createdAt: true,
       updatedAt: true
     },
@@ -34,6 +35,7 @@ async function getProjectsHandler(): Promise<NextResponse<ApiResponse<ProjectRes
     name: string;
     status: string;
     lastIndexedAt: Date | null;
+    githubUrl: string;
     createdAt: Date;
     updatedAt: Date;
   }) => ({
@@ -41,6 +43,7 @@ async function getProjectsHandler(): Promise<NextResponse<ApiResponse<ProjectRes
     name: project.name,
     status: project.status,
     lastIndexedAt: project.lastIndexedAt?.toISOString() || null,
+    githubUrl: project.githubUrl,
     createdAt: project.createdAt.toISOString(),
     updatedAt: project.updatedAt.toISOString()
   }));

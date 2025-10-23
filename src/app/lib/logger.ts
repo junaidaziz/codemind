@@ -57,10 +57,45 @@ class Logger {
     return level >= this.config.level;
   }
 
+  private safeStringify(obj: unknown): string {
+    const seen = new WeakSet();
+    
+    return JSON.stringify(obj, (key, value) => {
+      // Handle circular references
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) {
+          return '[Circular]';
+        }
+        seen.add(value);
+      }
+      
+      // Filter out functions and symbols
+      if (typeof value === 'function' || typeof value === 'symbol') {
+        return '[Function]';
+      }
+      
+      // Truncate long strings
+      if (typeof value === 'string' && value.length > 200) {
+        return value.substring(0, 200) + '...';
+      }
+      
+      return value;
+    });
+  }
+
   private formatMessage(entry: LogEntry): string {
     const timestamp = entry.timestamp.toISOString();
     const level = LogLevel[entry.level];
-    const context = entry.context ? ` [${JSON.stringify(entry.context)}]` : '';
+    
+    let context = '';
+    if (entry.context) {
+      try {
+        context = ` [${this.safeStringify(entry.context)}]`;
+      } catch {
+        context = ' [Context serialization failed]';
+      }
+    }
+    
     return `[${timestamp}] ${level}: ${entry.message}${context}`;
   }
 

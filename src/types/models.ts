@@ -78,6 +78,7 @@ export const ProjectResponseSchema = z.object({
   name: z.string(),
   status: z.string(),
   lastIndexedAt: z.string().nullable(),
+  githubUrl: z.string().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

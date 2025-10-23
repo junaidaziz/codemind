@@ -25,11 +25,17 @@ An intelligent code understanding and chat platform that helps developers explor
 
 ## 📚 Documentation
 
-- **[Getting Started Guide](docs/README.md)** - Complete setup and development guide
-- **[API Documentation](docs/API.md)** - Comprehensive API reference
-- **[User Guide](docs/USER_GUIDE.md)** - How to use CodeMind effectively
-- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment instructions
-- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to the project
+### Essential Guides
+- **[USER_GUIDE.md](USER_GUIDE.md)** - 📖 Complete user guide with feature walkthroughs
+- **[FEATURES.md](FEATURES.md)** - ⭐ Feature list with status and roadmap
+- **[README.md](README.md)** - 🚀 This file - Quick start and overview
+
+### Developer Documentation
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - 🤝 How to contribute to the project
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - 🚢 Production deployment instructions
+- **[API Documentation](docs/API.md)** - 🔌 Comprehensive API reference
+- **[Testing Guide](docs/TESTING.md)** - 🧪 Testing guidelines and best practices
+- **[CI/CD Setup](docs/CI-CD.md)** - ⚙️ Continuous integration and deployment
 
 ## 🚀 Quick Start
 

@@ -18,6 +18,7 @@ interface Project {
   name: string;
   status: string;
   lastIndexedAt: string | null;
+  githubUrl?: string;
 }
 
 interface Message {
@@ -233,11 +234,21 @@ function ChatPageContent() {
     setIsLoading(true);
 
     try {
+      // Find the selected project to get workspace info
+      const selectedProject = projects.find(p => p.id === selectedProjectId);
+      
+      // Derive workspace path from project name (or use a default)
+      // In a real scenario, this might come from project settings or local config
+      const workspacePath = selectedProject?.githubUrl 
+        ? `/tmp/codemind-projects/${selectedProject.name.toLowerCase().replace(/\s+/g, '-')}`
+        : undefined;
+
       const registry = getCommandRegistry();
       const result = await registry.execute(command, {
         userId: user?.id || 'unknown',
         projectId: selectedProjectId,
         sessionId: currentSessionId,
+        workspacePath,
       });
 
       // Add command result as assistant message

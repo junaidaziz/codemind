@@ -10,8 +10,12 @@ import { getUserId } from '@/lib/auth-server';
  */
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate user
-    const userId = await getUserId(request);
+    // Get projectId from query params for fallback authentication
+    const { searchParams } = new URL(request.url);
+    const projectId = searchParams.get('projectId');
+    
+    // Authenticate user with project fallback
+    const userId = await getUserId(request, projectId || undefined);
     if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },

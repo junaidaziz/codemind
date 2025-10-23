@@ -172,7 +172,7 @@ export default function CodebaseInsightsWidget({
   }
 
   // Prepare data for charts
-  const fileChangeData = insights.mostChangedFiles.slice(0, 10).map(file => ({
+  const fileChangeData = (insights.mostChangedFiles || []).slice(0, 10).map(file => ({
     name: file.path.split('/').pop() || file.path,
     fullPath: file.path,
     changes: file.changes,
@@ -181,7 +181,7 @@ export default function CodebaseInsightsWidget({
     lines: file.lines || 0
   }));
 
-  const fileTypeData = Object.entries(insights.fileTypeDistribution)
+  const fileTypeData = Object.entries(insights.fileTypeDistribution || {})
     .sort((a, b) => b[1] - a[1])
     .slice(0, 8)
     .map(([ext, count]) => ({
@@ -190,9 +190,9 @@ export default function CodebaseInsightsWidget({
     }));
 
   const activityData = [
-    { period: 'Last 7 days', commits: insights.recentActivity.last7Days },
-    { period: 'Last 30 days', commits: insights.recentActivity.last30Days },
-    { period: 'Last 90 days', commits: insights.recentActivity.last90Days }
+    { period: 'Last 7 days', commits: insights.recentActivity?.last7Days || 0 },
+    { period: 'Last 30 days', commits: insights.recentActivity?.last30Days || 0 },
+    { period: 'Last 90 days', commits: insights.recentActivity?.last90Days || 0 }
   ];
 
   return (
@@ -252,7 +252,7 @@ export default function CodebaseInsightsWidget({
             </h3>
           </div>
           <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            {insights.codeChurn.totalFiles}
+            {insights.codeChurn?.totalFiles || 0}
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             Modified in period
@@ -267,7 +267,7 @@ export default function CodebaseInsightsWidget({
             </h3>
           </div>
           <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            {insights.codeChurn.totalChanges}
+            {insights.codeChurn?.totalChanges || 0}
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             Commits to tracked files
@@ -282,7 +282,7 @@ export default function CodebaseInsightsWidget({
             </h3>
           </div>
           <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            {insights.codeChurn.averageChangesPerFile.toFixed(1)}
+            {(insights.codeChurn?.averageChangesPerFile || 0).toFixed(1)}
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             Per file
@@ -297,7 +297,7 @@ export default function CodebaseInsightsWidget({
             </h3>
           </div>
           <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            {insights.complexityHotspots.length}
+            {(insights.complexityHotspots || []).length}
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             High complexity areas
@@ -392,7 +392,7 @@ export default function CodebaseInsightsWidget({
       </div>
 
       {/* Complexity Hotspots Table */}
-      {insights.complexityHotspots.length > 0 && (
+      {(insights.complexityHotspots || []).length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
@@ -414,7 +414,7 @@ export default function CodebaseInsightsWidget({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {insights.complexityHotspots.map((hotspot, index) => (
+                {(insights.complexityHotspots || []).map((hotspot, index) => (
                   <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 font-mono">
                       {hotspot.path}

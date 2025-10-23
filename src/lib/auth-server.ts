@@ -65,7 +65,7 @@ export async function getUserId(request: NextRequest, projectId?: string): Promi
     return headerUserId;
   }
   
-  // Development mode fallback: use project owner
+  // Development mode fallback: use project owner if projectId provided
   if (process.env.NODE_ENV === 'development' && projectId) {
     try {
       const prisma = (await import('../app/lib/db')).default;
@@ -79,6 +79,23 @@ export async function getUserId(request: NextRequest, projectId?: string): Promi
       }
     } catch (error) {
       console.error('Error getting project owner in development mode:', error);
+    }
+  }
+  
+  // Development mode fallback: use first available user if no projectId
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      const prisma = (await import('../app/lib/db')).default;
+      const firstUser = await prisma.user.findFirst({
+        orderBy: { createdAt: 'asc' }
+      });
+      
+      if (firstUser?.id) {
+        console.log(`Development mode: Using first user ID ${firstUser.id} for authentication`);
+        return firstUser.id;
+      }
+    } catch (error) {
+      console.error('Error getting first user in development mode:', error);
     }
   }
   

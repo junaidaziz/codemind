@@ -12,6 +12,7 @@ import { GenerateCommandHandler } from './generate-handler';
 import { TestCommandHandler } from './test-handler';
 import { RefactorCommandHandler } from './refactor-handler';
 import { ExplainCommandHandler } from './explain-handler';
+import { ScaffoldCommandHandlerClient } from './scaffold-handler-client';
 
 let initialized = false;
 
@@ -36,14 +37,20 @@ export async function initializeCommandHandlers(): Promise<void> {
   registry.register(CommandType.REFACTOR, new RefactorCommandHandler());
   registry.register(CommandType.EXPLAIN, new ExplainCommandHandler());
   
-  // Only register scaffold handler on server-side (uses Node.js fs APIs)
+  // Register scaffold handler (client-side calls API, server-side uses full handler)
   if (typeof window === 'undefined') {
+    // Server-side: use full scaffold handler with file system access
     try {
       const { ScaffoldCommandHandler } = await import('./scaffold-handler');
       registry.register(CommandType.SCAFFOLD, new ScaffoldCommandHandler());
+      console.log('✅ Scaffold handler registered (server-side)');
     } catch (error) {
-      console.warn('Could not load ScaffoldCommandHandler (server-only module):', error);
+      console.error('❌ Failed to load ScaffoldCommandHandler:', error);
     }
+  } else {
+    // Client-side: use API wrapper
+    registry.register(CommandType.SCAFFOLD, new ScaffoldCommandHandlerClient());
+    console.log('✅ Scaffold handler registered (client-side API wrapper)');
   }
 
   initialized = true;
@@ -55,11 +62,8 @@ export async function initializeCommandHandlers(): Promise<void> {
     'test',
     'refactor',
     'explain',
+    typeof window === 'undefined' ? 'scaffold (server-only)' : 'scaffold (API)',
   ];
-  
-  if (typeof window === 'undefined') {
-    handlers.push('scaffold (server-only)');
-  }
 
   console.log('✅ Command handlers initialized:', handlers);
 }

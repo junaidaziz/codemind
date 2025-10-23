@@ -43,11 +43,26 @@ export class ScaffoldCommandHandler implements ICommandHandler {
         };
       }
 
-      if (!context.projectId || !context.workspacePath) {
+      if (!context.projectId) {
         return {
           success: false,
-          message: 'Scaffold command requires project context',
-          error: 'Project ID and workspace path are required',
+          message: 'Project ID is required',
+          error: 'Please select a project before using the scaffold command',
+        };
+      }
+
+      if (!context.workspacePath) {
+        return {
+          success: false,
+          message: 'Workspace path not configured',
+          error: 'This project does not have a workspace path configured. Please:\n' +
+                 '1. Ensure your project has a GitHub URL set\n' +
+                 '2. The system will attempt to derive the workspace path\n' +
+                 '3. For production use, configure workspace paths in project settings',
+          data: {
+            projectId: context.projectId,
+            suggestion: 'Configure workspace path in project settings or ensure GitHub URL is set'
+          }
         };
       }
 
