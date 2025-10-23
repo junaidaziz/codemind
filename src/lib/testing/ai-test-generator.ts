@@ -7,7 +7,7 @@
  * @module testing/ai-test-generator
  */
 
-import OpenAI from 'openai';
+import { aiModelService } from '../ai-model-service';
 import type { CodeFunction, FileCoverage } from './coverage-analyzer';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -53,14 +53,15 @@ export interface TestCase {
  * AI Test Generator
  */
 export class AITestGenerator {
-  private openai: OpenAI;
   private projectRoot: string;
+  private projectId?: string;
+  private userId?: string;
 
-  constructor(projectRoot: string, apiKey?: string) {
+  constructor(projectRoot: string, apiKey?: string, projectId?: string, userId?: string) {
     this.projectRoot = projectRoot;
-    this.openai = new OpenAI({
-      apiKey: apiKey || process.env.OPENAI_API_KEY,
-    });
+    this.projectId = projectId;
+    this.userId = userId;
+    // AI model service is now used instead of direct OpenAI client
   }
 
   /**
@@ -118,8 +119,10 @@ export class AITestGenerator {
   ): Promise<string> {
     const prompt = this.buildPrompt(sourceContent, functions, relativePath, options);
 
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4-turbo-preview',
+    const response = await aiModelService.chatCompletion({
+      projectId: this.projectId,
+      userId: this.userId,
+      operation: 'test-generation',
       messages: [
         {
           role: 'system',
@@ -131,10 +134,10 @@ export class AITestGenerator {
         },
       ],
       temperature: 0.3,
-      max_tokens: 4000,
+      maxTokens: 4000,
     });
 
-    return response.choices[0].message.content || '';
+    return response.content || '';
   }
 
   /**
@@ -317,8 +320,10 @@ export class AITestGenerator {
 
     const prompt = `Generate Jest/Vitest mocks for the following imports:\n${imports.join('\n')}\n\nProvide complete mock implementations with realistic return values.`;
 
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4-turbo-preview',
+    const response = await aiModelService.chatCompletion({
+      projectId: this.projectId,
+      userId: this.userId,
+      operation: 'test-mock-generation',
       messages: [
         {
           role: 'system',
@@ -330,10 +335,10 @@ export class AITestGenerator {
         },
       ],
       temperature: 0.2,
-      max_tokens: 2000,
+      maxTokens: 2000,
     });
 
-    return response.choices[0].message.content || '';
+    return response.content || '';
   }
 
   /**
@@ -346,8 +351,10 @@ export class AITestGenerator {
     });
     prompt += `\nProvide realistic, comprehensive test data that covers various scenarios.`;
 
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4-turbo-preview',
+    const response = await aiModelService.chatCompletion({
+      projectId: this.projectId,
+      userId: this.userId,
+      operation: 'test-fixture-generation',
       messages: [
         {
           role: 'system',
@@ -359,10 +366,10 @@ export class AITestGenerator {
         },
       ],
       temperature: 0.3,
-      max_tokens: 2000,
+      maxTokens: 2000,
     });
 
-    return response.choices[0].message.content || '';
+    return response.content || '';
   }
 
   /**

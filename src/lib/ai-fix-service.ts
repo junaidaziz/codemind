@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import { aiModelService } from './ai-model-service';
 import { GitHubService } from './github-service';
 import { AnalyticsTracker } from './analytics-tracker';
 import prisma from '../app/lib/db';
@@ -29,14 +29,15 @@ interface FixSuggestion {
 }
 
 export class AIFixService {
-  private openai: OpenAI;
   private githubService: GitHubService;
+  private projectId?: string;
+  private userId?: string;
 
-  constructor(openaiApiKey: string, githubAccessToken: string) {
-    this.openai = new OpenAI({
-      apiKey: openaiApiKey,
-    });
+  constructor(openaiApiKey: string, githubAccessToken: string, projectId?: string, userId?: string) {
+    // AI model service is now used instead of direct OpenAI client
     this.githubService = new GitHubService(githubAccessToken);
+    this.projectId = projectId;
+    this.userId = userId;
   }
 
   /**
@@ -230,8 +231,10 @@ export class AIFixService {
 
     // Use AI to identify potentially relevant files based on issue content
     try {
-      const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+      const completion = await aiModelService.chatCompletion({
+        projectId: this.projectId,
+        userId: this.userId,
+        operation: 'identify-fix-files',
         messages: [
           {
             role: 'system',
@@ -242,11 +245,11 @@ export class AIFixService {
             content: `Issue Title: ${context.issueTitle}\n\nIssue Description: ${context.issueBody}\n\nLabels: ${context.labels.join(', ')}\n\nRepository: ${context.repository.owner}/${context.repository.name}`,
           },
         ],
-        max_tokens: 200,
+        maxTokens: 200,
         temperature: 0.3,
       });
 
-      const suggestedFiles = completion.choices[0]?.message?.content?.split('\n')
+      const suggestedFiles = completion.content?.split('\n')
         .map(line => line.trim())
         .filter(line => line && !line.startsWith('#') && line.includes('.'))
         .slice(0, 5) || [];
@@ -275,8 +278,10 @@ export class AIFixService {
       }
     }
 
-    const completion = await this.openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+    const completion = await aiModelService.chatCompletion({
+      projectId: this.projectId,
+      userId: this.userId,
+      operation: 'generate-fix-suggestion',
       messages: [
         {
           role: 'system',
@@ -323,13 +328,13 @@ ${f.content}
 Generate a fix for this issue.`,
         },
       ],
-      max_tokens: 4000,
+      maxTokens: 4000,
       temperature: 0.2,
     });
 
-    const responseContent = completion.choices[0]?.message?.content;
+    const responseContent = completion.content;
     if (!responseContent) {
-      throw new Error('No response from OpenAI');
+      throw new Error('No response from AI service');
     }
 
     try {
