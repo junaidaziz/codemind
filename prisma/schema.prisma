@@ -34,19 +34,19 @@ model ActivityEvent {
   projectId   String
   userId      String?
   eventType   ActivityEventType
-  entityType  String              // "indexing", "apr_session", "chat_message", "auto_fix", "code_generation"
+  entityType  String // "indexing", "apr_session", "chat_message", "auto_fix", "code_generation"
   entityId    String?
   title       String
   description String?             @db.Text
-  metadata    Json?               // JSON data for additional info (file paths, line numbers, etc.)
+  metadata    Json? // JSON data for additional info (file paths, line numbers, etc.)
   status      ActivityEventStatus @default(IN_PROGRESS)
-  duration    Int?                // duration in milliseconds
+  duration    Int? // duration in milliseconds
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
-  
-  project     Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user        User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([projectId, createdAt(sort: Desc)])
   @@index([userId, createdAt(sort: Desc)])
   @@index([eventType, createdAt(sort: Desc)])
@@ -606,25 +606,25 @@ model ProjectConfig {
 }
 
 model AIModelUsage {
-  id                String   @id @default(cuid())
-  projectId         String
-  userId            String?
-  modelName         String   // "gpt-4-turbo-preview", "claude-3-opus", etc.
-  provider          String   // "openai", "anthropic", "mistral", "local"
-  operation         String   // "chat", "embedding", "completion"
-  promptTokens      Int
-  completionTokens  Int
-  totalTokens       Int
-  costUsd           Float    @default(0)
-  durationMs        Int?
-  success           Boolean  @default(true)
-  errorMessage      String?
-  metadata          Json?
-  createdAt         DateTime @default(now())
-  
-  project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user              User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id               String   @id @default(cuid())
+  projectId        String
+  userId           String?
+  modelName        String // "gpt-4-turbo-preview", "claude-3-opus", etc.
+  provider         String // "openai", "anthropic", "mistral", "local"
+  operation        String // "chat", "embedding", "completion"
+  promptTokens     Int
+  completionTokens Int
+  totalTokens      Int
+  costUsd          Float    @default(0)
+  durationMs       Int?
+  success          Boolean  @default(true)
+  errorMessage     String?
+  metadata         Json?
+  createdAt        DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([projectId, createdAt(sort: Desc)])
   @@index([userId, createdAt(sort: Desc)])
   @@index([modelName, createdAt(sort: Desc)])

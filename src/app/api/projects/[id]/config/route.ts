@@ -27,6 +27,12 @@ interface ProjectConfig {
   githubToken: string | null;
   encryptionSalt: string | null;
   isEncrypted: boolean;
+  // AI Model Configuration
+  preferredModel: string | null;
+  fallbackModel: string | null;
+  maxTokens: number | null;
+  temperature: number | null;
+  anthropicApiKey: string | null;
 }
 
 // Extend PrismaClient type to include projectConfig
@@ -50,6 +56,11 @@ type PrismaWithProjectConfig = typeof prisma & {
         githubToken?: string | null;
         encryptionSalt?: string | null;
         isEncrypted?: boolean;
+        preferredModel?: string | null;
+        fallbackModel?: string | null;
+        maxTokens?: number | null;
+        temperature?: number | null;
+        anthropicApiKey?: string | null;
       };
     }) => Promise<ProjectConfig>;
     upsert: (args: {
@@ -67,6 +78,11 @@ type PrismaWithProjectConfig = typeof prisma & {
         encryptionSalt?: string | null;
         isEncrypted?: boolean;
         updatedAt?: Date;
+        preferredModel?: string | null;
+        fallbackModel?: string | null;
+        maxTokens?: number | null;
+        temperature?: number | null;
+        anthropicApiKey?: string | null;
       };
       create: {
         projectId: string;
@@ -81,6 +97,11 @@ type PrismaWithProjectConfig = typeof prisma & {
         githubToken?: string | null;
         encryptionSalt?: string | null;
         isEncrypted?: boolean;
+        preferredModel?: string | null;
+        fallbackModel?: string | null;
+        maxTokens?: number | null;
+        temperature?: number | null;
+        anthropicApiKey?: string | null;
       };
     }) => Promise<ProjectConfig>;
     delete: (args: { where: { id: string } }) => Promise<ProjectConfig>;
@@ -151,6 +172,12 @@ export async function GET(request: NextRequest, { params }: ConfigParams) {
       githubWebhookSecret: FieldMasker.maskField('githubWebhookSecret', config.githubWebhookSecret),
       githubToken: FieldMasker.maskField('githubToken', config.githubToken),
       isEncrypted: config.isEncrypted,
+      // AI Model Configuration
+      preferredModel: config.preferredModel || 'gpt-4-turbo-preview',
+      fallbackModel: config.fallbackModel || 'gpt-3.5-turbo',
+      maxTokens: config.maxTokens || 4096,
+      temperature: config.temperature || 0.7,
+      anthropicApiKey: FieldMasker.maskField('anthropicApiKey', config.anthropicApiKey),
       createdAt: config.createdAt,
       updatedAt: config.updatedAt
     };
@@ -215,7 +242,12 @@ export async function POST(request: NextRequest, { params }: ConfigParams) {
       githubPrivateKey,
       githubInstallationId,
       githubWebhookSecret,
-      githubToken
+      githubToken,
+      preferredModel,
+      fallbackModel,
+      maxTokens,
+      temperature,
+      anthropicApiKey
     } = body;
 
     // Check if config already exists
@@ -245,6 +277,11 @@ export async function POST(request: NextRequest, { params }: ConfigParams) {
         githubInstallationId: githubInstallationId || null,
         githubWebhookSecret: githubWebhookSecret || null,
         githubToken: githubToken || null,
+        preferredModel: preferredModel || 'gpt-4-turbo-preview',
+        fallbackModel: fallbackModel || 'gpt-3.5-turbo',
+        maxTokens: maxTokens || 4096,
+        temperature: temperature || 0.7,
+        anthropicApiKey: anthropicApiKey || null,
         isEncrypted: false, // TODO: Set to true when encryption is implemented
       }
     });
@@ -262,6 +299,11 @@ export async function POST(request: NextRequest, { params }: ConfigParams) {
       githubInstallationId: config.githubInstallationId,
       githubWebhookSecret: config.githubWebhookSecret ? maskSensitiveValue(config.githubWebhookSecret) : null,
       githubToken: config.githubToken ? maskSensitiveValue(config.githubToken) : null,
+      preferredModel: config.preferredModel,
+      fallbackModel: config.fallbackModel,
+      maxTokens: config.maxTokens,
+      temperature: config.temperature,
+      anthropicApiKey: config.anthropicApiKey ? maskSensitiveValue(config.anthropicApiKey) : null,
       isEncrypted: config.isEncrypted,
       createdAt: config.createdAt,
       updatedAt: config.updatedAt
@@ -316,7 +358,12 @@ export async function PUT(request: NextRequest, { params }: ConfigParams) {
       githubPrivateKey,
       githubInstallationId,
       githubWebhookSecret,
-      githubToken
+      githubToken,
+      preferredModel,
+      fallbackModel,
+      maxTokens,
+      temperature,
+      anthropicApiKey
     } = body;
 
     // Update existing configuration or create if doesn't exist
@@ -336,18 +383,28 @@ export async function PUT(request: NextRequest, { params }: ConfigParams) {
         githubInstallationId: githubInstallationId || null,
         githubWebhookSecret: githubWebhookSecret || null,
         githubToken: githubToken || null,
+        preferredModel: preferredModel || 'gpt-4-turbo-preview',
+        fallbackModel: fallbackModel || 'gpt-3.5-turbo',
+        maxTokens: maxTokens || 4096,
+        temperature: temperature || 0.7,
+        anthropicApiKey: anthropicApiKey || null,
         isEncrypted: false, // TODO: Set to true when encryption is implemented
       },
       update: {
-        vercelToken: vercelToken || null,
-        vercelProjectId: vercelProjectId || null,
-        vercelTeamId: vercelTeamId || null,
-        openaiApiKey: openaiApiKey || null,
-        githubAppId: githubAppId || null,
-        githubPrivateKey: githubPrivateKey || null,
-        githubInstallationId: githubInstallationId || null,
-        githubWebhookSecret: githubWebhookSecret || null,
-        githubToken: githubToken || null,
+        vercelToken: vercelToken !== undefined ? vercelToken : undefined,
+        vercelProjectId: vercelProjectId !== undefined ? vercelProjectId : undefined,
+        vercelTeamId: vercelTeamId !== undefined ? vercelTeamId : undefined,
+        openaiApiKey: openaiApiKey !== undefined ? openaiApiKey : undefined,
+        githubAppId: githubAppId !== undefined ? githubAppId : undefined,
+        githubPrivateKey: githubPrivateKey !== undefined ? githubPrivateKey : undefined,
+        githubInstallationId: githubInstallationId !== undefined ? githubInstallationId : undefined,
+        githubWebhookSecret: githubWebhookSecret !== undefined ? githubWebhookSecret : undefined,
+        githubToken: githubToken !== undefined ? githubToken : undefined,
+        preferredModel: preferredModel !== undefined ? preferredModel : undefined,
+        fallbackModel: fallbackModel !== undefined ? fallbackModel : undefined,
+        maxTokens: maxTokens !== undefined ? maxTokens : undefined,
+        temperature: temperature !== undefined ? temperature : undefined,
+        anthropicApiKey: anthropicApiKey !== undefined ? anthropicApiKey : undefined,
         updatedAt: new Date(),
       }
     });
@@ -365,6 +422,11 @@ export async function PUT(request: NextRequest, { params }: ConfigParams) {
       githubInstallationId: config.githubInstallationId,
       githubWebhookSecret: config.githubWebhookSecret ? maskSensitiveValue(config.githubWebhookSecret) : null,
       githubToken: config.githubToken ? maskSensitiveValue(config.githubToken) : null,
+      preferredModel: config.preferredModel,
+      fallbackModel: config.fallbackModel,
+      maxTokens: config.maxTokens,
+      temperature: config.temperature,
+      anthropicApiKey: config.anthropicApiKey ? maskSensitiveValue(config.anthropicApiKey) : null,
       isEncrypted: config.isEncrypted,
       createdAt: config.createdAt,
       updatedAt: config.updatedAt
