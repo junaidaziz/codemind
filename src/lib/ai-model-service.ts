@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
+import { aiPromptCache } from './ai-prompt-cache';
 import { env } from '../types/env';
 import prisma from '../app/lib/db';
 
@@ -212,6 +213,24 @@ export class AIModelService {
 
     const modelConfig = MODEL_CONFIGS[model];
     
+    // Check cache for deterministic requests (low temperature)
+    if (temperature <= 0.3) {
+      const cached = aiPromptCache.get(options.messages, model, temperature);
+      if (cached) {
+        // Return cached response (no API call needed)
+        return {
+          content: cached.content,
+          promptTokens: cached.promptTokens,
+          completionTokens: cached.completionTokens,
+          totalTokens: cached.promptTokens + cached.completionTokens,
+          costUsd: 0, // No cost for cached responses
+          durationMs: Date.now() - startTime,
+          model,
+          provider: modelConfig.provider,
+        };
+      }
+    }
+    
     try {
       let response: ChatCompletionResponse;
 
@@ -240,6 +259,19 @@ export class AIModelService {
 
       const durationMs = Date.now() - startTime;
       response.durationMs = durationMs;
+
+      // Cache deterministic responses (low temperature)
+      if (temperature <= 0.3) {
+        aiPromptCache.set(
+          options.messages,
+          model,
+          temperature,
+          response.content,
+          response.promptTokens,
+          response.completionTokens,
+          response.costUsd
+        );
+      }
 
       // Track usage in database
       if (options.projectId) {
