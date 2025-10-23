@@ -73,7 +73,14 @@ export async function POST(request: NextRequest) {
     // Execute the command
     const result = await handler.execute(command, context);
 
-    return NextResponse.json(result);
+    // Remove action handlers before sending to client
+    // Functions cannot be serialized and will be lost anyway
+    const sanitizedResult = {
+      ...result,
+      actions: undefined, // Remove actions as handlers won't work over HTTP
+    };
+
+    return NextResponse.json(sanitizedResult);
   } catch (error) {
     console.error('Error executing scaffold command:', error);
     

@@ -193,21 +193,37 @@ export class PromptParser {
   private extractEntities(prompt: string): Entity[] {
     const entities: Entity[] = [];
     
+    // Common prepositions and conjunctions that should stop entity name extraction
+    const stopWords = ['with', 'that', 'for', 'using', 'including', 'having', 'containing', 'and', 'or'];
+    
     // Look for entity type keywords
     for (const [type, keywords] of Object.entries(this.entityKeywords)) {
       for (const keyword of keywords) {
-        const regex = new RegExp(`${keyword}\\s+(?:called|named)?\\s*([a-zA-Z0-9_-]+)`, 'gi');
+        // Updated regex to capture entity name but stop at prepositions
+        const regex = new RegExp(`${keyword}\\s+(?:called|named)?\\s*([a-zA-Z0-9_-]+(?:\\s+[A-Z][a-zA-Z0-9_-]+)*)`, 'gi');
         const matches = [...prompt.matchAll(regex)];
         
         for (const match of matches) {
-          const name = match[1];
+          let name = match[1].trim();
           const position: [number, number] = [match.index || 0, (match.index || 0) + match[0].length];
           
-          entities.push({
-            type: type as EntityType,
-            name: this.normalizeName(name),
-            position,
-          });
+          // Remove any stop words from the end of the name
+          for (const stopWord of stopWords) {
+            const lowerName = name.toLowerCase();
+            if (lowerName.endsWith(` ${stopWord}`) || lowerName === stopWord) {
+              name = name.substring(0, name.length - stopWord.length).trim();
+              break;
+            }
+          }
+          
+          // Only add if we have a valid name after stop word removal
+          if (name.length > 0) {
+            entities.push({
+              type: type as EntityType,
+              name: this.normalizeName(name),
+              position,
+            });
+          }
         }
       }
     }
@@ -216,11 +232,17 @@ export class PromptParser {
     if (entities.length === 0) {
       const simpleMatch = prompt.match(/(?:create|generate|add|make|build)\s+(?:a|an)?\s*([a-zA-Z0-9_-]+)/i);
       if (simpleMatch) {
-        entities.push({
-          type: this.inferEntityType(prompt),
-          name: this.normalizeName(simpleMatch[1]),
-          position: [simpleMatch.index || 0, (simpleMatch.index || 0) + simpleMatch[0].length],
-        });
+        const name = simpleMatch[1];
+        
+        // Check if the extracted name is a stop word
+        const stopWords = ['with', 'that', 'for', 'using', 'including', 'having', 'containing'];
+        if (!stopWords.includes(name.toLowerCase())) {
+          entities.push({
+            type: this.inferEntityType(prompt),
+            name: this.normalizeName(name),
+            position: [simpleMatch.index || 0, (simpleMatch.index || 0) + simpleMatch[0].length],
+          });
+        }
       }
     }
 

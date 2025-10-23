@@ -26,8 +26,10 @@ An intelligent code understanding and chat platform that helps developers explor
 ## 📚 Documentation
 
 ### Essential Guides
+- **[Getting Started Guide](docs/GETTING_STARTED_GUIDE.md)** - 🎯 Step-by-step guide from dashboard to chatting
 - **[USER_GUIDE.md](USER_GUIDE.md)** - 📖 Complete user guide with feature walkthroughs
 - **[FEATURES.md](FEATURES.md)** - ⭐ Feature list with status and roadmap
+- **[Scaffold Command Guide](SCAFFOLD_COMMAND_GUIDE.md)** - 🛠️ How to use `/scaffold` for code generation
 - **[README.md](README.md)** - 🚀 This file - Quick start and overview
 
 ### Developer Documentation
@@ -36,6 +38,7 @@ An intelligent code understanding and chat platform that helps developers explor
 - **[API Documentation](docs/API.md)** - 🔌 Comprehensive API reference
 - **[Testing Guide](docs/TESTING.md)** - 🧪 Testing guidelines and best practices
 - **[CI/CD Setup](docs/CI-CD.md)** - ⚙️ Continuous integration and deployment
+- **[Scaffold Command Setup](docs/SCAFFOLD_COMMAND_SETUP.md)** - 🔧 Technical setup for scaffold feature
 
 ## 🚀 Quick Start
 
