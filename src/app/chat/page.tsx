@@ -767,28 +767,70 @@ function ChatPageContent() {
 
                       {/* Action Buttons */}
                       {message.commandResult.actions && 
-                       message.commandResult.actions.length > 0 && 
-                       message.commandResult.actions.some(a => typeof a.handler === 'function') && (
-                        <div className="flex gap-2 pt-2">
-                          {message.commandResult.actions
-                            .filter(action => typeof action.handler === 'function')
-                            .map((action, idx) => (
+                       message.commandResult.actions.length > 0 && (
+                        <div className="flex gap-2 pt-4">
+                          {message.commandResult.actions.map((action: { id?: string; type: string; label: string; description?: string; handler?: () => Promise<void> }, idx: number) => (
                             <button
                               key={idx}
-                              onClick={() => {
-                                console.log('Action clicked:', action);
-                                action.handler().catch(err => {
-                                  console.error('Action handler error:', err);
-                                });
+                              onClick={async () => {
+                                try {
+                                  console.log('Executing action:', action);
+                                  
+                                  // Check if action has an ID (server-side action)
+                                  if (action.id) {
+                                    const response = await fetch('/api/scaffold/execute-action', {
+                                      method: 'POST',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ actionId: action.id }),
+                                    });
+                                    
+                                    const result = await response.json();
+                                    
+                                    if (!response.ok) {
+                                      throw new Error(result.error || 'Failed to execute action');
+                                    }
+                                    
+                                    // Show success message
+                                    const successMsg: Message = {
+                                      id: Date.now().toString(),
+                                      role: 'assistant',
+                                      content: `✅ ${action.label} completed successfully! ${result.message || ''}`,
+                                      createdAt: new Date().toISOString(),
+                                    };
+                                    setMessages(prev => [...prev, successMsg]);
+                                  } 
+                                  // Fallback for client-side handlers (if any exist)
+                                  else if (typeof action.handler === 'function') {
+                                    await action.handler();
+                                    const successMsg: Message = {
+                                      id: Date.now().toString(),
+                                      role: 'assistant',
+                                      content: `✅ ${action.label} completed!`,
+                                      createdAt: new Date().toISOString(),
+                                    };
+                                    setMessages(prev => [...prev, successMsg]);
+                                  } else {
+                                    throw new Error('Action handler not available');
+                                  }
+                                } catch (err) {
+                                  console.error('Action execution error:', err);
+                                  const errorMsg: Message = {
+                                    id: Date.now().toString(),
+                                    role: 'assistant',
+                                    content: `❌ Failed to execute ${action.label}: ${err instanceof Error ? err.message : 'Unknown error'}`,
+                                    createdAt: new Date().toISOString(),
+                                  };
+                                  setMessages(prev => [...prev, errorMsg]);
+                                }
                               }}
-                              className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all hover:scale-105 ${
                                 action.type === 'accept'
-                                  ? 'bg-green-600 text-white hover:bg-green-700'
+                                  ? 'bg-green-600 text-white hover:bg-green-700 shadow-lg shadow-green-500/30'
                                   : action.type === 'reject'
-                                  ? 'bg-red-600 text-white hover:bg-red-700'
+                                  ? 'bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-500/30'
                                   : action.type === 'modify'
-                                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                  : 'bg-gray-600 text-white hover:bg-gray-700'
+                                  ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/30'
+                                  : 'bg-purple-600 text-white hover:bg-purple-700 shadow-lg shadow-purple-500/30'
                               }`}
                             >
                               {action.label}

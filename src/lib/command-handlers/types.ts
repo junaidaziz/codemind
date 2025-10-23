@@ -43,6 +43,16 @@ export interface CommandAction {
 }
 
 /**
+ * Serialized action for client-side (without handler function)
+ */
+export interface SerializedCommandAction {
+  id: string;
+  type: 'accept' | 'reject' | 'modify' | 'view';
+  label: string;
+  description?: string;
+}
+
+/**
  * Context passed to command handlers
  */
 export interface CommandContext {

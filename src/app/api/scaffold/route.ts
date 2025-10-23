@@ -9,7 +9,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUserId } from '@/lib/auth-server';
 import { getCommandRegistry, initializeCommandHandlers } from '@/lib/command-handlers';
 import { CommandType } from '@/lib/command-parser';
-import type { CommandContext } from '@/lib/command-handlers/types';
+import type { CommandContext, CodeChange } from '@/lib/command-handlers/types';
+
+// Global cache for action handlers (use Redis in production)
+declare global {
+  var _scaffoldActionCache: Map<string, {
+    handler: () => Promise<void>;
+    context: CommandContext;
+    changes?: CodeChange[];
+    expiresAt: number;
+  }> | undefined;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -73,12 +83,32 @@ export async function POST(request: NextRequest) {
     // Execute the command
     const result = await handler.execute(command, context);
 
-    // Remove action handlers before sending to client
-    // Functions cannot be serialized and will be lost anyway
+    // Convert action handlers to action IDs that can be executed server-side
     const sanitizedResult = {
       ...result,
-      actions: undefined, // Remove actions as handlers won't work over HTTP
+      actions: result.actions?.map((action, idx) => ({
+        id: `action-${projectId}-${Date.now()}-${idx}`,
+        type: action.type,
+        label: action.label,
+        description: action.description,
+      })),
     };
+
+    // Store the original result with handlers in memory for action execution
+    // In production, use Redis or database with TTL
+    if (result.actions && result.actions.length > 0) {
+      if (!global._scaffoldActionCache) {
+        global._scaffoldActionCache = new Map();
+      }
+      sanitizedResult.actions?.forEach((sanitizedAction, idx) => {
+        global._scaffoldActionCache!.set(sanitizedAction.id, {
+          handler: result.actions![idx].handler,
+          context,
+          changes: result.changes,
+          expiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes
+        });
+      });
+    }
 
     return NextResponse.json(sanitizedResult);
   } catch (error) {
