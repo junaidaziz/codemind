@@ -1,3 +1,22 @@
+# 🔍 Vercel Build Failure Analysis
+
+**Generated on:** 2025-10-23 17:25:51 UTC
+**Deployment ID:** 
+**Repository:** junaidaziz/codemind
+**Branch:** main
+**Commit:** 48e47d2b7b1fcd89a15e00e383c16923f9533d35
+
+## ❌ Build Failure Summary
+Build failed due to linting errors in the code.
+
+## 🔍 Root Cause Analysis
+Unknown cause
+
+## 🛠️ Suggested Fix
+See analysis for details
+
+## 📊 Full Analysis
+```json
 {
   "deployment": {
     "uid": "dpl_9XmR5uxJuvf83EgxV8th42pjHi7i",
@@ -58,3 +77,7 @@
   },
   "timestamp": "2025-10-23T17:25:51.909Z"
 }
+```
+
+---
+*This analysis was generated automatically by our AI-powered build failure analyzer.*
