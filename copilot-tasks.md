@@ -78,21 +78,34 @@
 
 ### **Feature #8: AI Model Management**
 
-**Status:** Planned | **Priority:** ⭐⭐
+**Status:** 🔄 In Progress | **Priority:** ⭐⭐
 
-**Tasks:**
-- [ ] Enable **per-project model switching** (GPT-4, Claude, Mistral, Local LLMs)
-- [ ] Track **cost and token usage** per model
-- [ ] Cache frequent prompts with **Supabase Edge Functions**
-- [ ] Provide **performance comparison dashboard** for models
-- [ ] Add support for **fine-tuned custom models**
+**Sub-tasks:**
+- [x] Database schema design (ProjectConfig + AIModelUsage table)
+- [x] AI service abstraction layer (multi-provider support)
+- [x] Model configuration UI component
+- [x] Usage statistics API endpoint
+- [ ] Update existing AI services to use new abstraction
+- [ ] Cost tracking dashboard
+- [ ] Model performance comparison UI
+- [ ] Prompt caching system
+
+**Completed:**
+- ✅ Enhanced ProjectConfig with model preferences (preferredModel, fallbackModel, maxTokens, temperature)
+- ✅ Created AIModelUsage tracking table with comprehensive fields
+- ✅ Built AIModelService with support for OpenAI, Anthropic, Mistral, local models
+- ✅ Created model configuration UI (AIModelSettings component - 354 LOC)
+- ✅ Built usage statistics API endpoint
+- ✅ Added automatic cost calculation and tracking
+- ✅ Installed @anthropic-ai/sdk for Claude support
 
 **Estimated Effort:** 4-5 weeks  
+**Actual Progress:** ~40% complete (~720 LOC / 1,800 estimated)
 **Estimated LOC:** ~1,800
 
 ---
 
-## 🧩 Strategic Expansion
+### **Feature #9: VS Code Extension**
 
 ### **Feature #9: VS Code Extension**
 
