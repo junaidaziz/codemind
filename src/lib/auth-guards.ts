@@ -38,7 +38,6 @@ export async function getUserProjectRole(
   userId: string,
   projectId: string
 ): Promise<ProjectRole | null> {
-  // @ts-expect-error - Prisma client type may not be fully regenerated
   const member = await db.projectMember.findFirst({
     where: {
       userId,

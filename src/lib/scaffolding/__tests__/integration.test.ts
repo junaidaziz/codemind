@@ -14,7 +14,7 @@ import { PromptParser } from '../PromptParser';
 import { TemplateEngine } from '../TemplateEngine';
 import { DependencyGraphBuilder } from '../DependencyGraphBuilder';
 import { registerAllTemplates } from '../templates';
-import type { ParsedIntent, TemplateContext, ProjectConventions } from '../types';
+import type { TemplateContext, ProjectConventions } from '../types';
 
 describe('Smart Scaffolder - Integration Tests', () => {
   let promptParser: PromptParser;
@@ -336,14 +336,14 @@ function createMockConventions(): ProjectConventions {
       sortOrder: 'alphabetical',
     },
     structure: {
+      rootDir: '.',
+      sourceDir: 'src',
       componentDir: 'src/components',
-      utilityDir: 'src/lib',
-      testDir: 'src/__tests__',
-      typeDir: 'src/types',
-      styleDir: 'src/styles',
-      publicDir: 'public',
-      layoutPatterns: ['default', 'nested'],
-      fileOrganization: 'by-feature',
+      utilsDir: 'src/lib',
+      typesDir: 'src/types',
+      testPattern: '**/*.test.ts',
+      configLocation: '.',
+      flatStructure: false,
     },
     framework: {
       name: 'nextjs',
