@@ -1,3 +1,22 @@
+# 🔍 Vercel Build Failure Analysis
+
+**Generated on:** 2025-10-24 06:37:54 UTC
+**Deployment ID:** 
+**Repository:** junaidaziz/codemind
+**Branch:** main
+**Commit:** 528b1dd538eff3d04a961f356c676a4b66936524
+
+## ❌ Build Failure Summary
+Build failed due to missing export in module.
+
+## 🔍 Root Cause Analysis
+Unknown cause
+
+## 🛠️ Suggested Fix
+See analysis for details
+
+## 📊 Full Analysis
+```json
 {
   "deployment": {
     "uid": "dpl_nDu5NqbRKCHwPFdRgX1hRNjg81EN",
@@ -58,3 +77,7 @@
   },
   "timestamp": "2025-10-24T06:37:53.980Z"
 }
+```
+
+---
+*This analysis was generated automatically by our AI-powered build failure analyzer.*
