@@ -14,13 +14,21 @@ export function useProjectRole(projectId: string | null) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!projectId || !session?.user?.id) {
+    // If no projectId or still loading session, don't fetch
+    if (!projectId) {
       setLoading(false)
       return
     }
     
     if (status === 'loading') {
       setLoading(true)
+      return
+    }
+    
+    // If not authenticated, user has no role
+    if (!session?.user?.id) {
+      setLoading(false)
+      setRole(null)
       return
     }
 
