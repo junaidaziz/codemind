@@ -1,49 +1,31 @@
 # 🤖 CodeMind — Active Roadmap
 
 > **Last Updated:** October 24, 2025  
-> **Goal:** Scale CodeMind with intelligent automation and enterprise features.
+> **Goal:** Build the best AI-powered code review and CI/CD automation platform.
 
 ---
 
-## ⚙️ UX / Developer Experience
+## 🎯 IMMEDIATE PRIORITY (Next 2 Weeks)
 
-### **Feature #7: Authentication & Teams** (IN PROGRESS)
+### **Feature #7: Authentication & Teams** (IN PROGRESS - 96% Complete)
 
-**Priority:** ⭐⭐⭐ | **Progress:** 96% ✅
+**Priority:** ⭐⭐⭐ FINISH NOW | **Effort:** 1-2 days
 
-**Remaining Tasks:**
-- [ ] **Task 10:** Build team dashboard and settings pages (member directory, activity feed, organization settings)
-
----
-
-### **Feature #9: VS Code Extension**
-
-**Priority:** ⭐⭐⭐ | **Estimated Effort:** 4-5 weeks (~1,800 LOC)
-
-**Tasks:**
-- [ ] Connect local workspace to CodeMind chat and actions
-- [ ] Commands: "Explain selection", "Fix highlighted code", "Generate test for this file", "Open in CodeMind Web"
-- [ ] Sync local → remote PR creation automatically
-- [ ] Show AI results inline in editor
+**Remaining Task:**
+- [ ] **Task 10:** Build team dashboard and settings pages
+  - Member directory with role management
+  - Activity feed showing team actions
+  - Organization settings panel
 
 ---
 
-### **Feature #10: CI/CD & DevOps Integration**
+## 🚀 HIGH PRIORITY (Next 4-6 Weeks)
 
-**Priority:** ⭐⭐⭐ | **Estimated Effort:** 5-6 weeks (~2,200 LOC)
+### **Feature #11: Code Review Automation** 
 
-**Tasks:**
-- [ ] Integrate with **Vercel, GitHub Actions, AWS Lambda pipelines**
-- [ ] Add **AI-powered CI pre-reviews** before merge
-- [ ] Post **deployment summaries** automatically
-- [ ] Detect **post-deploy errors** and suggest rollbacks
-- [ ] Track deployment history with change summaries
+**Priority:** ⭐⭐⭐ CORE DIFFERENTIATOR | **Effort:** 4-5 weeks (~1,900 LOC)
 
----
-
-### **Feature #11: Code Review Automation**
-
-**Priority:** ⭐⭐⭐ | **Estimated Effort:** 4-5 weeks (~1,900 LOC)
+**Why:** This is the killer feature that sets CodeMind apart from generic AI tools.
 
 **Tasks:**
 - [ ] AI-generated **PR review comments** for complexity and security
@@ -54,49 +36,42 @@
 
 ---
 
-### **Feature #12: Plugin Ecosystem**
+### **Feature #10: CI/CD & DevOps Integration**
 
-**Priority:** ⭐⭐ | **Estimated Effort:** 6-8 weeks (~2,500 LOC)
+**Priority:** ⭐⭐⭐ COMPLETE THE WORKFLOW | **Effort:** 5-6 weeks (~2,200 LOC)
+
+**Why:** Natural extension of code review - completes dev-to-deploy loop.
 
 **Tasks:**
-- [ ] Build **plugin API** for community tool creation
-- [ ] Define Plugin I/O spec (Input: project + context, Output: structured result/action)
-- [ ] Allow plugins for: Lighthouse audits, SQL optimization, i18n validation
-- [ ] Host marketplace for verified plugins
+- [ ] Integrate with **GitHub Actions and Vercel** (focus on these first)
+- [ ] Add **AI-powered CI pre-reviews** before merge
+- [ ] Post **deployment summaries** automatically
+- [ ] Detect **post-deploy errors** and suggest rollbacks
+- [ ] Track deployment history with change summaries
 
 ---
 
-### **Feature #13: AI Knowledge Graph**
+## � FUTURE PRIORITIES (3+ Months)
 
-**Priority:** ⭐⭐ | **Estimated Effort:** 5-6 weeks (~2,000 LOC)
+### **Feature #9: VS Code Extension**
 
-**Tasks:**
-- [ ] Generate **interactive dependency maps** (functions, modules, APIs)
-- [ ] Use **D3.js / Cytoscape** for visualization
-- [ ] Enable AI to answer: "Which files depend on this function?"
-- [ ] Show **impact propagation** for code changes
-- [ ] Cache graph relationships in PostgreSQL
+**Priority:** ⭐⭐ USER REQUESTED | **Effort:** 4-5 weeks (~1,800 LOC)
 
----
-
-## 💎 Polish & Growth
-
-### **Feature #14: SEO & Marketing**
-
-**Priority:** ⭐ | **Estimated Effort:** 2-3 weeks (~800 LOC)
+**When:** Only build after 100+ users request it.
 
 **Tasks:**
-- [ ] Add **AI-generated meta tags and OG previews** for all pages
-- [ ] Generate **dynamic sitemap.xml** for docs and projects
-- [ ] Use **JSON-LD structured data** for search engines
-- [ ] Improve **docs readability** and **keyword optimization**
-- [ ] Add **"Share Project" social preview cards**
+- [ ] Connect local workspace to CodeMind chat and actions
+- [ ] Commands: "Explain selection", "Fix highlighted code", "Generate test", "Open in Web"
+- [ ] Sync local → remote PR creation automatically
+- [ ] Show AI results inline in editor
 
 ---
 
 ### **Feature #15: Performance & Cost Optimization**
 
-**Priority:** ⭐⭐ | **Estimated Effort:** 3-4 weeks (~1,200 LOC)
+**Priority:** ⭐⭐ WHEN NEEDED | **Effort:** 3-4 weeks (~1,200 LOC)
+
+**When:** Build based on real usage data and performance metrics.
 
 **Tasks:**
 - [ ] Cache embeddings with **Redis or Supabase Edge Cache**
@@ -104,19 +79,6 @@
 - [ ] Lazy-load large vectors for big repositories
 - [ ] Add **usage-based billing / monitoring dashboard**
 - [ ] Implement **async rate limiting** for chat and jobs
-
----
-
-### **Feature #16: Developer Community Integration**
-
-**Priority:** ⭐ | **Estimated Effort:** 4-5 weeks (~1,500 LOC)
-
-**Tasks:**
-- [ ] Launch **Discord / Slack bot** powered by CodeMind AI
-- [ ] Integrate **GitHub Discussions Agent** for community Q&A
-- [ ] Enable **"Ask CodeMind"** button on public repos
-- [ ] Summarize common questions for knowledge base
-- [ ] Add **weekly AI digest email** for team insights
 
 ---
 
