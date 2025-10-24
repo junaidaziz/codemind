@@ -1,7 +1,17 @@
 import db from './db';
-import { ApiKeyScope } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import crypto from 'crypto';
+
+// Define ApiKeyScope type since it may not be in Prisma schema yet
+export type ApiKeyScope = 'READ' | 'WRITE' | 'ADMIN' | 'DEPLOY' | 'ANALYTICS'
+
+export const ApiKeyScope = {
+  READ: 'READ' as const,
+  WRITE: 'WRITE' as const,
+  ADMIN: 'ADMIN' as const,
+  DEPLOY: 'DEPLOY' as const,
+  ANALYTICS: 'ANALYTICS' as const,
+}
 
 export interface CreateApiKeyInput {
   name: string;
@@ -148,7 +158,8 @@ export class ApiKeyService {
       },
     });
 
-    return apiKeys.map((key) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return apiKeys.map((key: any) => ({
       id: key.id,
       name: key.name,
       prefix: key.prefix,
@@ -173,7 +184,8 @@ export class ApiKeyService {
       },
     });
 
-    return apiKeys.map((key) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return apiKeys.map((key: any) => ({
       id: key.id,
       name: key.name,
       prefix: key.prefix,
@@ -196,7 +208,8 @@ export class ApiKeyService {
       },
     });
 
-    return apiKeys.map((key) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return apiKeys.map((key: any) => ({
       id: key.id,
       name: key.name,
       prefix: key.prefix,

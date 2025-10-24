@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { InvitationService } from '@/lib/invitation-service';
-import { ProjectRole } from '@prisma/client';
+
+// Define ProjectRole type
+type ProjectRole = 'OWNER' | 'EDITOR' | 'VIEWER'
+
+const ProjectRole = {
+  OWNER: 'OWNER' as const,
+  EDITOR: 'EDITOR' as const,
+  VIEWER: 'VIEWER' as const,
+}
 
 /**
  * GET /api/invitations - Get user's pending invitations

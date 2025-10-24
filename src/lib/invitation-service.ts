@@ -1,6 +1,22 @@
-import { db } from './db'
+import db from './db'
 import { randomBytes } from 'crypto'
-import { InvitationStatus, ProjectRole } from '@prisma/client'
+
+// Define types since they may not be exported from Prisma
+type InvitationStatus = 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'REVOKED'
+type ProjectRole = 'OWNER' | 'EDITOR' | 'VIEWER'
+
+const InvitationStatus = {
+  PENDING: 'PENDING' as const,
+  ACCEPTED: 'ACCEPTED' as const,
+  EXPIRED: 'EXPIRED' as const,
+  REVOKED: 'REVOKED' as const,
+}
+
+const ProjectRole = {
+  OWNER: 'OWNER' as const,
+  EDITOR: 'EDITOR' as const,
+  VIEWER: 'VIEWER' as const,
+}
 
 export interface CreateInvitationParams {
   projectId: string

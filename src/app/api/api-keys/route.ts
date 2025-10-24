@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ApiKeyService } from '@/lib/api-key-service';
-import { ApiKeyScope } from '@prisma/client';
+import { ApiKeyService, ApiKeyScope } from '@/lib/api-key-service';
 import { AuditLogService, auditActions, entityTypes } from '@/lib/audit-log-service';
 
 /**

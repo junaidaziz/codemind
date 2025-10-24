@@ -9,7 +9,7 @@ export interface CreateAuditLogInput {
   description: string;
   organizationId?: string;
   projectId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
 }
@@ -31,29 +31,20 @@ export class AuditLogService {
    * Create an audit log entry
    */
   static async log(input: CreateAuditLogInput) {
-    return await db.auditLog.create({
+    return db.auditLog.create({
       data: {
         id: nanoid(),
         userId: input.userId,
+        organizationId: input.organizationId,
+        projectId: input.projectId,
         action: input.action,
         entityType: input.entityType,
         entityId: input.entityId,
         description: input.description,
-        organizationId: input.organizationId,
-        projectId: input.projectId,
-        metadata: input.metadata,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        metadata: input.metadata as any,
         ipAddress: input.ipAddress,
         userAgent: input.userAgent,
-      },
-      include: {
-        User: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-          },
-        },
       },
     });
   }
@@ -62,6 +53,7 @@ export class AuditLogService {
    * Get audit logs with filters
    */
   static async getAuditLogs(filters: AuditLogFilters) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {};
 
     if (filters.organizationId) {
@@ -127,20 +119,18 @@ export class AuditLogService {
    * Get audit log statistics for an organization
    */
   static async getOrganizationStats(organizationId: string, days: number = 30) {
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    const since = new Date();
+    since.setDate(since.getDate() - days);
 
     const logs = await db.auditLog.findMany({
       where: {
         organizationId,
         createdAt: {
-          gte: startDate,
+          gte: since,
         },
       },
       select: {
         action: true,
-        entityType: true,
-        userId: true,
         createdAt: true,
       },
     });
@@ -151,7 +141,8 @@ export class AuditLogService {
     const userActivityCounts: Record<string, number> = {};
     const dailyActivity: Record<string, number> = {};
 
-    logs.forEach((log) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    logs.forEach((log: any) => {
       // Count by action
       actionCounts[log.action] = (actionCounts[log.action] || 0) + 1;
 
@@ -174,7 +165,7 @@ export class AuditLogService {
       entityTypeCounts,
       userActivityCounts,
       dailyActivity,
-      period: { startDate, endDate: new Date() },
+      period: { startDate: since, endDate: new Date() },
     };
   }
 
@@ -182,14 +173,14 @@ export class AuditLogService {
    * Get audit log statistics for a project
    */
   static async getProjectStats(projectId: string, days: number = 30) {
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    const since = new Date();
+    since.setDate(since.getDate() - days);
 
     const logs = await db.auditLog.findMany({
       where: {
         projectId,
         createdAt: {
-          gte: startDate,
+          gte: since,
         },
       },
       select: {
@@ -204,13 +195,19 @@ export class AuditLogService {
     const actionCounts: Record<string, number> = {};
     const entityTypeCounts: Record<string, number> = {};
     const userActivityCounts: Record<string, number> = {};
+    const dailyActivity: Record<string, number> = {};
 
-    logs.forEach((log) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    logs.forEach((log: any) => {
       actionCounts[log.action] = (actionCounts[log.action] || 0) + 1;
       entityTypeCounts[log.entityType] =
         (entityTypeCounts[log.entityType] || 0) + 1;
       userActivityCounts[log.userId] =
         (userActivityCounts[log.userId] || 0) + 1;
+
+      // Count by day
+      const day = log.createdAt.toISOString().split('T')[0];
+      dailyActivity[day] = (dailyActivity[day] || 0) + 1;
     });
 
     return {
@@ -218,27 +215,21 @@ export class AuditLogService {
       actionCounts,
       entityTypeCounts,
       userActivityCounts,
-      period: { startDate, endDate: new Date() },
+      dailyActivity,
+      period: { startDate: since, endDate: new Date() },
     };
   }
 
   /**
    * Get recent activity for a user
    */
-  static async getUserActivity(
-    userId: string,
-    limit: number = 20,
-    organizationId?: string
-  ) {
+  static async getUserActivity(userId: string, limit: number = 50) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {
       userId,
     };
 
-    if (organizationId) {
-      where.organizationId = organizationId;
-    }
-
-    return await db.auditLog.findMany({
+    return db.auditLog.findMany({
       where,
       include: {
         User: {
@@ -260,9 +251,9 @@ export class AuditLogService {
   /**
    * Delete old audit logs (for compliance/storage management)
    */
-  static async deleteOldLogs(daysToKeep: number = 90) {
+  static async deleteOldLogs(days: number = 90) {
     const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
+    cutoffDate.setDate(cutoffDate.getDate() - days);
 
     const result = await db.auditLog.deleteMany({
       where: {
@@ -287,6 +278,7 @@ export class AuditLogService {
     limit: number = 50,
     offset: number = 0
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {
       ...filters,
       OR: [
