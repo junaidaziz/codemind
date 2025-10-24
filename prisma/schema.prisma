@@ -496,7 +496,7 @@ model Organization {
   maxProjects        Int                  @default(5)
   maxMembers         Int                  @default(10)
   createdAt          DateTime             @default(now())
-  updatedAt          DateTime
+  updatedAt          DateTime             @updatedAt
   ownerId            String
   User               User                 @relation(fields: [ownerId], references: [id])
   OrganizationInvite OrganizationInvite[]
@@ -756,6 +756,11 @@ model User {
   ToolExecution                                         ToolExecution[]
   Workspace                                             Workspace[]
   AIModelUsage                                          AIModelUsage[]
+  AuditLog                                              AuditLog[]
+  ApiKey                                                ApiKey[]
+  ProjectInvitation                                     ProjectInvitation[]
+  ProjectMember_userId                                  ProjectMember[]      @relation("ProjectMember_userId")
+  ProjectMember_addedBy                                 ProjectMember[]      @relation("ProjectMember_addedBy")
 }
 
 model Workspace {
@@ -773,6 +778,84 @@ model Workspace {
   @@index([userId])
   @@index([organizationId])
   @@index([createdAt])
+}
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  organizationId String?
+  projectId      String?
+  userId         String
+  action         String // "create", "update", "delete", "access", "invite", etc.
+  entityType     String // "project", "organization", "member", "api_key", etc.
+  entityId       String?
+  description    String
+  metadata       Json? // Additional context (IP, user agent, changes made, etc.)
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime @default(now())
+  User           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([action, createdAt(sort: Desc)])
+  @@index([entityType, entityId])
+}
+
+model ApiKey {
+  id             String        @id @default(cuid())
+  name           String
+  key            String        @unique // Hashed API key
+  prefix         String // First 8 chars for display (e.g., "cm_12345...")
+  userId         String
+  organizationId String?
+  projectId      String?
+  scopes         ApiKeyScope[] @default([READ])
+  expiresAt      DateTime?
+  lastUsedAt     DateTime?
+  createdAt      DateTime      @default(now())
+  revokedAt      DateTime?
+  User           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([key])
+  @@index([prefix])
+}
+
+model ProjectInvitation {
+  id         String           @id @default(cuid())
+  projectId  String
+  email      String
+  role       ProjectRole      @default(VIEWER)
+  token      String           @unique
+  expiresAt  DateTime
+  status     InvitationStatus @default(PENDING)
+  createdAt  DateTime         @default(now())
+  acceptedAt DateTime?
+  invitedBy  String
+  User       User             @relation(fields: [invitedBy], references: [id])
+
+  @@index([email])
+  @@index([projectId])
+  @@index([token])
+  @@index([status])
+}
+
+model ProjectMember {
+  id        String      @id @default(cuid())
+  projectId String
+  userId    String
+  role      ProjectRole @default(VIEWER)
+  addedAt   DateTime    @default(now())
+  addedBy   String?
+  User      User        @relation("ProjectMember_userId", fields: [userId], references: [id], onDelete: Cascade)
+  AddedBy   User?       @relation("ProjectMember_addedBy", fields: [addedBy], references: [id])
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
 }
 
 enum ActivityEventStatus {
@@ -881,4 +964,25 @@ enum PullRequestState {
   OPEN
   CLOSED
   MERGED
+}
+
+enum ApiKeyScope {
+  READ
+  WRITE
+  ADMIN
+  DEPLOY
+  ANALYTICS
+}
+
+enum ProjectRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
 }
