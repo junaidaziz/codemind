@@ -381,75 +381,6 @@ export class OrganizationService {
   }
 
   /**
-   * Update member role
-   */
-  static async updateMemberRole(input: UpdateMemberRoleInput) {
-    // Cannot change owner role
-    const member = await db.organizationMember.findUnique({
-      where: {
-        organizationId_userId: {
-          organizationId: input.organizationId,
-          userId: input.userId,
-        },
-      },
-    });
-
-    if (member?.role === OrganizationRole.OWNER) {
-      throw new Error('Cannot change owner role');
-    }
-
-    return await db.organizationMember.update({
-      where: {
-        organizationId_userId: {
-          organizationId: input.organizationId,
-          userId: input.userId,
-        },
-      },
-      data: {
-        role: input.role,
-      },
-      include: {
-        User_OrganizationMember_userIdToUser: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-          },
-        },
-      },
-    });
-  }
-
-  /**
-   * Remove member from organization
-   */
-  static async removeMember(organizationId: string, userId: string) {
-    // Cannot remove owner
-    const member = await db.organizationMember.findUnique({
-      where: {
-        organizationId_userId: {
-          organizationId,
-          userId,
-        },
-      },
-    });
-
-    if (member?.role === OrganizationRole.OWNER) {
-      throw new Error('Cannot remove organization owner');
-    }
-
-    return await db.organizationMember.delete({
-      where: {
-        organizationId_userId: {
-          organizationId,
-          userId,
-        },
-      },
-    });
-  }
-
-  /**
    * Get member role in organization
    */
   static async getMemberRole(
@@ -560,5 +491,133 @@ export class OrganizationService {
     });
 
     return await this.getOrganization(organizationId);
+  }
+
+  /**
+   * Get all members of an organization
+   */
+  static async getOrganizationMembers(organizationId: string) {
+    return db.organizationMember.findMany({
+      where: {
+        organizationId,
+      },
+      include: {
+        User_OrganizationMember_userIdToUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
+      },
+      orderBy: [
+        { role: 'asc' }, // OWNER first, then ADMIN, etc.
+        { joinedAt: 'asc' },
+      ],
+    });
+  }
+
+  /**
+   * Get a specific organization member
+   */
+  static async getOrganizationMember(organizationId: string, userId: string) {
+    return db.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId,
+          userId,
+        },
+      },
+      include: {
+        User_OrganizationMember_userIdToUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
+      },
+    });
+  }
+
+  /**
+   * Check if user is a member of an organization
+   */
+  static async isOrganizationMember(
+    organizationId: string,
+    userId: string
+  ): Promise<boolean> {
+    const member = await db.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId,
+          userId,
+        },
+      },
+    });
+
+    return !!member;
+  }
+
+  /**
+   * Update organization member role
+   */
+  static async updateMemberRole(
+    organizationId: string,
+    memberId: string,
+    newRole: OrganizationRole,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _updatedBy: string
+  ) {
+    // Get the member to update
+    const member = await db.organizationMember.findUnique({
+      where: { id: memberId },
+    });
+
+    if (!member) {
+      throw new Error('Member not found');
+    }
+
+    // Cannot change owner role through this method
+    if (member.role === OrganizationRole.OWNER) {
+      throw new Error('Cannot change owner role. Use transferOwnership instead.');
+    }
+
+    // Update the role
+    return db.organizationMember.update({
+      where: { id: memberId },
+      data: { role: newRole },
+    });
+  }
+
+  /**
+   * Remove a member from an organization
+   */
+  static async removeMember(
+    organizationId: string,
+    memberId: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _removedBy: string
+  ) {
+    // Get the member to remove
+    const member = await db.organizationMember.findUnique({
+      where: { id: memberId },
+    });
+
+    if (!member) {
+      throw new Error('Member not found');
+    }
+
+    // Cannot remove owner
+    if (member.role === OrganizationRole.OWNER) {
+      throw new Error('Cannot remove organization owner');
+    }
+
+    // Delete the member
+    return db.organizationMember.delete({
+      where: { id: memberId },
+    });
   }
 }
