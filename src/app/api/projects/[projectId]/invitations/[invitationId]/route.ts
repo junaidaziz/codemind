@@ -4,13 +4,14 @@ import { InvitationService } from '@/lib/invitation-service'
 // Revoke an invitation
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { projectId: string; invitationId: string } }
+  { params }: { params: Promise<{ projectId: string; invitationId: string }> }
 ) {
   try {
     // TODO: Replace with actual authentication
     const userId = 'placeholder-user-id'
+    const { invitationId } = await params
 
-    await InvitationService.revokeInvitation(params.invitationId, userId)
+    await InvitationService.revokeInvitation(invitationId, userId)
 
     return NextResponse.json({ message: 'Invitation revoked successfully' })
   } catch (error) {
@@ -25,14 +26,15 @@ export async function DELETE(
 // Resend an invitation
 export async function POST(
   request: NextRequest,
-  { params }: { params: { projectId: string; invitationId: string } }
+  { params }: { params: Promise<{ projectId: string; invitationId: string }> }
 ) {
   try {
     const body = await request.json()
     const expiresInDays = body.expiresInDays || 7
+    const { invitationId } = await params
 
     const invitation = await InvitationService.resendInvitation(
-      params.invitationId,
+      invitationId,
       expiresInDays
     )
 

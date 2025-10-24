@@ -8,7 +8,7 @@ import { AuditLogService, auditActions, entityTypes } from '@/lib/audit-log-serv
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // TODO: Get user ID from authentication
@@ -21,7 +21,7 @@ export async function GET(
       );
     }
 
-    const { id: keyId } = params;
+    const { id: keyId } = await params;
 
     const stats = await ApiKeyService.getApiKeyStats(keyId);
 
@@ -51,7 +51,7 @@ export async function GET(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // TODO: Get user ID from authentication
@@ -64,7 +64,7 @@ export async function DELETE(
       );
     }
 
-    const { id: keyId } = params;
+    const { id: keyId } = await params;
     const permanent = request.nextUrl.searchParams.get('permanent') === 'true';
 
     if (permanent) {

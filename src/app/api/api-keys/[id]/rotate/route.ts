@@ -8,7 +8,7 @@ import { AuditLogService, auditActions, entityTypes } from '@/lib/audit-log-serv
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // TODO: Get user ID from authentication
@@ -21,7 +21,7 @@ export async function POST(
       );
     }
 
-    const { id: oldKeyId } = params;
+    const { id: oldKeyId } = await params;
 
     const result = await ApiKeyService.rotateApiKey(oldKeyId, userId);
 

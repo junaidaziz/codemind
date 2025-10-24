@@ -9,7 +9,7 @@ import { AuditLogService } from '@/lib/audit-log-service';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { projectId: string } }
+  { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
     // TODO: Get user ID from authentication
@@ -22,7 +22,7 @@ export async function GET(
       );
     }
 
-    const { projectId } = params;
+    const { projectId } = await params;
     const days = parseInt(request.nextUrl.searchParams.get('days') || '30');
 
     const stats = await AuditLogService.getProjectStats(projectId, days);

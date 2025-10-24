@@ -6,10 +6,10 @@ import { InvitationService } from '@/lib/invitation-service';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
-    const { token } = params;
+    const { token } = await params;
 
     const invitation = await InvitationService.getInvitationByToken(token);
 
@@ -27,10 +27,10 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
-    const { token } = params;
+    const { token } = await params;
     
     // TODO: Get actual authenticated user ID
     // For now using placeholder

@@ -13,7 +13,7 @@ const ProjectRole = {
 // Create a new invitation
 export async function POST(
   request: NextRequest,
-  { params }: { params: { projectId: string } }
+  { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
     const body = await request.json()
@@ -36,9 +36,10 @@ export async function POST(
 
     // TODO: Replace with actual authentication
     const userId = 'placeholder-user-id'
+    const { projectId } = await params
 
     const invitation = await InvitationService.createInvitation({
-      projectId: params.projectId,
+      projectId,
       email,
       role,
       invitedBy: userId,
@@ -72,10 +73,11 @@ export async function POST(
 // Get all invitations for a project
 export async function GET(
   request: NextRequest,
-  { params }: { params: { projectId: string } }
+  { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
-    const invitations = await InvitationService.getProjectInvitations(params.projectId)
+    const { projectId } = await params
+    const invitations = await InvitationService.getProjectInvitations(projectId)
 
     return NextResponse.json(invitations)
   } catch (error) {

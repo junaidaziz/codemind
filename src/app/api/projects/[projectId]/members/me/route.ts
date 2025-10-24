@@ -7,11 +7,11 @@ import { getCurrentUser, getUserProjectRole } from '@/lib/auth-guards'
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { projectId: string } }
+  { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
     const user = await getCurrentUser()
-    const { projectId } = params
+    const { projectId } = await params
 
     if (!projectId) {
       return Response.json(
