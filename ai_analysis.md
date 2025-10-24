@@ -1,3 +1,22 @@
+# 🔍 Vercel Build Failure Analysis
+
+**Generated on:** 2025-10-24 05:41:22 UTC
+**Deployment ID:** 
+**Repository:** junaidaziz/codemind
+**Branch:** main
+**Commit:** 293fa81d5ff9497e0cef98d0f642b6be5266efb2
+
+## ❌ Build Failure Summary
+Build failed due to TypeScript compilation errors.
+
+## 🔍 Root Cause Analysis
+Unknown cause
+
+## 🛠️ Suggested Fix
+See analysis for details
+
+## 📊 Full Analysis
+```json
 {
   "deployment": {
     "uid": "dpl_HgdTXt7drpeugRYijfiBqLfueacF",
@@ -58,3 +77,7 @@
   },
   "timestamp": "2025-10-24T05:41:22.637Z"
 }
+```
+
+---
+*This analysis was generated automatically by our AI-powered build failure analyzer.*
