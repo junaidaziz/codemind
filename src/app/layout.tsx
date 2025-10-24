@@ -6,6 +6,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { AppHeader } from "./components/AppHeader";
 import { ErrorBoundary } from "../components/ui";
 import { ToastProvider } from "../components/ui/toast";
+import { SessionProvider } from "../components/auth/SessionProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,10 +35,12 @@ export default function RootLayout({
       >
         <ErrorBoundary>
           <ToastProvider>
-            <AuthProvider>
-              <AppHeader />
-              {children}
-            </AuthProvider>
+            <SessionProvider>
+              <AuthProvider>
+                <AppHeader />
+                {children}
+              </AuthProvider>
+            </SessionProvider>
           </ToastProvider>
         </ErrorBoundary>
       </body>
