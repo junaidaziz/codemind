@@ -51,12 +51,20 @@ export interface RiskScore {
   summary: string;
 }
 
+export type RiskFactorType = 
+  | 'changeSize' 
+  | 'fileCount' 
+  | 'criticalFiles' 
+  | 'complexity' 
+  | 'testCoverage';
+
 export interface RiskFactor {
-  factor: string;
+  factor: RiskFactorType;
   score: number; // 0-100
   weight: number; // 0-1
   description: string;
   impact: RiskLevel;
+  details?: Record<string, unknown>; // Additional details
 }
 
 export interface DocumentationSuggestion {
@@ -81,11 +89,13 @@ export interface PRAnalysis {
   title: string;
   description?: string;
   author: string;
-  branch: string;
-  baseBranch: string;
+  headBranch: string; // Source branch (head.ref)
+  baseBranch: string; // Target branch (base.ref)
+  headSha?: string; // Head commit SHA (optional if not provided by API)
+  url?: string; // HTML URL for the PR
   filesChanged: FileChange[];
-  totalAdditions: number;
-  totalDeletions: number;
+  totalAdditions: number; // GitHub API additions
+  totalDeletions: number; // GitHub API deletions
   commits: number;
   analyzedAt: Date;
 }
@@ -111,6 +121,9 @@ export interface ReviewSummary {
   positiveAspects: string[];
   areasOfConcern: string[];
   approvalRecommendation: 'approve' | 'request-changes' | 'comment';
+  overallScore: number; // 0-100
+  approved: boolean;
+  requiresChanges: boolean;
 }
 
 export interface ReviewSimulation {

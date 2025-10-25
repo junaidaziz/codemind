@@ -463,6 +463,12 @@ export class CodeReviewer {
       approvalRecommendation = 'comment';
     }
 
+    const severityPenalty = (critical * 25) + (high * 15) + (medium * 5) + (low * 2);
+    const riskPenalty = Math.round(riskScore.overall * 0.3);
+    const overallScore = Math.max(0, 100 - severityPenalty - riskPenalty);
+    const approved = approvalRecommendation === 'approve';
+    const requiresChanges = approvalRecommendation === 'request-changes';
+
     return {
       overallAssessment: this.generateOverallAssessment(riskScore, comments),
       keyFindings,
@@ -473,6 +479,9 @@ export class CodeReviewer {
       positiveAspects,
       areasOfConcern,
       approvalRecommendation,
+      overallScore,
+      approved,
+      requiresChanges,
     };
   }
 

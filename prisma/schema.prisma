@@ -898,6 +898,91 @@ model ProjectMember {
   @@index([userId])
 }
 
+model CodeReview {
+  id                 String                @id @default(cuid())
+  projectId          String
+  prNumber           Int
+  prTitle            String
+  prUrl              String
+  headBranch         String
+  baseBranch         String
+  authorLogin        String
+  status             CodeReviewStatus      @default(PENDING)
+  riskLevel          RiskLevel             @default(LOW)
+  riskScore          Float                 @default(0)
+  overallScore       Float                 @default(0)
+  approved           Boolean               @default(false)
+  requiresChanges    Boolean               @default(false)
+  filesAnalyzed      Int                   @default(0)
+  linesAdded         Int                   @default(0)
+  linesRemoved       Int                   @default(0)
+  summary            String?               @db.Text
+  aiSuggestions      String?               @db.Text
+  commitSha          String?
+  completedAt        DateTime?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  CodeReviewComment  CodeReviewComment[]
+  CodeReviewRisk     CodeReviewRisk[]
+  CodeReviewImpact   CodeReviewImpact[]
+
+  @@unique([projectId, prNumber])
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([status, createdAt(sort: Desc)])
+  @@index([riskLevel, createdAt(sort: Desc)])
+}
+
+model CodeReviewComment {
+  id             String             @id @default(cuid())
+  reviewId       String
+  filePath       String
+  lineNumber     Int?
+  severity       CommentSeverity    @default(INFO)
+  category       CommentCategory    @default(BEST_PRACTICES)
+  message        String             @db.Text
+  suggestion     String?            @db.Text
+  codeSnippet    String?            @db.Text
+  aiGenerated    Boolean            @default(false)
+  postedToGitHub Boolean            @default(false)
+  githubCommentId Int?
+  createdAt      DateTime           @default(now())
+  CodeReview     CodeReview         @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+  @@index([severity, category])
+  @@index([filePath])
+}
+
+model CodeReviewRisk {
+  id          String     @id @default(cuid())
+  reviewId    String
+  factor      RiskFactor
+  score       Float
+  weight      Float
+  description String     @db.Text
+  details     Json?
+  createdAt   DateTime   @default(now())
+  CodeReview  CodeReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+  @@index([factor, score])
+}
+
+model CodeReviewImpact {
+  id              String     @id @default(cuid())
+  reviewId        String
+  category        String // "security", "performance", "maintainability", etc.
+  severity        String // "critical", "high", "medium", "low"
+  affectedFiles   String[]   @default([])
+  description     String     @db.Text
+  recommendations String?    @db.Text
+  createdAt       DateTime   @default(now())
+  CodeReview      CodeReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+  @@index([category, severity])
+}
+
 enum ActivityEventStatus {
   IN_PROGRESS
   COMPLETED
@@ -1025,4 +1110,44 @@ enum InvitationStatus {
   ACCEPTED
   EXPIRED
   REVOKED
+}
+
+enum CodeReviewStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum CommentSeverity {
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+}
+
+enum CommentCategory {
+  SECURITY
+  PERFORMANCE
+  BEST_PRACTICES
+  COMPLEXITY
+  DOCUMENTATION
+  TESTING
+  STYLE
+  BUG
+}
+
+enum RiskFactor {
+  CHANGE_SIZE
+  FILE_COUNT
+  CRITICAL_FILES
+  COMPLEXITY
+  TEST_COVERAGE
 }

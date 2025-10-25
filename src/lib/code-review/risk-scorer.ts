@@ -73,7 +73,7 @@ export class RiskScorer {
     }
 
     return {
-      factor: 'Change Size',
+      factor: 'changeSize',
       score,
       weight: 0.25,
       description: `${totalChanges} lines changed (${prAnalysis.totalAdditions}+ / ${prAnalysis.totalDeletions}-)`,
@@ -105,7 +105,7 @@ export class RiskScorer {
     }
 
     return {
-      factor: 'Files Modified',
+      factor: 'fileCount',
       score,
       weight: 0.15,
       description: `${fileCount} files modified`,
@@ -158,7 +158,7 @@ export class RiskScorer {
       : 'No critical files modified';
 
     return {
-      factor: 'Critical Files',
+      factor: 'criticalFiles',
       score,
       weight: 0.35,
       description,
@@ -202,7 +202,7 @@ export class RiskScorer {
     const impact = this.scoreToImpact(score);
 
     return {
-      factor: 'Complexity',
+      factor: 'complexity',
       score,
       weight: 0.15,
       description: this.generateComplexityDescription(prAnalysis),
@@ -256,7 +256,7 @@ export class RiskScorer {
       : `Test ratio: ${Math.round((testChanges / codeChanges) * 100)}%`;
 
     return {
-      factor: 'Test Coverage',
+      factor: 'testCoverage',
       score,
       weight: 0.10,
       description,
@@ -288,19 +288,20 @@ export class RiskScorer {
    * Generate risk summary
    */
   private generateRiskSummary(factors: RiskFactor[]): string {
+    const labelMap: Record<string, string> = {
+      changeSize: 'Change Size',
+      fileCount: 'File Count',
+      criticalFiles: 'Critical Files',
+      complexity: 'Complexity',
+      testCoverage: 'Test Coverage',
+    };
     const highRiskFactors = factors
       .filter(f => f.impact === 'high' || f.impact === 'critical')
-      .map(f => f.factor);
+      .map(f => labelMap[f.factor] || f.factor);
 
-    if (highRiskFactors.length === 0) {
-      return 'Low-risk changes with good test coverage';
-    }
-
-    if (highRiskFactors.length === 1) {
-      return `Elevated risk due to: ${highRiskFactors[0]}`;
-    }
-
-    return `High-risk changes: ${highRiskFactors.join(', ')}`;
+    if (highRiskFactors.length === 0) return 'Low-risk changes overall';
+    if (highRiskFactors.length === 1) return `Elevated risk due to: ${highRiskFactors[0]}`;
+    return `High-risk factors: ${highRiskFactors.join(', ')}`;
   }
 
   /**
