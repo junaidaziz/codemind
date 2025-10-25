@@ -132,8 +132,8 @@ async function handlePRAnalysis(payload: GitHubWebhookPayload) {
       reviewResult
     );
 
-    // Post review summary as comment on GitHub
-    await postReviewComment(fetcher, owner, repo, pull_request.number, reviewResult);
+  // Post review summary as comment on GitHub (if token available)
+  await postReviewComment(fetcher, owner, repo, pull_request.number, reviewResult);
 
     console.log(
       `[Webhook] Analysis complete for PR #${pull_request.number}. Risk: ${reviewResult.riskScore.level}`
@@ -198,11 +198,12 @@ async function postReviewComment(
     commentBody += `⏱️ **Estimated Review Time:** ${reviewResult.estimatedReviewTime} minutes\n\n`;
   commentBody += `---\n*This review was generated automatically by AI. Please review all suggestions carefully.*`;
 
-  // Post comment to GitHub (Note: postComment method needs to be implemented in GitHubFetcher)
-  // await fetcher.postComment(owner, repo, prNumber, commentBody);
-  console.log(`[Webhook] Review comment ready for PR #${prNumber}`);
-  // Log body to avoid unused variable lint error
-  console.log(commentBody);
+    const posted = await fetcher.postComment(owner, repo, prNumber, commentBody);
+    if (posted) {
+      console.log(`[Webhook] Posted review summary comment id=${posted.id} url=${posted.url}`);
+    } else {
+      console.log(`[Webhook] Skipped posting comment (no token or error)`);
+    }
   } catch (error) {
     console.error(`[Webhook] Error posting review comment:`, error);
     // Don't throw - posting comment failure shouldn't fail the webhook

@@ -198,4 +198,34 @@ export class GitHubFetcher {
       return false;
     }
   }
+
+  /**
+   * Post a comment to a PR (issues comments API)
+   */
+  async postComment(
+    owner: string,
+    repo: string,
+    prNumber: number,
+    body: string
+  ): Promise<{ id: number; url: string } | null> {
+    if (!this.token) {
+      console.warn('[GitHubFetcher] Missing token, skipping comment post');
+      return null;
+    }
+    const url = `https://api.github.com/repos/${owner}/${repo}/issues/${prNumber}/comments`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        ...this.getHeaders(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ body }),
+    });
+    if (!response.ok) {
+      console.error('[GitHubFetcher] Failed to post comment', response.status, response.statusText);
+      return null;
+    }
+    const data = await response.json();
+    return { id: data.id, url: data.html_url };
+  }
 }
