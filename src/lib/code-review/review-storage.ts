@@ -85,10 +85,20 @@ export class ReviewStorage {
               : undefined,
           })),
         },
+        CodeReviewImpact: {
+          create: this.generateImpacts(result).map((impact) => ({
+            category: impact.category,
+            severity: impact.severity,
+            affectedFiles: impact.affectedFiles,
+            description: impact.description,
+            recommendations: impact.recommendations,
+          })),
+        },
       },
       include: {
         CodeReviewComment: true,
         CodeReviewRisk: true,
+        CodeReviewImpact: true,
       },
     });
   }
@@ -141,10 +151,20 @@ export class ReviewStorage {
               : undefined,
           })),
         },
+        CodeReviewImpact: {
+          create: this.generateImpacts(result).map((impact) => ({
+            category: impact.category,
+            severity: impact.severity,
+            affectedFiles: impact.affectedFiles,
+            description: impact.description,
+            recommendations: impact.recommendations,
+          })),
+        },
       },
       include: {
         CodeReviewComment: true,
         CodeReviewRisk: true,
+        CodeReviewImpact: true,
       },
     });
   }
@@ -333,6 +353,68 @@ export class ReviewStorage {
       testCoverage: 'TEST_COVERAGE',
     };
     return mapping[factor];
+  }
+
+  /**
+   * Generate impact records from high/critical comments grouped by category
+   */
+  private generateImpacts(result: CodeReviewResult) {
+    const impactfulSeverities = new Set(['high', 'critical']);
+    const grouped: Record<string, { files: Set<string>; severities: Set<string>; comments: string[] }>= {};
+
+    for (const c of result.comments) {
+      if (!impactfulSeverities.has(c.severity)) continue;
+      const category = c.category;
+      if (!grouped[category]) {
+        grouped[category] = { files: new Set(), severities: new Set(), comments: [] };
+      }
+      grouped[category].files.add(c.file);
+      grouped[category].severities.add(c.severity);
+      grouped[category].comments.push(c.message);
+    }
+
+    const severityRank: Record<string, number> = {
+      critical: 4,
+      high: 3,
+      medium: 2,
+      low: 1,
+      info: 0,
+    };
+
+    return Object.entries(grouped).map(([category, data]) => {
+      // Determine highest severity present
+      let highest = 'high';
+      for (const s of data.severities) {
+        if (severityRank[s] > severityRank[highest]) highest = s;
+      }
+      const description = `${data.comments.length} significant ${category} issue(s) detected.`;
+      // Simple recommendations heuristic
+      const recommendations = this.generateRecommendationsForCategory(category, highest);
+      return {
+        category,
+        severity: highest.toUpperCase(),
+        affectedFiles: Array.from(data.files),
+        description,
+        recommendations,
+      };
+    });
+  }
+
+  private generateRecommendationsForCategory(category: string, severity: string) {
+    switch (category) {
+      case 'security':
+        return 'Review authentication, validate inputs, and add missing security tests.';
+      case 'performance':
+        return 'Optimize hotspots; consider profiling and adding performance benchmarks.';
+      case 'complexity':
+        return 'Refactor large functions; add unit tests before restructuring.';
+      case 'documentation':
+        return 'Add or update README/module docs for changed critical logic.';
+      case 'testing':
+        return 'Increase coverage for modified critical paths and edge cases.';
+      default:
+        return `Address ${category} issues with priority: ${severity}.`;
+    }
   }
 }
 
