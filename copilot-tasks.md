@@ -5,101 +5,37 @@
 
 ---
 
-## ✅ COMPLETED
+## 🎯 ACTIVE ROADMAP (Completed items removed)
 
-### **Feature #7: Authentication & Teams** (COMPLETE)
+### **Current Focus: Feature #11 – Code Review Automation**
+Priority: ⭐⭐⭐ CORE DIFFERENTIATOR | Effort (remaining): ~3 weeks
 
-**Delivered:** 7,490 LOC across 25 files
+Delivered Foundation:
+- Types, reviewer engine, risk scorer, storage layer, analyze API, GitHub PR webhook
 
-**Completed Tasks:**
-- ✅ **Task 1-9:** SSO Integration, Invite System, Role Management, Permission Middleware
-- ✅ **Task 10:** Team Dashboard
-  - Member directory with role management (add/remove members, update roles)
-  - Activity feed showing recent team actions (audit logs)
-  - Organization settings panel (name, description, slug management)
-  - 4 API endpoints: GET/PATCH org, GET/PATCH members, GET activity
-  - dropdown-menu UI component
+Remaining High-Impact Tasks:
+1. Persist review impact records (`CodeReviewImpact`) derived from critical/high findings
+2. Implement GitHub comment posting for summary + inline critical issues
+3. Add review simulation (affected components + dependency surface)
+4. Integrate documentation/testing suggestions persistence & display
+5. Add integration tests for analyze endpoint + webhook workflow
+6. Build minimal UI: PR review list + detail view (risk + comments)
+7. Add incremental re-analysis (only changed files) optimization
+8. Implement caching & rate limiting for GitHub API calls
 
----
+Secondary Enhancements:
+- Parallel file analysis worker pool
+- Configurable rule set (user overrides risk weights)
+- Slack/Discord notification hook for completed reviews
 
-## 🎯 CURRENT FOCUS
+### **Next Up: Feature #10 – CI/CD & DevOps Integration**
+Early Scope (defer until Feature #11 core shipped):
+- GitHub Actions integration: pre-merge AI check job
+- Deployment event ingestion (Vercel) → summarize build & risk
+- Post-deploy health scan & rollback suggestion draft
 
-### **Feature #11: Code Review Automation** 
-
-**Priority:** ⭐⭐⭐ CORE DIFFERENTIATOR | **Effort:** 4-5 weeks (~1,900 LOC)
-
-**Why:** This is the killer feature that sets CodeMind apart from generic AI tools.
-
-**Tasks:**
-- [ ] AI-generated **PR review comments** for complexity and security
-- [ ] Assign **risk scores** per PR ("High – modifies auth middleware")
-- [ ] Recommend **documentation or tests** if missing
-- [ ] Integrate **review summary bot** to summarize discussions
-- [ ] Allow **review simulation** to estimate code impact
-
----
-
-## 🚀 HIGH PRIORITY (Next 4-6 Weeks)
-
-### **Feature #11: Code Review Automation** 
-
-**Priority:** ⭐⭐⭐ CORE DIFFERENTIATOR | **Effort:** 4-5 weeks (~1,900 LOC)
-
-**Why:** This is the killer feature that sets CodeMind apart from generic AI tools.
-
-**Tasks:**
-- [ ] AI-generated **PR review comments** for complexity and security
-- [ ] Assign **risk scores** per PR ("High – modifies auth middleware")
-- [ ] Recommend **documentation or tests** if missing
-- [ ] Integrate **review summary bot** to summarize discussions
-- [ ] Allow **review simulation** to estimate code impact
-
----
-
-### **Feature #10: CI/CD & DevOps Integration**
-
-**Priority:** ⭐⭐⭐ COMPLETE THE WORKFLOW | **Effort:** 5-6 weeks (~2,200 LOC)
-
-**Why:** Natural extension of code review - completes dev-to-deploy loop.
-
-**Tasks:**
-- [ ] Integrate with **GitHub Actions and Vercel** (focus on these first)
-- [ ] Add **AI-powered CI pre-reviews** before merge
-- [ ] Post **deployment summaries** automatically
-- [ ] Detect **post-deploy errors** and suggest rollbacks
-- [ ] Track deployment history with change summaries
-
----
-
-## � FUTURE PRIORITIES (3+ Months)
-
-### **Feature #9: VS Code Extension**
-
-**Priority:** ⭐⭐ USER REQUESTED | **Effort:** 4-5 weeks (~1,800 LOC)
-
-**When:** Only build after 100+ users request it.
-
-**Tasks:**
-- [ ] Connect local workspace to CodeMind chat and actions
-- [ ] Commands: "Explain selection", "Fix highlighted code", "Generate test", "Open in Web"
-- [ ] Sync local → remote PR creation automatically
-- [ ] Show AI results inline in editor
-
----
-
-### **Feature #15: Performance & Cost Optimization**
-
-**Priority:** ⭐⭐ WHEN NEEDED | **Effort:** 3-4 weeks (~1,200 LOC)
-
-**When:** Build based on real usage data and performance metrics.
-
-**Tasks:**
-- [ ] Cache embeddings with **Redis or Supabase Edge Cache**
-- [ ] Optimize **BullMQ concurrency and job priority**
-- [ ] Lazy-load large vectors for big repositories
-- [ ] Add **usage-based billing / monitoring dashboard**
-- [ ] Implement **async rate limiting** for chat and jobs
-
----
+### **Future (Watchlist)**
+Feature #9: VS Code Extension (trigger only after demand threshold)
+Feature #15: Performance & Cost Optimization (activate post real usage metrics)
 
 **Built with ❤️ by Junaid Aziz**
