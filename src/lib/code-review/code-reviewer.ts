@@ -45,8 +45,15 @@ export class CodeReviewer {
       this.analyzeTestCoverage(prAnalysis),
     ]);
 
-  const simulation = this.generateSimulation(prAnalysis, comments);
-  const summary = this.generateSummary(comments, riskScore, prAnalysis, simulation);
+    const simulation = this.generateSimulation(prAnalysis, comments);
+    const summary = this.generateSummary(
+      comments,
+      riskScore,
+      prAnalysis,
+      simulation,
+      docSuggestions,
+      testSuggestions
+    );
     const recommendations = this.generateRecommendations(
       comments,
       riskScore,
@@ -435,7 +442,9 @@ export class CodeReviewer {
     comments: ReviewComment[],
     riskScore: RiskScore,
     prAnalysis: PRAnalysis,
-    simulation: ReviewSummary['simulation']
+    simulation: ReviewSummary['simulation'],
+    documentationSuggestions: DocumentationSuggestion[],
+    testingSuggestions: TestingSuggestion[]
   ): ReviewSummary {
     const critical = comments.filter(c => c.severity === 'critical').length;
     const high = comments.filter(c => c.severity === 'high').length;
@@ -486,6 +495,8 @@ export class CodeReviewer {
       approved,
       requiresChanges,
       simulation,
+      documentationSuggestions,
+      testingSuggestions,
     };
   }
 

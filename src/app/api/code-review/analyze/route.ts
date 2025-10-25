@@ -60,6 +60,8 @@ export async function POST(request: NextRequest) {
         highPriorityIssues: reviewResult.summary.highPriorityIssues,
         recommendations: reviewResult.recommendations,
         estimatedReviewTime: reviewResult.estimatedReviewTime,
+        documentationSuggestions: reviewResult.documentationSuggestions,
+        testingSuggestions: reviewResult.testingSuggestions,
       },
     });
   } catch (error) {

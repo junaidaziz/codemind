@@ -126,6 +126,8 @@ export interface ReviewSummary {
   approved: boolean;
   requiresChanges: boolean;
   simulation?: ReviewSimulation; // Embedded to persist with summary JSON
+  documentationSuggestions?: DocumentationSuggestion[];
+  testingSuggestions?: TestingSuggestion[];
 }
 
 export interface ReviewSimulation {
