@@ -1,95 +1,20 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
+import { useTheme } from "next-themes";
 
 // Simple theme toggle using Tailwind's class strategy.
 // Persists preference in localStorage under 'theme'.
 export default function ThemeToggle() {
+  const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [isDark, setIsDark] = useState(false);
+  const isDark = resolvedTheme === 'dark';
 
-  useEffect(() => {
-    const root = document.documentElement;
-    const body = document.body;
-    const stored = localStorage.getItem('theme');
-    if (stored === 'dark') {
-      root.classList.add('dark');
-      body.classList.add('dark');
-      root.dataset.theme = 'dark';
-      setIsDark(true);
-    } else if (stored === 'light') {
-      root.classList.remove('dark');
-      body.classList.remove('dark');
-      root.dataset.theme = 'light';
-      setIsDark(false);
-    } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (prefersDark) {
-        root.classList.add('dark');
-        body.classList.add('dark');
-        root.dataset.theme = 'dark';
-        setIsDark(true);
-      } else {
-        root.dataset.theme = 'light';
-      }
-    }
-    // Sync with other toggle instances via custom event
-    const onThemeChange = (e: Event) => {
-      const detail = (e as CustomEvent).detail;
-      if (typeof detail?.dark === 'boolean') {
-        setIsDark(detail.dark);
-      }
-    };
-    window.addEventListener('themechange', onThemeChange);
-    // Also listen for storage changes (e.g., manual localStorage edits)
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === 'theme') {
-        const val = e.newValue;
-        if (val === 'dark') setIsDark(true);
-        else if (val === 'light') setIsDark(false);
-      }
-    };
-    window.addEventListener('storage', onStorage);
-    setMounted(true);
-    return () => {
-      window.removeEventListener('themechange', onThemeChange);
-      window.removeEventListener('storage', onStorage);
-    };
-  }, []);
-
-  const applyTheme = useCallback((dark: boolean) => {
-    const root = document.documentElement;
-    const body = document.body;
-    if (dark) {
-      root.classList.add('dark');
-      body.classList.add('dark');
-      root.dataset.theme = 'dark';
-    } else {
-      root.classList.remove('dark');
-      body.classList.remove('dark');
-      root.dataset.theme = 'light';
-    }
-    try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch {}
-    window.dispatchEvent(new CustomEvent('themechange', { detail: { dark } }));
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
   const toggle = useCallback(() => {
-    const next = !isDark;
-    setIsDark(next);
-    applyTheme(next);
-    // Debug instrumentation: log theme state & presence of dark class
-    const root = document.documentElement;
-    const hasDark = root.classList.contains('dark');
-    const ds = root.dataset.theme;
-    console.log('[ThemeToggle] toggle ->', { next, hasDark, dataTheme: ds });
-    // Force reflow to ensure Tailwind dark styles repaint
-    void root.offsetHeight;
-    // Fallback: if desired dark but class missing, reapply
-    if (next && !hasDark) {
-      root.classList.add('dark');
-      document.body.classList.add('dark');
-      console.warn('[ThemeToggle] Re-applied dark class (fallback)');
-    }
-  }, [isDark, applyTheme]);
+    const next = isDark ? 'light' : 'dark';
+    setTheme(next);
+  }, [isDark, setTheme]);
 
   if (!mounted) {
     return (
