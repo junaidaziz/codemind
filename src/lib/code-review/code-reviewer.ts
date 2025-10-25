@@ -77,6 +77,50 @@ export class CodeReviewer {
   }
 
   /**
+   * Incremental analysis for synchronize events: focuses only on changed files
+   * and skips full test/documentation passes for speed.
+   */
+  async analyzeChangedFiles(prAnalysis: PRAnalysis): Promise<CodeReviewResult> {
+    const filtered: PRAnalysis = {
+      ...prAnalysis,
+      filesChanged: prAnalysis.filesChanged.filter(f => f.patch && f.status !== 'removed'),
+    };
+    const comments = await this.generateReviewComments(filtered);
+    const riskScore = await this.calculateRiskScore(filtered);
+    // Lightweight doc/test suggestions only if significant additions
+    const significant = filtered.filesChanged.some(f => f.additions > 20);
+    const docSuggestions = significant ? await this.analyzeDocumentation(filtered) : [];
+    const testSuggestions = significant ? await this.analyzeTestCoverage(filtered) : [];
+    const simulation = this.generateSimulation(filtered, comments);
+    const summary = this.generateSummary(
+      comments,
+      riskScore,
+      filtered,
+      simulation,
+      docSuggestions,
+      testSuggestions
+    );
+    const recommendations = this.generateRecommendations(
+      comments,
+      riskScore,
+      docSuggestions,
+      testSuggestions
+    );
+    const estimatedReviewTime = this.estimateReviewTime(filtered);
+    return {
+      prAnalysis: filtered,
+      riskScore,
+      comments,
+      documentationSuggestions: docSuggestions,
+      testingSuggestions: testSuggestions,
+      summary,
+      recommendations,
+      estimatedReviewTime,
+      simulation,
+    };
+  }
+
+  /**
    * Generate AI-powered review comments for code changes
    */
   private async generateReviewComments(

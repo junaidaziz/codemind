@@ -30,13 +30,15 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+  <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors">
       <Header />
       
       <main>
         {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 py-20 sm:py-32">
+        <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 py-20 sm:py-32 transition-colors">
           <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]" style={{backgroundSize: '30px 30px'}}></div>
+          {/* Dark overlay to deepen contrast */}
+          <div className="pointer-events-none absolute inset-0 hidden dark:block bg-gradient-to-br from-black/60 via-gray-900/70 to-gray-800/60" />
           
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
@@ -89,7 +91,7 @@ export default function Home() {
         </section>
 
         {/* About Us Section */}
-        <section id="about" className="py-20 bg-white dark:bg-gray-900">
+  <section id="about" className="py-20 bg-gray-50 dark:bg-gray-950 transition-colors">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-4">
@@ -164,7 +166,7 @@ export default function Home() {
         </section>
 
         {/* AI Features Section */}
-        <section id="features" className="py-20 bg-gray-50 dark:bg-gray-800">
+  <section id="features" className="py-20 bg-gray-100 dark:bg-gray-900 transition-colors">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-4">
@@ -177,7 +179,7 @@ export default function Home() {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               {/* Feature 1 */}
-              <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
+              <div className="bg-white dark:bg-gray-900/70 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
                 <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-4">
                   <Zap className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
@@ -193,7 +195,7 @@ export default function Home() {
               </div>
 
               {/* Feature 2 */}
-              <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
+              <div className="bg-white dark:bg-gray-900/70 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
                 <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-4">
                   <Code className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                 </div>
@@ -209,7 +211,7 @@ export default function Home() {
               </div>
 
               {/* Feature 3 */}
-              <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
+              <div className="bg-white dark:bg-gray-900/70 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
                 <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mb-4">
                   <GitBranch className="w-6 h-6 text-green-600 dark:text-green-400" />
                 </div>
@@ -225,7 +227,7 @@ export default function Home() {
               </div>
 
               {/* Feature 4 */}
-              <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
+              <div className="bg-white dark:bg-gray-900/70 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
                 <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center mb-4">
                   <Shield className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                 </div>
@@ -244,7 +246,7 @@ export default function Home() {
         </section>
 
         {/* Contact Us Section */}
-        <section id="contact" className="py-20 bg-white dark:bg-gray-900">
+  <section id="contact" className="py-20 bg-gray-50 dark:bg-gray-950 transition-colors">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-4">

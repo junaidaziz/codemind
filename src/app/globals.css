@@ -25,6 +25,19 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Ensure dark mode visibly applies even if custom gradients override backgrounds */
+html.dark, body.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  background-color: #0a0a0a;
+  color: #ededed;
+}
+
+/* Provide a smooth transition for theme changes */
+html, body {
+  transition: background-color 0.35s ease, color 0.35s ease;
+}
+
 /* Cursor pointer styles for interactive elements */
 button:not(:disabled),
 a,
@@ -132,3 +145,158 @@ a:focus-visible,
 .animate-shimmer {
   animation: shimmer 2s infinite;
 }
+
+/* ----------------------------------------- */
+/* Typography & Content Readability Adjustments */
+/* ----------------------------------------- */
+
+/* Headings: ensure strong contrast in light, clarity in dark */
+h1, h2, h3, h4, h5, h6 {
+  color: #111827; /* slate-900 */
+  font-weight: 600;
+}
+html.dark h1, html.dark h2, html.dark h3, html.dark h4, html.dark h5, html.dark h6 {
+  color: #f3f4f6; /* gray-100 */
+}
+
+/* Code & Preformatted Blocks */
+/* Base (light) */
+pre, code {
+  background-color: #f5f5f7;
+  color: #333333;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+pre {
+  padding: 0.875rem 1rem;
+  border: 1px solid #e2e2e8;
+  border-radius: 0.5rem;
+  line-height: 1.5;
+  overflow: auto;
+  position: relative;
+}
+code {
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.375rem;
+  font-size: 0.85rem;
+}
+
+/* Dark theme variants */
+html.dark pre, html.dark code {
+  background-color: #1e1e1e;
+  color: #e5e7eb; /* gray-200 */
+}
+html.dark pre {
+  border-color: #333333;
+  box-shadow: 0 0 0 1px #2a2a2a, 0 0 0 4px rgba(255,255,255,0.02);
+}
+html.dark code {
+  border: 1px solid #2d2d2d;
+}
+
+/* Inline code inside headings keeps appropriate contrast */
+h1 code, h2 code, h3 code, h4 code, h5 code, h6 code {
+  font-size: 0.85em;
+}
+html.dark h1 code, html.dark h2 code, html.dark h3 code, html.dark h4 code, html.dark h5 code, html.dark h6 code {
+  background-color: #262626;
+  color: #e5e7eb;
+}
+
+/* Remove excessive background on nested code inside pre */
+pre code {
+  background: transparent;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  color: inherit;
+}
+
+/* Scrollbar subtle styling for code blocks */
+pre::-webkit-scrollbar {
+  height: 10px;
+}
+pre::-webkit-scrollbar-track {
+  background: transparent;
+}
+pre::-webkit-scrollbar-thumb {
+  background: #d1d5db; /* gray-300 */
+  border-radius: 6px;
+}
+html.dark pre::-webkit-scrollbar-thumb {
+  background: #4b5563; /* gray-600 */
+}
+
+/* Optional line highlighting utility (add .line or .highlight class in renderer) */
+pre .line.highlight {
+  background: rgba(255, 255, 0, 0.1);
+  display: block;
+  margin: 0 -1rem;
+  padding: 0 1rem;
+  border-left: 3px solid #facc15; /* yellow-400 */
+}
+html.dark pre .line.highlight {
+  background: rgba(250, 204, 21, 0.12);
+}
+
+/* Improve selection contrast inside code blocks */
+pre ::selection, code ::selection {
+  background: rgba(59,130,246,0.35); /* blue-500 */
+  color: #ffffff;
+}
+html.dark pre ::selection, html.dark code ::selection {
+  background: rgba(96,165,250,0.35); /* blue-400 */
+}
+
+/* -------------------------------------------------- */
+/* Dark Mode Global Surface Overrides                 */
+/* Ensures components without explicit dark: classes  */
+/* still shift when theme toggles.                    */
+/* -------------------------------------------------- */
+html.dark .bg-white { background-color: #111827 !important; }
+html.dark .bg-gray-50 { background-color: #0f172a !important; }
+html.dark .bg-gray-100 { background-color: #1e293b !important; }
+html.dark .bg-gray-200 { background-color: #334155 !important; }
+html.dark .bg-gray-300 { background-color: #475569 !important; }
+
+html.dark .border-gray-100 { border-color: #1e293b !important; }
+html.dark .border-gray-200 { border-color: #334155 !important; }
+html.dark .border-gray-300 { border-color: #475569 !important; }
+html.dark .border-gray-400 { border-color: #64748b !important; }
+
+html.dark .text-gray-600 { color: #d1d5db !important; }
+html.dark .text-gray-500 { color: #9ca3af !important; }
+html.dark .text-gray-700 { color: #e5e7eb !important; }
+
+/* Buttons / interactive subtle surfaces */
+html.dark .hover\:bg-gray-50:hover { background-color: #1f2937 !important; }
+html.dark .hover\:bg-gray-100:hover { background-color: #243045 !important; }
+html.dark .hover\:bg-gray-200:hover { background-color: #2f3a52 !important; }
+
+/* Tables / zebra rows */
+html.dark tr.odd\:bg-white:nth-child(odd) { background-color: #1e293b !important; }
+html.dark tr.even\:bg-gray-50:nth-child(even) { background-color: #162032 !important; }
+
+/* Utility variable surfaces for future refactors */
+:root {
+  --surface-1: #ffffff;
+  --surface-2: #f5f5f5;
+  --surface-3: #e5e5e5;
+}
+html.dark {
+  --surface-1: #111827;
+  --surface-2: #1e293b;
+  --surface-3: #243045;
+}
+
+/* Generic class to opt-in to variable surfaces */
+.surface {
+  background-color: var(--surface-1);
+  color: var(--foreground);
+  transition: background-color .35s ease, color .35s ease;
+}
+.surface-alt {
+  background-color: var(--surface-2);
+  transition: background-color .35s ease, color .35s ease;
+}
+
+

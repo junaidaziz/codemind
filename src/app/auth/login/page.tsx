@@ -91,6 +91,9 @@ function LoginPageContent() {
               create a new account
             </Link>
           </p>
+          <p className="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
+            Just exploring? <Link href="/" className="underline hover:text-gray-700 dark:hover:text-gray-300">Go back home</Link> · <Link href="/docs" className="underline hover:text-gray-700 dark:hover:text-gray-300">Browse docs</Link>
+          </p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -177,6 +180,9 @@ function LoginPageContent() {
 
           <div className="mt-6">
             <GitHubSignInButton loading={loading} setLoading={setLoading} setError={setError} />
+          </div>
+          <div className="mt-6 text-center text-xs text-gray-500 dark:text-gray-400">
+            <Link href="/" className="hover:text-gray-700 dark:hover:text-gray-300">← Back to Home</Link>
           </div>
         </div>
       </div>

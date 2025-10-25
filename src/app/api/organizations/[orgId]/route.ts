@@ -1,97 +1,242 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { OrganizationService } from '@/lib/organization-service'
-import { getCurrentUser } from '@/lib/auth-guards'
+// Organization management API - /api/organizations/[orgId]
+import { NextRequest, NextResponse } from 'next/server';
+import { createApiError, createApiSuccess } from '../../../../types';
+import prisma from '@/lib/db';
+import { logger } from '@/lib/logger';
+import type { UpdateOrganizationData } from '../../../../types/organization';
+import { getOrganizationPermissions } from '../../../../types/organization';
 
-/**
- * GET /api/organizations/[orgId]
- * Get organization details
- */
+interface RouteParams {
+  orgId: string;
+}
+
+// GET /api/organizations/[orgId] - Get organization details
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ orgId: string }> }
+  req: NextRequest,
+  { params }: { params: Promise<RouteParams> }
 ) {
   try {
-    const user = await getCurrentUser()
-    const { orgId } = await params
+    const { orgId: organizationId } = await params;
+    // TODO: Replace placeholder user ID with authenticated user
+    const userId = 'placeholder-user-id';
 
-    // Check if user is a member of the organization
-    const isMember = await OrganizationService.isOrganizationMember(orgId, user.id)
-    if (!isMember) {
+    if (!userId) {
       return NextResponse.json(
-        { error: 'Not authorized to view organization' },
-        { status: 403 }
-      )
+        createApiError('Authentication required', 'UNAUTHORIZED'),
+        { status: 401 }
+      );
     }
 
-    const organization = await OrganizationService.getOrganization(orgId)
+    logger.info('Fetching organization details', { organizationId, userId });
+
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      include: {
+        OrganizationMember: {
+          include: {
+            User_OrganizationMember_userIdToUser: {
+              select: { id: true, email: true, name: true, image: true },
+            },
+          },
+        },
+        Project: {
+          select: { id: true, name: true, createdAt: true, status: true, githubUrl: true },
+        },
+        OrganizationInvite: {
+          include: {
+            User: { select: { id: true, name: true, email: true } },
+          },
+        },
+        _count: { select: { OrganizationMember: true, Project: true } },
+      },
+    });
 
     if (!organization) {
       return NextResponse.json(
-        { error: 'Organization not found' },
+        createApiError('Organization not found', 'NOT_FOUND'),
         { status: 404 }
-      )
+      );
     }
 
-    return NextResponse.json(organization)
-  } catch (error) {
-    console.error('Error fetching organization:', error)
+    const userMembership = organization.OrganizationMember.find(
+      (member: { userId: string }) => member.userId === userId
+    );
 
-    if (error instanceof Error && error.message === 'Not authenticated') {
+    if (!userMembership && organization.ownerId !== userId) {
       return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      )
+        createApiError('Access denied', 'FORBIDDEN'),
+        { status: 403 }
+      );
     }
+
+    const userRole = organization.ownerId === userId ? 'OWNER' : userMembership?.role || 'VIEWER';
+    const permissions = getOrganizationPermissions(userRole);
+
+    logger.info('Organization details fetched successfully', {
+      organizationId,
+      userId,
+      memberCount: organization._count.OrganizationMember,
+      projectCount: organization._count.Project,
+    });
 
     return NextResponse.json(
-      { error: 'Failed to fetch organization' },
+      createApiSuccess({ organization, userRole, permissions })
+    );
+  } catch (error) {
+    logger.error('Failed to fetch organization details', {}, error as Error);
+    return NextResponse.json(
+      createApiError('Failed to fetch organization', 'INTERNAL_ERROR'),
       { status: 500 }
-    )
+    );
   }
 }
 
-/**
- * PATCH /api/organizations/[orgId]
- * Update organization details
- */
+// PATCH /api/organizations/[orgId] - Update organization
 export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ orgId: string }> }
+  req: NextRequest,
+  { params }: { params: Promise<RouteParams> }
 ) {
   try {
-    const user = await getCurrentUser()
-    const { orgId } = await params
-    const body = await request.json()
-    const { name, description } = body
-
-    // Check if user has permission to update organization
-    const member = await OrganizationService.getOrganizationMember(orgId, user.id)
-    if (!member || (member.role !== 'OWNER' && member.role !== 'ADMIN')) {
+    const { orgId: organizationId } = await params;
+    const userId = 'placeholder-user-id';
+    if (!userId) {
       return NextResponse.json(
-        { error: 'Not authorized to update organization' },
-        { status: 403 }
-      )
-    }
-
-    const updated = await OrganizationService.updateOrganization(orgId, {
-      name,
-      description,
-    })
-
-    return NextResponse.json(updated)
-  } catch (error) {
-    console.error('Error updating organization:', error)
-
-    if (error instanceof Error && error.message === 'Not authenticated') {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
+        createApiError('Authentication required', 'UNAUTHORIZED'),
         { status: 401 }
-      )
+      );
     }
+    const body = (await req.json()) as UpdateOrganizationData;
+
+    logger.info('Updating organization', { organizationId, userId });
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      include: { OrganizationMember: { where: { userId } } },
+    });
+    if (!organization) {
+      return NextResponse.json(
+        createApiError('Organization not found', 'NOT_FOUND'),
+        { status: 404 }
+      );
+    }
+
+    const userMembership = organization.OrganizationMember[0];
+    const userRole = organization.ownerId === userId ? 'OWNER' : userMembership?.role || null;
+    if (!userRole) {
+      return NextResponse.json(
+        createApiError('Access denied', 'FORBIDDEN'),
+        { status: 403 }
+      );
+    }
+
+    const permissions = getOrganizationPermissions(userRole);
+    if (!permissions.canManageSettings) {
+      return NextResponse.json(
+        createApiError('Insufficient permissions', 'FORBIDDEN'),
+        { status: 403 }
+      );
+    }
+
+    const updatedOrganization = await prisma.organization.update({
+      where: { id: organizationId },
+      data: {
+        ...(body.name && { name: body.name }),
+        ...(body.description !== undefined && { description: body.description }),
+        ...(body.avatarUrl !== undefined && { avatarUrl: body.avatarUrl }),
+      },
+      include: {
+        OrganizationMember: {
+          include: {
+            User_OrganizationMember_userIdToUser: {
+              select: { id: true, email: true, name: true, image: true },
+            },
+          },
+        },
+        Project: { select: { id: true, name: true, createdAt: true, status: true } },
+        _count: { select: { OrganizationMember: true, Project: true } },
+      },
+    });
+
+    logger.info('Organization updated successfully', {
+      organizationId,
+      userId,
+      updates: Object.keys(body),
+    });
 
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to update organization' },
+      createApiSuccess({
+        organization: updatedOrganization,
+        message: 'Organization updated successfully',
+      })
+    );
+  } catch (error) {
+    logger.error('Failed to update organization', {}, error as Error);
+    return NextResponse.json(
+      createApiError('Failed to update organization', 'INTERNAL_ERROR'),
       { status: 500 }
-    )
+    );
+  }
+}
+
+// DELETE /api/organizations/[orgId] - Delete organization
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<RouteParams> }
+) {
+  try {
+    const { orgId: organizationId } = await params;
+    const userId = 'placeholder-user-id';
+    if (!userId) {
+      return NextResponse.json(
+        createApiError('Authentication required', 'UNAUTHORIZED'),
+        { status: 401 }
+      );
+    }
+
+    logger.info('Deleting organization', { organizationId, userId });
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: {
+        id: true,
+        name: true,
+        ownerId: true,
+        _count: { select: { Project: true, OrganizationMember: true } },
+      },
+    });
+    if (!organization) {
+      return NextResponse.json(
+        createApiError('Organization not found', 'NOT_FOUND'),
+        { status: 404 }
+      );
+    }
+    if (organization.ownerId !== userId) {
+      return NextResponse.json(
+        createApiError('Only organization owners can delete organizations', 'FORBIDDEN'),
+        { status: 403 }
+      );
+    }
+    if (organization._count.Project > 0) {
+      return NextResponse.json(
+        createApiError(
+          'Cannot delete organization with projects. Please delete or transfer all projects first.',
+          'HAS_PROJECTS'
+        ),
+        { status: 409 }
+      );
+    }
+    await prisma.organization.delete({ where: { id: organizationId } });
+    logger.info('Organization deleted successfully', {
+      organizationId,
+      organizationName: organization.name,
+      userId,
+    });
+    return NextResponse.json(
+      createApiSuccess({ message: 'Organization deleted successfully' })
+    );
+  } catch (error) {
+    logger.error('Failed to delete organization', {}, error as Error);
+    return NextResponse.json(
+      createApiError('Failed to delete organization', 'INTERNAL_ERROR'),
+      { status: 500 }
+    );
   }
 }

@@ -5,6 +5,11 @@
 import type { PRAnalysis, FileChange } from '@/types/code-review';
 import crypto from 'crypto';
 
+interface CacheEntry<T> {
+  data: T;
+  expires: number; // epoch ms
+}
+
 export interface GitHubPRData {
   number: number;
   title: string;
@@ -31,9 +36,58 @@ export interface GitHubFileData {
 
 export class GitHubFetcher {
   private token: string;
+  // Simple in-memory TTL cache (instance-scoped)
+  private cache: Map<string, CacheEntry<unknown>> = new Map();
+  private cacheTTLPR: number;
+  private cacheTTLFiles: number;
+  // Basic rate-limit tracking
+  private remaining: number = Infinity;
+  private resetAt: number = 0; // epoch ms for rate limit reset
 
   constructor(token?: string) {
     this.token = token || process.env.GITHUB_TOKEN || '';
+    // Allow override via env (ms). Defaults chosen to balance freshness vs API savings.
+    this.cacheTTLPR = this.parseTTL(process.env.GITHUB_FETCH_CACHE_TTL_PR, 30_000); // 30s default
+    this.cacheTTLFiles = this.parseTTL(process.env.GITHUB_FETCH_CACHE_TTL_FILES, 60_000); // 60s default
+  }
+
+  /** Parse TTL value from env string */
+  private parseTTL(raw: string | undefined, fallback: number): number {
+    if (!raw) return fallback;
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? n : fallback;
+  }
+
+  /** Public helper to clear cache (useful for tests) */
+  clearCache() {
+    this.cache.clear();
+  }
+
+  /** Build a cache key */
+  private key(kind: string, owner: string, repo: string, pr: number): string {
+    return `${kind}:${owner}/${repo}#${pr}`;
+  }
+
+  /** Generic getter from cache */
+  private fromCache<T>(key: string): T | undefined {
+    const entry = this.cache.get(key);
+    if (!entry) return undefined;
+    if (Date.now() > entry.expires) {
+      this.cache.delete(key);
+      return undefined;
+    }
+    return entry.data as T;
+  }
+
+  /** Store into cache with TTL */
+  private toCache<T>(key: string, data: T, ttl: number) {
+    this.cache.set(key, { data, expires: Date.now() + ttl });
+    // Lightweight LRU cleanup (trim if > 500 entries)
+    if (this.cache.size > 500) {
+      // Remove the oldest by expires ordering
+      const oldestKey = [...this.cache.entries()].sort((a, b) => a[1].expires - b[1].expires)[0]?.[0];
+      if (oldestKey) this.cache.delete(oldestKey);
+    }
   }
 
   /**
@@ -60,17 +114,19 @@ export class GitHubFetcher {
     repo: string,
     prNumber: number
   ): Promise<GitHubPRData> {
+    const cacheKey = this.key('pr', owner, repo, prNumber);
+    const cached = this.fromCache<GitHubPRData>(cacheKey);
+    if (cached) return cached;
+
     const url = `https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}`;
-    
-    const response = await fetch(url, {
-      headers: this.getHeaders(),
-    });
+    const response = await this.guardedFetch(url, { headers: this.getHeaders() });
 
     if (!response.ok) {
       throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
     }
-
-    return response.json();
+    const data: GitHubPRData = await response.json();
+    this.toCache(cacheKey, data, this.cacheTTLPR);
+    return data;
   }
 
   /**
@@ -81,17 +137,45 @@ export class GitHubFetcher {
     repo: string,
     prNumber: number
   ): Promise<GitHubFileData[]> {
+    const cacheKey = this.key('files', owner, repo, prNumber);
+    const cached = this.fromCache<GitHubFileData[]>(cacheKey);
+    if (cached) return cached;
+
     const url = `https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}/files`;
-    
-    const response = await fetch(url, {
-      headers: this.getHeaders(),
-    });
+    const response = await this.guardedFetch(url, { headers: this.getHeaders() });
 
     if (!response.ok) {
       throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
     }
+    const data: GitHubFileData[] = await response.json();
+    this.toCache(cacheKey, data, this.cacheTTLFiles);
+    return data;
+  }
 
-    return response.json();
+  /** Rate-limit aware fetch wrapper */
+  private async guardedFetch(url: string, init: RequestInit): Promise<Response> {
+    // If we're near exhaustion and have a reset time in the future, wait.
+    if (this.remaining <= 2 && this.resetAt > Date.now()) {
+      const waitMs = this.resetAt - Date.now();
+      await this.delay(waitMs);
+    }
+    const response = await fetch(url, init);
+    // Read rate limit headers when present
+    const rlRemaining = response.headers.get('X-RateLimit-Remaining');
+    const rlReset = response.headers.get('X-RateLimit-Reset');
+    if (rlRemaining) {
+      const remainingNum = Number(rlRemaining);
+      if (!isNaN(remainingNum)) this.remaining = remainingNum;
+    }
+    if (rlReset) {
+      const resetEpochSec = Number(rlReset);
+      if (!isNaN(resetEpochSec)) this.resetAt = resetEpochSec * 1000;
+    }
+    return response;
+  }
+
+  private delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
@@ -213,7 +297,7 @@ export class GitHubFetcher {
       return null;
     }
     const url = `https://api.github.com/repos/${owner}/${repo}/issues/${prNumber}/comments`;
-    const response = await fetch(url, {
+    const response = await this.guardedFetch(url, {
       method: 'POST',
       headers: {
         ...this.getHeaders(),

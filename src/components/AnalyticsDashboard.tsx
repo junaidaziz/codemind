@@ -47,7 +47,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
   };
 
   const getVariantStyles = (variant: StatsCardProps['variant']): string => {
-    const base = "bg-white rounded-lg shadow-sm border p-6 transition-colors hover:shadow-md";
+  const base = "bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors hover:shadow-md dark:hover:shadow-lg";
     switch (variant) {
       case 'success': return `${base} border-green-200 hover:border-green-300`;
       case 'warning': return `${base} border-yellow-200 hover:border-yellow-300`;
@@ -66,9 +66,9 @@ const StatsCard: React.FC<StatsCardProps> = ({
     <div className={getVariantStyles(variant)}>
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
+          <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">{title}</p>
           <div className="flex items-baseline space-x-2">
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {formatValue(value)}{unit}
             </p>
             {change !== undefined && (
@@ -79,7 +79,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
           </div>
         </div>
         {icon && (
-          <div className="flex-shrink-0 text-gray-400">
+          <div className="flex-shrink-0 text-gray-400 dark:text-gray-500">
             {icon}
           </div>
         )}
@@ -125,12 +125,12 @@ const HealthStatus: React.FC<HealthStatusProps> = ({ status, uptime, responseTim
   const config = getStatusConfig(status);
 
   return (
-    <div className={`${config.bgColor} rounded-lg p-4 border border-opacity-20`}>
+  <div className={`${config.bgColor} dark:bg-gray-800/60 rounded-lg p-4 border border-opacity-20 dark:border-gray-700/60`}>
       <div className="flex items-center space-x-3">
         <div className={`w-3 h-3 rounded-full ${config.color}`}></div>
         <div className="flex-1">
           <p className={`font-medium ${config.textColor}`}>System {config.label}</p>
-          <div className="flex items-center space-x-4 mt-1 text-sm text-gray-600">
+          <div className="flex items-center space-x-4 mt-1 text-sm text-gray-600 dark:text-gray-400">
             <span>Uptime: {uptime.toFixed(2)}%</span>
             <span>Avg Response: {responseTime}ms</span>
           </div>
@@ -190,9 +190,9 @@ const AlertsList: React.FC<AlertsListProps> = ({ alerts, maxVisible = 5 }) => {
 
   if (visibleAlerts.length === 0) {
     return (
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+  <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg p-4 text-center">
         <p className="text-green-700 font-medium">✅ No active alerts</p>
-        <p className="text-green-600 text-sm mt-1">All systems are running normally</p>
+  <p className="text-green-600 dark:text-green-400 text-sm mt-1">All systems are running normally</p>
       </div>
     );
   }
@@ -206,7 +206,7 @@ const AlertsList: React.FC<AlertsListProps> = ({ alerts, maxVisible = 5 }) => {
         return (
           <div 
             key={index}
-            className={`${config.bgColor} ${config.borderColor} border rounded-lg p-3`}
+            className={`${config.bgColor} dark:bg-gray-800/60 ${config.borderColor} dark:border-gray-700 border rounded-lg p-3 transition-colors`}
           >
             <div className="flex items-start space-x-3">
               <span className="text-lg">{config.icon}</span>
@@ -214,7 +214,7 @@ const AlertsList: React.FC<AlertsListProps> = ({ alerts, maxVisible = 5 }) => {
                 <p className={`font-medium ${config.textColor}`}>
                   {alert.message}
                 </p>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   {formatTimestamp(alert.timestamp)}
                 </p>
               </div>
@@ -253,7 +253,7 @@ const TimePeriodSelector: React.FC<TimePeriodSelectorProps> = ({
   ];
 
   return (
-    <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+  <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 transition-colors">
       {periods.map((period) => (
         <button
           key={period.value}
@@ -261,8 +261,8 @@ const TimePeriodSelector: React.FC<TimePeriodSelectorProps> = ({
           disabled={disabled}
           className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
             selected === period.value
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50'
+              ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
+              : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50'
           }`}
         >
           {period.label}
@@ -382,8 +382,8 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Analytics Dashboard</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             Last updated: {lastUpdated.toLocaleTimeString()}
           </p>
         </div>
@@ -397,7 +397,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           <button
             onClick={fetchDashboardData}
             disabled={loading}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors dark:hover:bg-blue-500"
           >
             {loading ? 'Refreshing...' : 'Refresh'}
           </button>
@@ -442,7 +442,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors">
           <AreaChartComponent
             data={data.charts.userActivity}
             title="User Activity Over Time"
@@ -452,7 +452,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           />
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+  <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors">
           <DoughnutChartComponent
             data={data.charts.projectUsage}
             title="Project Usage Distribution"
@@ -461,7 +461,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           />
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+  <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors">
           <BarChartComponent
             data={data.charts.apiRequests}
             title="API Requests Comparison"
@@ -472,7 +472,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           />
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+  <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors">
           <LineChartComponent
             data={data.charts.performance}
             title="System Performance"
@@ -484,7 +484,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       </div>
 
       {/* System Alerts */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+  <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">System Alerts</h3>
         <AlertsList alerts={alerts} />
       </div>

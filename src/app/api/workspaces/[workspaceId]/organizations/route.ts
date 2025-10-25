@@ -16,6 +16,23 @@ import {
   type WorkspaceOrg,
 } from '@/lib/multi-repo/org-manager';
 import prisma from '@/lib/db';
+// import { cookies } from 'next/headers'; // reserved for future cookie-based session retrieval
+import { createClient } from '@supabase/supabase-js';
+
+async function getSessionUserId(): Promise<string | null> {
+  try {
+  // const cookieStore = cookies(); // reserved for cookie-based session retrieval
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseAnon) return null;
+    const supabase = createClient(supabaseUrl, supabaseAnon, { auth: { persistSession: false } });
+    const { data } = await supabase.auth.getUser();
+    return data.user?.id || null;
+  } catch (e) {
+    console.warn('Supabase session retrieval failed:', e);
+    return null;
+  }
+}
 
 /**
  * GET handler - List organizations and fetch details
@@ -37,8 +54,11 @@ export async function GET(
     const searchParams = request.nextUrl.searchParams;
     const action = searchParams.get('action') || 'workspace_orgs';
     
-    // Extract user ID from request
-    const userId = request.headers.get('x-user-id');
+    // Extract user ID from header or session fallback
+    let userId = request.headers.get('x-user-id');
+    if (!userId) {
+      userId = await getSessionUserId();
+    }
     if (!userId) {
       return NextResponse.json(
         { error: 'User ID required' },
@@ -208,8 +228,11 @@ export async function POST(
     const body = await request.json();
     const { action, org_login, username, settings, remove_repos } = body;
 
-    // Extract user ID from request
-    const userId = request.headers.get('x-user-id');
+    // Extract user ID from header or session fallback
+    let userId = request.headers.get('x-user-id');
+    if (!userId) {
+      userId = await getSessionUserId();
+    }
     if (!userId) {
       return NextResponse.json(
         { error: 'User ID required' },

@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
 import { ErrorBanner, Spinner } from '../../../components/ui';
+import { PublicRoute } from '../../components/ProtectedRoute';
 
 interface GitHubSignUpButtonProps {
   loading: boolean;
@@ -49,7 +50,7 @@ function GitHubSignUpButton({ loading, setLoading, setError }: GitHubSignUpButto
   );
 }
 
-export default function SignupPage() {
+function SignupPageContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -202,6 +203,12 @@ export default function SignupPage() {
               >
                 Go to Sign In
               </Link>
+              <Link
+                href="/docs"
+                className="w-full flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              >
+                Browse Docs
+              </Link>
               <button
                 onClick={async () => {
                   setLoading(true);
@@ -272,6 +279,9 @@ export default function SignupPage() {
             >
               sign in to your existing account
             </Link>
+          </p>
+          <p className="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
+            Not ready? <Link href="/" className="underline hover:text-gray-700 dark:hover:text-gray-300">Go back home</Link> · <Link href="/docs" className="underline hover:text-gray-700 dark:hover:text-gray-300">Browse docs</Link>
           </p>
         </div>
 
@@ -392,8 +402,19 @@ export default function SignupPage() {
           <div className="mt-6">
             <GitHubSignUpButton loading={loading} setLoading={setLoading} setError={setError} />
           </div>
+          <div className="mt-6 text-center text-xs text-gray-500 dark:text-gray-400">
+            <Link href="/" className="hover:text-gray-700 dark:hover:text-gray-300">← Back to Home</Link>
+          </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <PublicRoute>
+      <SignupPageContent />
+    </PublicRoute>
   );
 }

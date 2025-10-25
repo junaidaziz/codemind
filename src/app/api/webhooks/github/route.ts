@@ -69,9 +69,10 @@ export async function POST(request: NextRequest) {
     // Handle different PR actions
     switch (action) {
       case 'opened':
+        await handlePRAnalysis(payload, false);
+        break;
       case 'synchronize':
-        // Trigger automatic code review
-        await handlePRAnalysis(payload);
+        await handlePRAnalysis(payload, true);
         break;
 
       case 'closed':
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest) {
 /**
  * Handle PR analysis for opened or updated PRs
  */
-async function handlePRAnalysis(payload: GitHubWebhookPayload) {
+async function handlePRAnalysis(payload: GitHubWebhookPayload, incremental: boolean) {
   const { pull_request, repository } = payload;
   const [owner, repo] = repository.full_name.split('/');
 
@@ -122,7 +123,9 @@ async function handlePRAnalysis(payload: GitHubWebhookPayload) {
 
     // Analyze the PR
     const reviewer = new CodeReviewer();
-    const reviewResult = await reviewer.analyzePR(prAnalysis);
+    const reviewResult = incremental
+      ? await reviewer.analyzeChangedFiles(prAnalysis)
+      : await reviewer.analyzePR(prAnalysis);
 
     // Store the review results (using repository full_name as projectId for now)
     const storage = new ReviewStorage();
@@ -136,7 +139,7 @@ async function handlePRAnalysis(payload: GitHubWebhookPayload) {
   await postReviewComment(fetcher, owner, repo, pull_request.number, reviewResult);
 
     console.log(
-      `[Webhook] Analysis complete for PR #${pull_request.number}. Risk: ${reviewResult.riskScore.level}`
+      `[Webhook] ${incremental ? 'Incremental' : 'Full'} analysis complete for PR #${pull_request.number}. Risk: ${reviewResult.riskScore.level}`
     );
   } catch (error) {
     console.error(`[Webhook] Error analyzing PR #${pull_request.number}:`, error);

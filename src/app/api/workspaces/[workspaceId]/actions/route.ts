@@ -14,6 +14,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ActionsIntegrator } from '@/lib/multi-repo/actions-integrator';
 import { ActionsAnalyzer } from '@/lib/multi-repo/actions-analyzer';
 import prisma from '@/lib/db';
+// import { cookies } from 'next/headers'; // reserved for future cookie-based session retrieval
+import { createClient } from '@supabase/supabase-js';
+
+async function getSessionUserId(): Promise<string | null> {
+  try {
+  // NOTE: cookieStore reserved for future server-side session extraction if needed
+  // const cookieStore = cookies();
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseAnon) return null;
+    const supabase = createClient(supabaseUrl, supabaseAnon, {
+      auth: { persistSession: false },
+    });
+    const { data } = await supabase.auth.getUser();
+    return data.user?.id || null;
+  } catch (e) {
+    console.warn('Supabase session retrieval failed:', e);
+    return null;
+  }
+}
 
 /**
  * GET handler - Fetch workflow runs for workspace
@@ -37,8 +57,11 @@ export async function GET(
     const { workspaceId } = await params;
     const searchParams = request.nextUrl.searchParams;
     
-    // Extract user ID from request (you'll need to implement auth)
-    const userId = request.headers.get('x-user-id');
+    // Extract user ID from header or session fallback
+    let userId = request.headers.get('x-user-id');
+    if (!userId) {
+      userId = await getSessionUserId();
+    }
     if (!userId) {
       return NextResponse.json(
         { error: 'User ID required' },
@@ -138,8 +161,11 @@ export async function POST(
     const body = await request.json();
     const { analysisType, owner, repo, runId, limit } = body;
 
-    // Extract user ID from request
-    const userId = request.headers.get('x-user-id');
+    // Extract user ID from header or session fallback
+    let userId = request.headers.get('x-user-id');
+    if (!userId) {
+      userId = await getSessionUserId();
+    }
     if (!userId) {
       return NextResponse.json(
         { error: 'User ID required' },

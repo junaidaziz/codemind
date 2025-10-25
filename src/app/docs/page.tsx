@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ProtectedRoute } from '../components/ProtectedRoute';
+// Link no longer needed (header removed)
+import { PublicRoute } from '../components/ProtectedRoute';
+// ThemeToggle removed here to avoid duplicate header; global draggable toggle handles theme switching.
 
 // Documentation sections configuration
 const docSections = [
@@ -73,9 +75,9 @@ interface NavigationProps {
 
 const Navigation: React.FC<NavigationProps> = ({ activeSection, onSectionChange }) => {
   return (
-    <nav className="w-64 bg-gray-50 border-r border-gray-200 h-full overflow-y-auto">
+    <nav className="w-64 bg-gray-50 dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800 h-full overflow-y-auto">
       <div className="p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Documentation</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Documentation</h2>
         <ul className="space-y-2">
           {docSections.map((section) => (
             <li key={section.id}>
@@ -83,15 +85,15 @@ const Navigation: React.FC<NavigationProps> = ({ activeSection, onSectionChange 
                 onClick={() => onSectionChange(section.id)}
                 className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
                   activeSection === section.id
-                    ? 'bg-blue-100 text-blue-900 border border-blue-200'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-900 dark:text-blue-100 border border-blue-200 dark:border-blue-700'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                 }`}
               >
                 <div className="flex items-center space-x-3">
                   <span className="text-lg">{section.icon}</span>
                   <div>
-                    <div className="font-medium">{section.title}</div>
-                    <div className="text-sm text-gray-500">{section.description}</div>
+                    <div className="font-medium text-gray-800 dark:text-gray-100">{section.title}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{section.description}</div>
                   </div>
                 </div>
               </button>
@@ -106,70 +108,70 @@ const Navigation: React.FC<NavigationProps> = ({ activeSection, onSectionChange 
 // Overview section component
 const OverviewSection: React.FC = () => {
   return (
-    <div className="prose max-w-none">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">CodeMind Documentation</h1>
+    <div className="prose max-w-none dark:prose-invert">
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8">CodeMind Documentation</h1>
       
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-        <h2 className="text-lg font-semibold text-blue-900 mb-2">🚀 Quick Start</h2>
-        <p className="text-blue-800">
+      <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-6 mb-8">
+        <h2 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">🚀 Quick Start</h2>
+        <p className="text-blue-800 dark:text-blue-200">
           Get up and running with CodeMind in minutes. Follow our step-by-step guide to create your first project 
           and start chatting with your codebase.
         </p>
       </div>
 
-      <h2 className="text-2xl font-semibold text-gray-900 mb-4">What is CodeMind?</h2>
-      <p className="text-gray-600 mb-6">
+      <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">What is CodeMind?</h2>
+      <p className="text-gray-600 dark:text-gray-300 mb-6">
         CodeMind is an AI-powered code analysis and chat platform that helps developers understand, 
         navigate, and work with their codebases more effectively. Using advanced natural language processing 
         and vector embeddings, CodeMind can answer questions about your code, explain complex functions, 
         and help you find relevant code snippets.
       </p>
 
-      <h2 className="text-2xl font-semibold text-gray-900 mb-4">Key Features</h2>
+      <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Key Features</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
           <div className="flex items-center space-x-3 mb-3">
             <span className="text-2xl">🧠</span>
-            <h3 className="text-lg font-semibold">AI-Powered Analysis</h3>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">AI-Powered Analysis</h3>
           </div>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300">
             Advanced AI models analyze your codebase and provide intelligent responses to your questions.
           </p>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
           <div className="flex items-center space-x-3 mb-3">
             <span className="text-2xl">🔍</span>
-            <h3 className="text-lg font-semibold">Semantic Search</h3>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Semantic Search</h3>
           </div>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300">
             Find code snippets, functions, and documentation using natural language queries.
           </p>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
           <div className="flex items-center space-x-3 mb-3">
             <span className="text-2xl">💬</span>
-            <h3 className="text-lg font-semibold">Interactive Chat</h3>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Interactive Chat</h3>
           </div>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300">
             Have conversations about your code with context-aware responses and code examples.
           </p>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
           <div className="flex items-center space-x-3 mb-3">
             <span className="text-2xl">📊</span>
-            <h3 className="text-lg font-semibold">Analytics Dashboard</h3>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Analytics Dashboard</h3>
           </div>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300">
             Monitor usage, performance metrics, and gain insights into your development patterns.
           </p>
         </div>
       </div>
 
-      <h2 className="text-2xl font-semibold text-gray-900 mb-4">Getting Started</h2>
-      <ol className="list-decimal list-inside space-y-4 text-gray-600">
+  <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Getting Started</h2>
+  <ol className="list-decimal list-inside space-y-4 text-gray-600 dark:text-gray-300">
         <li>
           <strong>Sign up</strong> for a CodeMind account using your email address
         </li>
@@ -184,9 +186,9 @@ const OverviewSection: React.FC = () => {
         </li>
       </ol>
 
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mt-8">
-        <h3 className="text-lg font-semibold mb-3">📚 Next Steps</h3>
-        <ul className="space-y-2 text-gray-600">
+      <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6 mt-8">
+        <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-100">📚 Next Steps</h3>
+        <ul className="space-y-2 text-gray-600 dark:text-gray-300">
           <li>• Explore the <strong>API Reference</strong> for integration details</li>
           <li>• Check out <strong>Code Examples</strong> for common use cases</li>
           <li>• Review <strong>TypeScript Types</strong> for type-safe development</li>
@@ -288,14 +290,14 @@ const ApiReferenceSection: React.FC = () => {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">API Reference</h1>
+  <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">API Reference</h1>
       
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <p className="text-blue-800">
-          <strong>Base URL:</strong> <code className="bg-blue-100 px-2 py-1 rounded">https://your-domain.com/api</code>
+      <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
+        <p className="text-blue-800 dark:text-blue-200">
+          <strong>Base URL:</strong> <code className="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">https://your-domain.com/api</code>
         </p>
-        <p className="text-blue-800 mt-2">
-          <strong>Authentication:</strong> Include <code className="bg-blue-100 px-2 py-1 rounded">Authorization: Bearer &lt;token&gt;</code> header
+        <p className="text-blue-800 dark:text-blue-200 mt-2">
+          <strong>Authentication:</strong> Include <code className="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">Authorization: Bearer &lt;token&gt;</code> header
         </p>
       </div>
 
@@ -339,26 +341,26 @@ const ApiReferenceSection: React.FC = () => {
                   <code className="text-lg font-mono">{endpoint.path}</code>
                 </div>
                 
-                <p className="text-gray-600 mb-4">{endpoint.description}</p>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">{endpoint.description}</p>
 
                 {endpoint.parameters && (
                   <div className="mb-4">
-                    <h4 className="font-semibold mb-2">Parameters</h4>
+                    <h4 className="font-semibold mb-2 text-gray-800 dark:text-gray-100">Parameters</h4>
                     <div className="overflow-x-auto">
                       <table className="min-w-full border border-gray-200">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th className="px-4 py-2 text-left">Name</th>
-                            <th className="px-4 py-2 text-left">Type</th>
-                            <th className="px-4 py-2 text-left">Description</th>
+                            <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-200">Name</th>
+                            <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-200">Type</th>
+                            <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-200">Description</th>
                           </tr>
                         </thead>
                         <tbody>
                           {endpoint.parameters.map((param, idx) => (
                             <tr key={idx} className="border-t">
-                              <td className="px-4 py-2 font-mono text-sm">{param.name}</td>
-                              <td className="px-4 py-2 text-sm text-gray-600">{param.type}</td>
-                              <td className="px-4 py-2 text-sm">{param.description}</td>
+                              <td className="px-4 py-2 font-mono text-sm text-gray-800 dark:text-gray-100">{param.name}</td>
+                              <td className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300">{param.type}</td>
+                              <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200">{param.description}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -369,16 +371,16 @@ const ApiReferenceSection: React.FC = () => {
 
                 {endpoint.body && (
                   <div className="mb-4">
-                    <h4 className="font-semibold mb-2">Request Body</h4>
-                    <pre className="bg-gray-50 border border-gray-200 rounded p-4 text-sm overflow-x-auto">
+                    <h4 className="font-semibold mb-2 text-gray-800 dark:text-gray-100">Request Body</h4>
+                    <pre className="rounded p-4 text-sm overflow-x-auto bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100">
                       <code>{endpoint.body}</code>
                     </pre>
                   </div>
                 )}
 
                 <div>
-                  <h4 className="font-semibold mb-2">Response</h4>
-                  <pre className="bg-gray-50 border border-gray-200 rounded p-4 text-sm overflow-x-auto">
+                  <h4 className="font-semibold mb-2 text-gray-800 dark:text-gray-100">Response</h4>
+                  <pre className="rounded p-4 text-sm overflow-x-auto bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100">
                     <code>{endpoint.response}</code>
                   </pre>
                 </div>
@@ -395,18 +397,18 @@ const ApiReferenceSection: React.FC = () => {
 const TypesSection: React.FC = () => {
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">TypeScript Types</h1>
+  <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">TypeScript Types</h1>
       
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-        <p className="text-green-800">
-          All types are exported from <code className="bg-green-100 px-2 py-1 rounded">@/types</code> for easy importing in your applications.
+      <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg p-4 mb-6">
+        <p className="text-green-800 dark:text-green-200">
+          All types are exported from <code className="bg-green-100 dark:bg-green-800 px-2 py-1 rounded">@/types</code> for easy importing in your applications.
         </p>
       </div>
 
       <div className="space-y-6">
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Core Types</h2>
-          <pre className="bg-gray-50 border border-gray-200 rounded p-4 text-sm overflow-x-auto">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Core Types</h2>
+          <pre className="rounded p-4 text-sm overflow-x-auto bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100">
             <code>{`interface User {
   id: string;
   email: string;
@@ -435,9 +437,9 @@ type ProjectStatus = 'created' | 'indexing' | 'active' | 'failed' | 'archived';`
           </pre>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">API Response Types</h2>
-          <pre className="bg-gray-50 border border-gray-200 rounded p-4 text-sm overflow-x-auto">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">API Response Types</h2>
+          <pre className="rounded p-4 text-sm overflow-x-auto bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100">
             <code>{`interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
@@ -462,9 +464,9 @@ interface PaginationResponse {
           </pre>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Analytics Types</h2>
-          <pre className="bg-gray-50 border border-gray-200 rounded p-4 text-sm overflow-x-auto">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Analytics Types</h2>
+          <pre className="rounded p-4 text-sm overflow-x-auto bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100">
             <code>{`interface DashboardResponse {
   overview: DashboardOverview;
   charts: DashboardCharts;
@@ -569,38 +571,38 @@ class ChatClient {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Code Examples</h1>
+  <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">Code Examples</h1>
       
-      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
-        <p className="text-purple-800">
+      <div className="bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-lg p-4 mb-6">
+        <p className="text-purple-800 dark:text-purple-200">
           Practical examples showing how to integrate CodeMind into your applications with full type safety.
         </p>
       </div>
 
       <div className="space-y-8">
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
           <div className="mb-4">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Creating a Project</h2>
-            <p className="text-gray-600">Complete example of creating and monitoring a new project</p>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Creating a Project</h2>
+            <p className="text-gray-600 dark:text-gray-300">Complete example of creating and monitoring a new project</p>
           </div>
           
           <div>
-            <h3 className="font-semibold mb-2">Code</h3>
-            <pre className="bg-gray-50 border border-gray-200 rounded p-4 text-sm overflow-x-auto">
+            <h3 className="font-semibold mb-2 text-gray-800 dark:text-gray-100">Code</h3>
+            <pre className="rounded p-4 text-sm overflow-x-auto bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100">
               <code>{exampleCode1}</code>
             </pre>
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
           <div className="mb-4">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Chat Integration</h2>
-            <p className="text-gray-600">Implementing chat functionality with context and sources</p>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Chat Integration</h2>
+            <p className="text-gray-600 dark:text-gray-300">Implementing chat functionality with context and sources</p>
           </div>
           
           <div>
-            <h3 className="font-semibold mb-2">Code</h3>
-            <pre className="bg-gray-50 border border-gray-200 rounded p-4 text-sm overflow-x-auto">
+            <h3 className="font-semibold mb-2 text-gray-800 dark:text-gray-100">Code</h3>
+            <pre className="rounded p-4 text-sm overflow-x-auto bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100">
               <code>{exampleCode2}</code>
             </pre>
           </div>
@@ -643,43 +645,43 @@ function MyComponent() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">SDK & Integration</h1>
+  <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">SDK & Integration</h1>
       
-      <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6">
-        <p className="text-indigo-800">
+      <div className="bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700 rounded-lg p-4 mb-6">
+        <p className="text-indigo-800 dark:text-indigo-200">
           Official SDKs and integration guides for different platforms and frameworks.
         </p>
       </div>
 
       <div className="space-y-8">
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">JavaScript/TypeScript SDK</h2>
-          <p className="text-gray-600 mb-4">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">JavaScript/TypeScript SDK</h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
             The official JavaScript SDK provides a type-safe way to interact with the CodeMind API.
           </p>
           
           <div className="mb-4">
-            <h3 className="font-semibold mb-2">Installation</h3>
-            <pre className="bg-gray-50 border border-gray-200 rounded p-4 text-sm">
+            <h3 className="font-semibold mb-2 text-gray-800 dark:text-gray-100">Installation</h3>
+            <pre className="rounded p-4 text-sm bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100">
               <code>npm install @codemind/sdk</code>
             </pre>
           </div>
 
           <div>
-            <h3 className="font-semibold mb-2">Basic Usage</h3>
-            <pre className="bg-gray-50 border border-gray-200 rounded p-4 text-sm overflow-x-auto">
+            <h3 className="font-semibold mb-2 text-gray-800 dark:text-gray-100">Basic Usage</h3>
+            <pre className="rounded p-4 text-sm overflow-x-auto bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100">
               <code>{sdkExample}</code>
             </pre>
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">React Integration</h2>
-          <p className="text-gray-600 mb-4">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">React Integration</h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
             Use our React hooks for seamless integration with React applications.
           </p>
           
-          <pre className="bg-gray-50 border border-gray-200 rounded p-4 text-sm overflow-x-auto">
+          <pre className="rounded p-4 text-sm overflow-x-auto bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100">
             <code>{reactExample}</code>
           </pre>
         </div>
@@ -715,18 +717,18 @@ docker run -d \\
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Deployment Guide</h1>
+  <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">Deployment Guide</h1>
       
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-        <p className="text-red-800">
+      <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4 mb-6">
+        <p className="text-red-800 dark:text-red-200">
           <strong>Production Deployment:</strong> Comprehensive guide for deploying CodeMind to production environments.
         </p>
       </div>
 
       <div className="space-y-8">
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Prerequisites</h2>
-          <ul className="list-disc list-inside space-y-2 text-gray-600">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Prerequisites</h2>
+          <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300">
             <li>Node.js 18+ installed</li>
             <li>PostgreSQL database with pgvector extension</li>
             <li>Redis for caching and sessions</li>
@@ -735,18 +737,18 @@ docker run -d \\
           </ul>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Environment Variables</h2>
-          <pre className="bg-gray-50 border border-gray-200 rounded p-4 text-sm overflow-x-auto">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Environment Variables</h2>
+          <pre className="rounded p-4 text-sm overflow-x-auto bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100">
             <code>{envExample}</code>
           </pre>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Docker Deployment</h2>
-          <p className="text-gray-600 mb-4">The recommended way to deploy CodeMind is using Docker containers.</p>
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Docker Deployment</h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">The recommended way to deploy CodeMind is using Docker containers.</p>
           
-          <pre className="bg-gray-50 border border-gray-200 rounded p-4 text-sm">
+          <pre className="rounded p-4 text-sm bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100">
             <code>{dockerExample}</code>
           </pre>
         </div>
@@ -779,11 +781,10 @@ const DocumentationPage: React.FC = () => {
   };
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
+    <PublicRoute>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-800 dark:text-gray-100 pt-4">
         <div className="flex">
           <Navigation activeSection={activeSection} onSectionChange={setActiveSection} />
-          
           <main className="flex-1 overflow-y-auto">
             <div className="max-w-4xl mx-auto px-6 py-8">
               {renderSection()}
@@ -791,7 +792,7 @@ const DocumentationPage: React.FC = () => {
           </main>
         </div>
       </div>
-    </ProtectedRoute>
+    </PublicRoute>
   );
 };
 
