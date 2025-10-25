@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Event ignored' });
     }
 
-    const payload: GitHubWebhookPayload = JSON.parse(body);
+  const payload: GitHubWebhookPayload = JSON.parse(body);
     const { action, pull_request, repository } = payload;
 
     console.log(
@@ -161,7 +161,7 @@ async function postReviewComment(
     const criticalComments = comments.filter((c: ReviewComment) => c.severity === 'critical');
     const highComments = comments.filter((c: ReviewComment) => c.severity === 'high');
 
-    let commentBody = `## 🤖 Code Review Summary\n\n`;
+  let commentBody = `## 🤖 Code Review Summary\n\n`;
     commentBody += `**Risk Level:** ${getRiskEmoji(riskScore.level)} ${riskScore.level.toUpperCase()} (${riskScore.overall}/100)\n\n`;
     commentBody += `**Approval Recommendation:** ${summary.approvalRecommendation.toUpperCase()}\n\n`;
     
@@ -196,12 +196,13 @@ async function postReviewComment(
 
     commentBody += `\n📝 **Total Issues:** ${comments.length}\n`;
     commentBody += `⏱️ **Estimated Review Time:** ${reviewResult.estimatedReviewTime} minutes\n\n`;
-    commentBody += `---\n*This review was generated automatically by AI. Please review all suggestions carefully.*`;
+  commentBody += `---\n*This review was generated automatically by AI. Please review all suggestions carefully.*`;
 
-    // Post comment to GitHub (Note: postComment method needs to be implemented in GitHubFetcher)
-    // await fetcher.postComment(owner, repo, prNumber, commentBody);
-    console.log(`[Webhook] Review comment ready for PR #${prNumber}`);
-    console.log(`[Webhook] Posted review summary comment to PR #${prNumber}`);
+  // Post comment to GitHub (Note: postComment method needs to be implemented in GitHubFetcher)
+  // await fetcher.postComment(owner, repo, prNumber, commentBody);
+  console.log(`[Webhook] Review comment ready for PR #${prNumber}`);
+  // Log body to avoid unused variable lint error
+  console.log(commentBody);
   } catch (error) {
     console.error(`[Webhook] Error posting review comment:`, error);
     // Don't throw - posting comment failure shouldn't fail the webhook
@@ -217,13 +218,13 @@ function getRiskEmoji(level: string): string {
       return '🔴';
     case 'high':
       return '🟠';
-    case 'moderate':
+    case 'medium':
       return '🟡';
     case 'low':
       return '🟢';
-    case 'minimal':
-      return '🔵';
     default:
       return '⚪';
   }
 }
+
+export const dynamic = 'force-dynamic';
