@@ -45,7 +45,8 @@ export class CodeReviewer {
       this.analyzeTestCoverage(prAnalysis),
     ]);
 
-    const summary = this.generateSummary(comments, riskScore, prAnalysis);
+  const simulation = this.generateSimulation(prAnalysis, comments);
+  const summary = this.generateSummary(comments, riskScore, prAnalysis, simulation);
     const recommendations = this.generateRecommendations(
       comments,
       riskScore,
@@ -64,6 +65,7 @@ export class CodeReviewer {
       summary,
       recommendations,
       estimatedReviewTime,
+      simulation,
     };
   }
 
@@ -432,7 +434,8 @@ export class CodeReviewer {
   private generateSummary(
     comments: ReviewComment[],
     riskScore: RiskScore,
-    prAnalysis: PRAnalysis
+    prAnalysis: PRAnalysis,
+    simulation: ReviewSummary['simulation']
   ): ReviewSummary {
     const critical = comments.filter(c => c.severity === 'critical').length;
     const high = comments.filter(c => c.severity === 'high').length;
@@ -482,6 +485,7 @@ export class CodeReviewer {
       overallScore,
       approved,
       requiresChanges,
+      simulation,
     };
   }
 
@@ -586,5 +590,135 @@ export class CodeReviewer {
   private severityWeight(severity: ReviewSeverity): number {
     const weights = { critical: 5, high: 4, medium: 3, low: 2, info: 1 };
     return weights[severity];
+  }
+
+  /**
+   * Generate impact simulation describing affected components and potential breaking changes.
+   */
+  private generateSimulation(
+    prAnalysis: PRAnalysis,
+    comments: ReviewComment[]
+  ): ReviewSummary['simulation'] {
+    // Basic heuristics for affected components
+    type SimAffectedComponent = {
+      name: string;
+      type: 'function' | 'class' | 'module' | 'api' | 'database';
+      file: string;
+      changeType: 'signature' | 'behavior' | 'removal' | 'addition';
+      usageCount: number;
+      criticalPath: boolean;
+    };
+    type SimBreakingChange = {
+      type: 'api' | 'signature' | 'removal' | 'behavior';
+      component: string;
+      description: string;
+      severity: ReviewSeverity;
+      affectedUsages: string[];
+      migrationSuggestion?: string;
+    };
+    type SimDependencyImpact = {
+      package: string;
+      changeType: 'added' | 'removed' | 'upgraded' | 'downgraded';
+      oldVersion?: string;
+      newVersion?: string;
+      risk: 'critical' | 'high' | 'medium' | 'low';
+    };
+
+    const affectedComponents: SimAffectedComponent[] = [];
+    const breakingChanges: SimBreakingChange[] = [];
+    const dependencyImpacts: SimDependencyImpact[] = [];
+
+    let affectedFunctions = 0;
+    const functionPattern = /^(\+).*\b(function|const|let|var)\s+\w+\s*(=|\()/;
+    const removedExportPattern = /^-.*export\s+(function|class|const|let)\s+\w+/;
+
+    for (const file of prAnalysis.filesChanged) {
+      if (!file.patch) continue;
+      const lines = file.patch.split('\n');
+      let functionsInFile = 0;
+      lines.forEach(l => {
+        if (functionPattern.test(l)) functionsInFile++;
+        if (removedExportPattern.test(l)) {
+          breakingChanges.push({
+            type: 'api',
+            component: file.filename,
+            description: 'Export removed; may break consumers.',
+            severity: 'high',
+            affectedUsages: [],
+          });
+        }
+      });
+      affectedFunctions += functionsInFile;
+
+  const componentType = this.inferComponentType(file.filename) as 'function' | 'class' | 'module' | 'api' | 'database';
+      const isCriticalPath = this.isCriticalPath(file.filename, comments);
+      if (functionsInFile > 0 || isCriticalPath) {
+        affectedComponents.push({
+          name: file.filename.split('/').pop() || file.filename,
+          type: componentType,
+          file: file.filename,
+          changeType: file.status === 'removed' ? 'removal' : 'behavior',
+          usageCount: this.estimateUsageCount(file.filename),
+          criticalPath: isCriticalPath,
+        });
+      }
+    }
+
+    // Scope determination
+    const affectedFiles = prAnalysis.filesChanged.length;
+    const scope = affectedFiles > 15
+      ? 'widespread'
+      : affectedFiles > 5
+        ? 'moderate'
+        : 'isolated';
+
+    // Elevate scope if many critical/high issues
+    const highRiskIssues = comments.filter(c => c.severity === 'critical' || c.severity === 'high').length;
+    const effectiveScope = highRiskIssues > 8 && scope !== 'widespread' ? 'moderate' : scope;
+
+    const estimatedImpact = highRiskIssues > 10
+      ? 'critical'
+      : highRiskIssues > 5
+        ? 'high'
+        : highRiskIssues > 2
+          ? 'medium'
+          : 'low';
+
+    return {
+      prNumber: prAnalysis.prNumber,
+      impactAnalysis: {
+        scope: effectiveScope as 'isolated' | 'moderate' | 'widespread',
+        affectedFiles,
+        affectedFunctions,
+        affectedModules: Array.from(new Set(affectedComponents.map(c => c.name))),
+        downstreamDependencies: 0,
+        upstreamDependencies: 0,
+      },
+      affectedComponents,
+      potentialBreakingChanges: breakingChanges,
+      dependencies: dependencyImpacts,
+      estimatedImpact: estimatedImpact as 'critical' | 'high' | 'medium' | 'low',
+    };
+  }
+
+  private inferComponentType(filename: string): string {
+    if (/api\//.test(filename)) return 'api';
+    if (/schema|prisma|db/.test(filename)) return 'database';
+    if (/\.test|__tests__/.test(filename)) return 'module';
+    if (/middleware|auth|security/.test(filename)) return 'module';
+    return 'module';
+  }
+
+  private isCriticalPath(filename: string, comments: ReviewComment[]): boolean {
+    const criticalPatterns = [/auth/, /security/, /middleware/, /db/, /prisma/];
+    if (criticalPatterns.some(p => p.test(filename))) return true;
+    return comments.some(c => c.file === filename && (c.severity === 'critical' || c.category === 'security'));
+  }
+
+  private estimateUsageCount(filename: string): number {
+    // Placeholder heuristic: more central files assumed higher usage
+    if (/auth|middleware|config|db|prisma/.test(filename)) return 50;
+    if (/utils|helpers/.test(filename)) return 30;
+    return 10;
   }
 }

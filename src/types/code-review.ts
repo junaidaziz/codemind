@@ -109,6 +109,7 @@ export interface CodeReviewResult {
   summary: ReviewSummary;
   recommendations: string[];
   estimatedReviewTime: number; // minutes
+  simulation?: ReviewSimulation; // Optional deeper impact simulation
 }
 
 export interface ReviewSummary {
@@ -124,6 +125,7 @@ export interface ReviewSummary {
   overallScore: number; // 0-100
   approved: boolean;
   requiresChanges: boolean;
+  simulation?: ReviewSimulation; // Embedded to persist with summary JSON
 }
 
 export interface ReviewSimulation {
