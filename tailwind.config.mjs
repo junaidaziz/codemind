@@ -32,6 +32,18 @@ const config = {
         accent: {
           light: '#3B82F6',
           dark: '#8B5CF6'
+        },
+        border: {
+          light: '#E2E8F0', /* slate-200 */
+          dark: '#334155'  /* slate-700 */
+        },
+        borderMuted: {
+          light: '#F1F5F9', /* slate-100 */
+          dark: '#1E293B'  /* slate-800 */
+        },
+        borderStrong: {
+          light: '#CBD5E1', /* slate-300 */
+          dark: '#475569'  /* slate-600 */
         }
       }
     },
