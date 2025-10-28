@@ -365,4 +365,63 @@ html.dark .text-secondary { color: #94A3B8; }
 .btn-accent:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.25); }
 .btn-accent:active { transform: translateY(0); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 
+/* Hero & heading hierarchy */
+.hero-heading {
+  color: #0f172a; /* slate-900 for strong contrast */
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+html.dark .hero-heading {
+  color: #f8fafc; /* lightest slate */
+}
+.hero-subtext {
+  color: #475569; /* secondary slate */
+}
+html.dark .hero-subtext { color: #94A3B8; }
+
+.heading-accent {
+  background: linear-gradient(90deg,#2563eb,#7c3aed);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* Form inputs theme-aware */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="url"],
+input[type="tel"],
+input[type="number"],
+textarea,
+select {
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  color: #0f172a;
+  transition: background-color .25s ease, border-color .25s ease, color .25s ease, box-shadow .25s ease;
+}
+html.dark input[type="text"],
+html.dark input[type="email"],
+html.dark input[type="password"],
+html.dark input[type="search"],
+html.dark input[type="url"],
+html.dark input[type="tel"],
+html.dark input[type="number"],
+html.dark textarea,
+html.dark select {
+  background-color: #1e293b;
+  border-color: var(--border-color);
+  color: #f1f5f9;
+}
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.35);
+}
+html.dark input:focus, html.dark textarea:focus, html.dark select:focus {
+  border-color: #8B5CF6;
+  box-shadow: 0 0 0 3px rgba(139,92,246,0.40);
+}
+
 

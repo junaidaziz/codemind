@@ -35,7 +35,7 @@ export default function Home() {
       
       <main>
         {/* Hero Section */}
-  <section className="relative overflow-hidden py-20 sm:py-32 transition-colors">
+  <section className="relative overflow-hidden py-20 sm:py-32 transition-colors bg-white dark:bg-transparent">
           <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]" style={{backgroundSize: '30px 30px'}}></div>
           {/* Dark overlay to deepen contrast */}
           <div className="pointer-events-none absolute inset-0 hidden dark:block bg-gradient-to-br from-black/60 via-gray-900/70 to-gray-800/60" />
@@ -49,14 +49,14 @@ export default function Home() {
                 </span>
               </div>
               
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-primary mb-6">
+              <h1 className="hero-heading text-5xl sm:text-6xl lg:text-7xl font-extrabold mb-6">
                 Code Smarter with
                 <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   AI-Powered Insights
                 </span>
               </h1>
               
-              <p className="text-xl sm:text-2xl text-secondary mb-10 max-w-3xl mx-auto">
+              <p className="hero-subtext text-xl sm:text-2xl mb-10 max-w-3xl mx-auto">
                 CodeMind helps you understand, analyze, and improve your codebase with intelligent automation, automated testing, and AI-powered code reviews.
               </p>
               
