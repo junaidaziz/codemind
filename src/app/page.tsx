@@ -42,9 +42,9 @@ export default function Home() {
           
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <div className="inline-flex items-center space-x-2 bg-blue-100 dark:bg-blue-900/30 px-4 py-2 rounded-full mb-6 surface-card minimal !border-transparent">
+              <div className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-full mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border border-blue-200 dark:border-indigo-700 shadow-sm">
                 <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <span className="text-sm font-medium text-secondary">
+                <span className="text-sm font-semibold text-blue-700 dark:text-blue-200 tracking-wide">
                   AI-Powered Developer Assistant
                 </span>
               </div>
@@ -63,14 +63,14 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link
                   href="/auth/signup"
-                  className="group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-xl hover:shadow-2xl flex items-center space-x-2"
+                  className="group px-9 py-4 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-lg hover:shadow-xl hover:from-blue-600 hover:via-indigo-500 hover:to-purple-600 transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
                 >
-                  <span>Get Started Free</span>
+                  <span className="tracking-wide">Get Started Free</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <Link
                   href="/docs"
-                  className="px-8 py-4 surface-card font-semibold rounded-lg border-2 hover:border-blue-500 transition-all duration-200"
+                  className="px-9 py-4 rounded-xl font-semibold outline-accent-btn text-blue-700 dark:text-indigo-200 border border-blue-300 dark:border-indigo-600 bg-white/70 dark:bg-transparent backdrop-blur-sm hover:bg-blue-50 dark:hover:bg-indigo-900/30 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   View Documentation
                 </Link>

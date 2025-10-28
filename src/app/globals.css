@@ -365,6 +365,35 @@ html.dark .text-secondary { color: #94A3B8; }
 .btn-accent:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.25); }
 .btn-accent:active { transform: translateY(0); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 
+/* Outline gradient-accent button */
+.outline-accent-btn {
+  position: relative;
+  background: #ffffff;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+html.dark .outline-accent-btn { background: linear-gradient(135deg,#1e293b,#0f172a); }
+.outline-accent-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  border-radius: inherit;
+  background: linear-gradient(90deg,#3B82F6,#6366F1,#8B5CF6);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+.outline-accent-btn:hover { color: #1e3a8a; }
+html.dark .outline-accent-btn:hover { color: #c7d2fe; }
+.outline-accent-btn:active { transform: scale(.985); }
+
 /* Hero & heading hierarchy */
 .hero-heading {
   color: #0f172a; /* slate-900 for strong contrast */
