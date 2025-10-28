@@ -56,7 +56,7 @@ export default function Home() {
                 </span>
               </h1>
               
-              <p className="hero-subtext text-xl sm:text-2xl mb-10 max-w-3xl mx-auto">
+              <p className="hero-subtext text-xl sm:text-2xl mb-10 max-w-3xl mx-auto text-gray-700 dark:text-slate-300">
                 CodeMind helps you understand, analyze, and improve your codebase with intelligent automation, automated testing, and AI-powered code reviews.
               </p>
               
@@ -79,7 +79,7 @@ export default function Home() {
               <div className="mt-12 flex items-center justify-center space-x-8 text-sm text-secondary">
                 <div className="flex items-center space-x-2">
                   <CheckCircle2 className="w-5 h-5 text-green-500" />
-                  <span>No credit card required</span>
+                  <span className="heading-accent font-semibold">No credit card required</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <CheckCircle2 className="w-5 h-5 text-green-500" />
