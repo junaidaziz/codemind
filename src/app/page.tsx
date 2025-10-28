@@ -35,7 +35,7 @@ export default function Home() {
       
       <main>
         {/* Hero Section */}
-  <section className="relative overflow-hidden py-20 sm:py-32 transition-colors bg-white dark:bg-transparent">
+  <section className="relative overflow-hidden py-20 sm:py-32 transition-colors surface">
           <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.75))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]" style={{backgroundSize: '30px 30px'}}></div>
     {/* Soft radial glow for light theme (reduced alpha for better contrast) */}
     <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.08),transparent_60%)] dark:hidden" />
@@ -49,18 +49,19 @@ export default function Home() {
                 <span>AI-Powered Developer Assistant</span>
               </div>
               
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold mb-6 tracking-tight text-[#1a1a1a] dark:text-white">
+              <h1 className="hero-heading text-5xl sm:text-6xl lg:text-7xl font-extrabold mb-6 tracking-tight">
                 Code Smarter with
-                <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent inline-block ml-3">AI-Powered Insights</span>
+                <span className="heading-accent inline-block ml-3">AI-Powered Insights</span>
               </h1>
               
-              <p className="hero-subtext text-xl sm:text-2xl mb-10 max-w-3xl mx-auto text-[#2e2e33] dark:text-slate-300">
+              <p className="hero-subtext text-xl sm:text-2xl mb-10 max-w-3xl mx-auto">
                 CodeMind helps you understand, analyze, and improve your codebase with intelligent automation, automated testing, and AI-powered code reviews.
               </p>
               
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link
                   href="/auth/signup"
+                  aria-label="Sign up for CodeMind"
                   className="btn-primary-gradient group"
                 >
                   <span className="tracking-wide">Get Started Free</span>
@@ -68,13 +69,14 @@ export default function Home() {
                 </Link>
                 <Link
                   href="/docs"
+                  aria-label="View CodeMind documentation"
                   className="btn-secondary-accent"
                 >
                   View Documentation
                 </Link>
               </div>
 
-              <div className="mt-12 flex items-center justify-center space-x-8 text-sm text-[#2f3a45] dark:text-secondary">
+              <div className="mt-12 flex items-center justify-center space-x-8 text-sm text-secondary">
                 <div className="flex items-center space-x-2">
                   <CheckCircle2 className="w-5 h-5 text-green-500" />
                   <span className="heading-accent font-semibold">No credit card required</span>
