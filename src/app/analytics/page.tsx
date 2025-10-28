@@ -53,14 +53,14 @@ const DashboardError = ({ error, resetError }: { error: Error; resetError: () =>
 // Main analytics page component
 export default function AnalyticsPage() {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen surface-panel minimal rounded-none border-0 !bg-transparent">
       {/* Page Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+      <div className="surface-card rounded-none shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Analytics</h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
+              <h1 className="text-2xl font-bold text-primary">Analytics</h1>
+              <p className="text-secondary mt-1">
                 Monitor system performance, user activity, and usage metrics
               </p>
             </div>
@@ -83,9 +83,9 @@ export default function AnalyticsPage() {
       </ErrorBoundary>
 
       {/* Footer */}
-      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-12">
+      <footer className="surface-card rounded-none border-t mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+          <div className="flex items-center justify-between text-sm text-secondary">
             <div>
               <p>CodeMind Analytics Dashboard</p>
             </div>

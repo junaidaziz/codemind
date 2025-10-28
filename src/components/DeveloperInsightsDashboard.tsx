@@ -109,12 +109,12 @@ const DeveloperInsightsDashboard: React.FC<DeveloperInsightsDashboardProps> = ({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900">
+      <div className="min-h-screen surface-panel minimal rounded-none border-0 !bg-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-center p-8">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
-              <p className="text-gray-600 dark:text-gray-400">Loading analytics data...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-secondary">Loading analytics data...</p>
             </div>
           </div>
         </div>
@@ -124,16 +124,16 @@ const DeveloperInsightsDashboard: React.FC<DeveloperInsightsDashboardProps> = ({
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900">
+      <div className="min-h-screen surface-panel minimal rounded-none border-0 !bg-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="p-8 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
+          <Card className="p-8 surface-card border border-red-300">
             <div className="text-center">
-              <AlertCircle className="h-12 w-12 text-red-500 dark:text-red-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-red-700 dark:text-red-300 mb-2">Error Loading Analytics</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
+              <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-red-700 mb-2">Error Loading Analytics</h3>
+              <p className="text-secondary mb-4">{error}</p>
               <button 
                 onClick={fetchAnalyticsData}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-md transition-colors"
+                className="px-4 py-2 btn-accent rounded-md transition-colors"
               >
                 Try Again
               </button>
@@ -222,17 +222,17 @@ const DeveloperInsightsDashboard: React.FC<DeveloperInsightsDashboardProps> = ({
           {/* Header */}
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Developer Insights</h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
+              <h1 className="text-3xl font-bold text-primary">Developer Insights</h1>
+              <p className="text-secondary mt-1">
                 AI-powered development analytics and productivity metrics
               </p>
             </div>
             <div className="flex items-center space-x-2">
-              <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <Calendar className="h-4 w-4 text-secondary" />
               <select
                 value={timeframe}
                 onChange={(e) => setTimeframe(e.target.value)}
-                className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="border border-gray-300 bg-white rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               >
                 <option value="7">Last 7 days</option>
                 <option value="30">Last 30 days</option>
@@ -243,53 +243,53 @@ const DeveloperInsightsDashboard: React.FC<DeveloperInsightsDashboardProps> = ({
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+  <Card className="surface-card border-blue-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-900 dark:text-white">AI Fixes</CardTitle>
+            <CardTitle className="text-sm font-medium text-primary">AI Fixes</CardTitle>
             <CheckCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{data.summary.totalAiFixes}</div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <div className="text-2xl font-bold text-blue-600">{data.summary.totalAiFixes}</div>
+            <p className="text-xs text-secondary">
               +{data.metrics.issuesResolvedThisWeek} this week
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+  <Card className="surface-card border-green-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-900 dark:text-white">Time Saved</CardTitle>
+            <CardTitle className="text-sm font-medium text-primary">Time Saved</CardTitle>
             <Clock className="h-4 w-4 text-green-600 dark:text-green-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">{data.summary.estimatedTimeSaved}h</div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <div className="text-2xl font-bold text-green-600">{data.summary.estimatedTimeSaved}h</div>
+            <p className="text-xs text-secondary">
               Estimated developer hours saved
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+  <Card className="surface-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-900 dark:text-white">Success Rate</CardTitle>
+            <CardTitle className="text-sm font-medium text-primary">Success Rate</CardTitle>
             <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{data.summary.successRate}%</div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <div className="text-2xl font-bold text-primary">{data.summary.successRate}%</div>
+            <p className="text-xs text-secondary">
               AI PRs merged successfully
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+  <Card className="surface-card border-blue-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-900 dark:text-white">AI Pull Requests</CardTitle>
+            <CardTitle className="text-sm font-medium text-primary">AI Pull Requests</CardTitle>
             <GitPullRequest className="h-4 w-4 text-blue-600 dark:text-blue-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{data.summary.totalAiPrs}</div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <div className="text-2xl font-bold text-blue-600">{data.summary.totalAiPrs}</div>
+            <p className="text-xs text-secondary">
               +{data.metrics.prsCreatedThisWeek} this week
             </p>
           </CardContent>
@@ -305,10 +305,10 @@ const DeveloperInsightsDashboard: React.FC<DeveloperInsightsDashboardProps> = ({
             </TabsList>
 
             <TabsContent value="activity" className="space-y-4">
-              <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+              <Card className="surface-card">
                 <CardHeader>
-                  <CardTitle className="text-gray-900 dark:text-white">Repository Activity</CardTitle>
-                  <CardDescription className="text-gray-600 dark:text-gray-400">
+                    <CardTitle className="text-primary">Repository Activity</CardTitle>
+                    <CardDescription className="text-secondary">
                     Issues and pull requests over the last {timeframe} days
                   </CardDescription>
                 </CardHeader>
@@ -322,7 +322,7 @@ const DeveloperInsightsDashboard: React.FC<DeveloperInsightsDashboardProps> = ({
 
         <TabsContent value="success" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
+            <Card className="surface-card">
               <CardHeader>
                 <CardTitle>AI PR Success Rate</CardTitle>
                 <CardDescription>
@@ -336,7 +336,7 @@ const DeveloperInsightsDashboard: React.FC<DeveloperInsightsDashboardProps> = ({
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="surface-card">
               <CardHeader>
                 <CardTitle>Key Metrics</CardTitle>
                 <CardDescription>
@@ -377,7 +377,7 @@ const DeveloperInsightsDashboard: React.FC<DeveloperInsightsDashboardProps> = ({
 
         <TabsContent value="performance" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
+            <Card className="surface-card">
               <CardHeader>
                 <CardTitle>Development Velocity</CardTitle>
                 <CardDescription>
@@ -413,7 +413,7 @@ const DeveloperInsightsDashboard: React.FC<DeveloperInsightsDashboardProps> = ({
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="surface-card">
               <CardHeader>
                 <CardTitle>AI Impact Summary</CardTitle>
                 <CardDescription>
@@ -421,7 +421,7 @@ const DeveloperInsightsDashboard: React.FC<DeveloperInsightsDashboardProps> = ({
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 surface-card minimal !border-green-200">
                   <div className="flex items-center space-x-2">
                     <CheckCircle className="h-5 w-5 text-green-600" />
                     <span className="text-sm font-medium">Issues Resolved</span>
@@ -431,7 +431,7 @@ const DeveloperInsightsDashboard: React.FC<DeveloperInsightsDashboardProps> = ({
                   </span>
                 </div>
                 
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 surface-card minimal !border-blue-200">
                   <div className="flex items-center space-x-2">
                     <Clock className="h-5 w-5 text-blue-600" />
                     <span className="text-sm font-medium">Time Saved</span>
@@ -441,7 +441,7 @@ const DeveloperInsightsDashboard: React.FC<DeveloperInsightsDashboardProps> = ({
                   </span>
                 </div>
                 
-                <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 surface-card minimal !border-purple-200">
                   <div className="flex items-center space-x-2">
                     <Activity className="h-5 w-5 text-purple-600" />
                     <span className="text-sm font-medium">Success Rate</span>
