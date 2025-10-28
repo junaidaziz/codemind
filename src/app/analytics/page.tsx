@@ -53,7 +53,7 @@ const DashboardError = ({ error, resetError }: { error: Error; resetError: () =>
 // Main analytics page component
 export default function AnalyticsPage() {
   return (
-    <div className="min-h-screen surface-panel minimal rounded-none border-0 !bg-transparent">
+  <div className="min-h-screen app-root surface-panel minimal rounded-none border-0">
       {/* Page Header */}
       <div className="surface-card rounded-none shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

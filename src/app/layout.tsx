@@ -36,7 +36,7 @@ export default function RootLayout({
         {/* next-themes will handle initial theme; removed manual pre-hydration script */}
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased app-root text-gray-900 dark:text-gray-100 transition-colors`}
       >
         <ThemeProvider>
           <ErrorBoundary>

@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-  <div className="min-h-screen surface-panel minimal rounded-none border-0 !bg-transparent">
+  <div className="min-h-screen app-root surface-panel minimal rounded-none border-0">
       <Header />
       
       <main>
