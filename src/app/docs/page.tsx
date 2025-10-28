@@ -75,9 +75,9 @@ interface NavigationProps {
 
 const Navigation: React.FC<NavigationProps> = ({ activeSection, onSectionChange }) => {
   return (
-    <nav className="w-64 bg-gray-50 dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800 h-full overflow-y-auto">
+    <nav className="w-64 surface-panel minimal rounded-none border-r h-full overflow-y-auto">
       <div className="p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Documentation</h2>
+        <h2 className="text-lg font-semibold text-primary mb-4">Documentation</h2>
         <ul className="space-y-2">
           {docSections.map((section) => (
             <li key={section.id}>
@@ -85,15 +85,15 @@ const Navigation: React.FC<NavigationProps> = ({ activeSection, onSectionChange 
                 onClick={() => onSectionChange(section.id)}
                 className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
                   activeSection === section.id
-                    ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-900 dark:text-blue-100 border border-blue-200 dark:border-blue-700'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    ? 'surface-card minimal !border-blue-200 bg-blue-50 dark:!border-blue-700 dark:bg-blue-950/40 text-blue-900 dark:text-blue-100'
+                    : 'text-secondary hover:bg-gray-100 dark:hover:bg-gray-800'
                 }`}
               >
                 <div className="flex items-center space-x-3">
                   <span className="text-lg">{section.icon}</span>
                   <div>
-                    <div className="font-medium text-gray-800 dark:text-gray-100">{section.title}</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">{section.description}</div>
+                    <div className="font-medium text-primary">{section.title}</div>
+                    <div className="text-sm text-secondary">{section.description}</div>
                   </div>
                 </div>
               </button>
@@ -109,69 +109,69 @@ const Navigation: React.FC<NavigationProps> = ({ activeSection, onSectionChange 
 const OverviewSection: React.FC = () => {
   return (
     <div className="prose max-w-none dark:prose-invert">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8">CodeMind Documentation</h1>
+      <h1 className="text-3xl font-bold text-primary mb-8">CodeMind Documentation</h1>
       
-      <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-6 mb-8">
+      <div className="surface-card minimal !border-blue-200 bg-blue-50 dark:!border-blue-700 dark:bg-blue-950/30 rounded-lg p-6 mb-8">
         <h2 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">🚀 Quick Start</h2>
-        <p className="text-blue-800 dark:text-blue-200">
+        <p className="text-secondary">
           Get up and running with CodeMind in minutes. Follow our step-by-step guide to create your first project 
           and start chatting with your codebase.
         </p>
       </div>
 
-      <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">What is CodeMind?</h2>
-      <p className="text-gray-600 dark:text-gray-300 mb-6">
+      <h2 className="text-2xl font-semibold text-primary mb-4">What is CodeMind?</h2>
+      <p className="text-secondary mb-6">
         CodeMind is an AI-powered code analysis and chat platform that helps developers understand, 
         navigate, and work with their codebases more effectively. Using advanced natural language processing 
         and vector embeddings, CodeMind can answer questions about your code, explain complex functions, 
         and help you find relevant code snippets.
       </p>
 
-      <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Key Features</h2>
+      <h2 className="text-2xl font-semibold text-primary mb-4">Key Features</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <div className="surface-card p-6">
           <div className="flex items-center space-x-3 mb-3">
             <span className="text-2xl">🧠</span>
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">AI-Powered Analysis</h3>
+            <h3 className="text-lg font-semibold text-primary">AI-Powered Analysis</h3>
           </div>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-secondary">
             Advanced AI models analyze your codebase and provide intelligent responses to your questions.
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <div className="surface-card p-6">
           <div className="flex items-center space-x-3 mb-3">
             <span className="text-2xl">🔍</span>
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Semantic Search</h3>
+            <h3 className="text-lg font-semibold text-primary">Semantic Search</h3>
           </div>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-secondary">
             Find code snippets, functions, and documentation using natural language queries.
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <div className="surface-card p-6">
           <div className="flex items-center space-x-3 mb-3">
             <span className="text-2xl">💬</span>
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Interactive Chat</h3>
+            <h3 className="text-lg font-semibold text-primary">Interactive Chat</h3>
           </div>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-secondary">
             Have conversations about your code with context-aware responses and code examples.
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <div className="surface-card p-6">
           <div className="flex items-center space-x-3 mb-3">
             <span className="text-2xl">📊</span>
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Analytics Dashboard</h3>
+            <h3 className="text-lg font-semibold text-primary">Analytics Dashboard</h3>
           </div>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-secondary">
             Monitor usage, performance metrics, and gain insights into your development patterns.
           </p>
         </div>
       </div>
 
-  <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Getting Started</h2>
-  <ol className="list-decimal list-inside space-y-4 text-gray-600 dark:text-gray-300">
+  <h2 className="text-2xl font-semibold text-primary mb-4">Getting Started</h2>
+  <ol className="list-decimal list-inside space-y-4 text-secondary">
         <li>
           <strong>Sign up</strong> for a CodeMind account using your email address
         </li>
@@ -186,9 +186,9 @@ const OverviewSection: React.FC = () => {
         </li>
       </ol>
 
-      <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6 mt-8">
-        <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-100">📚 Next Steps</h3>
-        <ul className="space-y-2 text-gray-600 dark:text-gray-300">
+      <div className="surface-card p-6 mt-8">
+        <h3 className="text-lg font-semibold mb-3 text-primary">📚 Next Steps</h3>
+        <ul className="space-y-2 text-secondary">
           <li>• Explore the <strong>API Reference</strong> for integration details</li>
           <li>• Check out <strong>Code Examples</strong> for common use cases</li>
           <li>• Review <strong>TypeScript Types</strong> for type-safe development</li>
