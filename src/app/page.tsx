@@ -36,54 +36,52 @@ export default function Home() {
       <main>
         {/* Hero Section */}
   <section className="relative overflow-hidden py-20 sm:py-32 transition-colors bg-white dark:bg-transparent">
-          <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]" style={{backgroundSize: '30px 30px'}}></div>
+          <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.75))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]" style={{backgroundSize: '30px 30px'}}></div>
+    {/* Soft radial glow for light theme (reduced alpha for better contrast) */}
+    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.08),transparent_60%)] dark:hidden" />
           {/* Dark overlay to deepen contrast */}
           <div className="pointer-events-none absolute inset-0 hidden dark:block bg-gradient-to-br from-black/60 via-gray-900/70 to-gray-800/60" />
           
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <div className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-full mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border border-blue-200 dark:border-indigo-700 shadow-sm">
+              <div className="hero-badge mb-8">
                 <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <span className="text-sm font-semibold text-blue-700 dark:text-blue-200 tracking-wide">
-                  AI-Powered Developer Assistant
-                </span>
+                <span>AI-Powered Developer Assistant</span>
               </div>
               
-              <h1 className="hero-heading text-5xl sm:text-6xl lg:text-7xl font-extrabold mb-6">
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold mb-6 tracking-tight text-[#1a1a1a] dark:text-white">
                 Code Smarter with
-                <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  AI-Powered Insights
-                </span>
+                <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent inline-block ml-3">AI-Powered Insights</span>
               </h1>
               
-              <p className="hero-subtext text-xl sm:text-2xl mb-10 max-w-3xl mx-auto text-gray-700 dark:text-slate-300">
+              <p className="hero-subtext text-xl sm:text-2xl mb-10 max-w-3xl mx-auto text-[#2e2e33] dark:text-slate-300">
                 CodeMind helps you understand, analyze, and improve your codebase with intelligent automation, automated testing, and AI-powered code reviews.
               </p>
               
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link
                   href="/auth/signup"
-                  className="group px-9 py-4 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-lg hover:shadow-xl hover:from-blue-600 hover:via-indigo-500 hover:to-purple-600 transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
+                  className="btn-primary-gradient group"
                 >
                   <span className="tracking-wide">Get Started Free</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <Link
                   href="/docs"
-                  className="px-9 py-4 rounded-xl font-semibold outline-accent-btn text-blue-700 dark:text-indigo-200 border border-blue-300 dark:border-indigo-600 bg-white/70 dark:bg-transparent backdrop-blur-sm hover:bg-blue-50 dark:hover:bg-indigo-900/30 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="btn-secondary-accent"
                 >
                   View Documentation
                 </Link>
               </div>
 
-              <div className="mt-12 flex items-center justify-center space-x-8 text-sm text-secondary">
+              <div className="mt-12 flex items-center justify-center space-x-8 text-sm text-[#2f3a45] dark:text-secondary">
                 <div className="flex items-center space-x-2">
                   <CheckCircle2 className="w-5 h-5 text-green-500" />
                   <span className="heading-accent font-semibold">No credit card required</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <CheckCircle2 className="w-5 h-5 text-green-500" />
-                  <span>Free forever plan</span>
+                  <span className="font-medium">Free forever plan</span>
                 </div>
               </div>
             </div>
@@ -94,7 +92,7 @@ export default function Home() {
   <section id="about" className="py-20 transition-colors">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-4xl sm:text-5xl font-bold text-primary mb-4">
+              <h2 className="text-4xl sm:text-5xl font-extrabold mb-4 tracking-tight text-[#1f2937] dark:text-white">
                 About CodeMind
               </h2>
               <p className="text-xl text-secondary max-w-3xl mx-auto">
@@ -104,7 +102,7 @@ export default function Home() {
 
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <h3 className="text-3xl font-bold text-primary mb-6">
+                <h3 className="text-3xl font-bold mb-6 tracking-tight text-[#1f2937] dark:text-white">
                   Our Story
                 </h3>
                 <p className="text-lg text-secondary mb-6">

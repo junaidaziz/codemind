@@ -3,14 +3,13 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Accent gradient tokens (light theme) */
+  --gradient-accent-start: #60a5fa; /* blue-400 */
+  --gradient-accent-mid: #818cf8;   /* indigo-400 */
+  --gradient-accent-end: #c084fc;   /* purple-400 */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -296,6 +295,10 @@ html.dark {
   --border-color-muted: #1E293B; /* slate-800 */
   --shadow-card: 0 1px 2px rgba(0,0,0,0.5), 0 1px 3px rgba(0,0,0,0.6);
   --shadow-panel: 0 2px 6px rgba(0,0,0,0.55), 0 4px 12px rgba(0,0,0,0.45);
+  /* Dark theme accent gradient tokens (more saturated for white text) */
+  --gradient-accent-start: #2563eb; /* blue-600 */
+  --gradient-accent-mid: #4f46e5;   /* indigo-600 */
+  --gradient-accent-end: #7c3aed;   /* purple-600 */
 }
 
 /* Generic class to opt-in to variable surfaces */
@@ -414,6 +417,84 @@ html.dark .hero-subtext { color: #94A3B8; }
   -webkit-background-clip: text;
   color: transparent;
 }
+
+/* Hero badge styling for improved light theme contrast */
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  padding: .7rem 1.35rem;
+  border-radius: 9999px;
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .03em;
+  background: linear-gradient(135deg,#eff6ff,#e0f2fe 40%,#eef2ff); /* soft tinted (no plain white) */
+  border: 1px solid #bfdbfe; /* blue-200 */
+  color: #1e3a8a; /* blue-800 */
+  box-shadow: 0 2px 4px rgba(99,102,241,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  backdrop-filter: blur(6px);
+}
+html.dark .hero-badge {
+  background: linear-gradient(135deg,rgba(30,58,138,0.55),rgba(67,56,202,0.55));
+  border-color: #4f46e5; /* indigo-600 */
+  color: #e0eaff; /* lighter text */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.55);
+}
+
+/* Primary gradient button using tokens, adaptive text color */
+.btn-primary-gradient {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: 1rem 2.25rem;
+  font-weight: 600;
+  border-radius: .9rem;
+  background: linear-gradient(90deg,var(--gradient-accent-start),var(--gradient-accent-mid),var(--gradient-accent-end));
+  color: #ffffff; /* ensure white text for clarity */
+  text-shadow: 0 1px 3px rgba(0,0,0,0.35);
+  box-shadow: 0 6px 18px rgba(99,102,241,0.25), 0 3px 6px rgba(0,0,0,0.08);
+  transition: box-shadow .25s ease, transform .25s ease, background .35s ease;
+}
+
+/* Secondary accent button (documentation) */
+.btn-secondary-accent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.95rem 2.1rem;
+  font-weight: 600;
+  border-radius: .85rem;
+  background: linear-gradient(135deg,#eff6ff,#eef2ff 55%,#f1f5ff);
+  color: #1e293b;
+  border: 1px solid #c7d2fe; /* indigo/blue mixed */
+  transition: background .25s ease, color .25s ease, box-shadow .25s ease;
+}
+.btn-secondary-accent:hover {
+  background: linear-gradient(135deg,#e0f2fe,#e0e7ff 55%,#e8edff);
+  box-shadow: 0 4px 10px rgba(99,102,241,0.15);
+}
+.btn-secondary-accent:active { transform: translateY(0); box-shadow: 0 2px 5px rgba(0,0,0,0.12); }
+.btn-secondary-accent:focus-visible { outline: 2px solid #6366f1; outline-offset: 3px; }
+html.dark .btn-secondary-accent {
+  background: linear-gradient(135deg,#1e293b,#0f172a);
+  color: #e2e8f0;
+  border-color: #4f46e5;
+}
+html.dark .btn-secondary-accent:hover { background: linear-gradient(135deg,#24324b,#1a2235); }
+html.dark .btn-primary-gradient {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+.btn-primary-gradient:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+  box-shadow: 0 10px 24px rgba(99,102,241,0.35), 0 4px 10px rgba(0,0,0,0.12);
+}
+.btn-primary-gradient:active { transform: translateY(0); }
+.btn-primary-gradient:focus-visible { outline: 2px solid #3b82f6; outline-offset: 3px; }
+html.dark .btn-primary-gradient:focus-visible { outline-color: #6366f1; }
 
 /* Form inputs theme-aware */
 input[type="text"],
