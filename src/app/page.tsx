@@ -35,12 +35,7 @@ export default function Home() {
       
       <main>
         {/* Hero Section */}
-  <section className="relative overflow-hidden py-20 sm:py-32 transition-colors surface">
-          <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.75))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]" style={{backgroundSize: '30px 30px'}}></div>
-    {/* Soft radial glow for light theme (reduced alpha for better contrast) */}
-    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.08),transparent_60%)] dark:hidden" />
-          {/* Dark overlay to deepen contrast */}
-          <div className="pointer-events-none absolute inset-0 hidden dark:block bg-gradient-to-br from-black/60 via-gray-900/70 to-gray-800/60" />
+  <section className="hero-bg relative overflow-hidden py-20 sm:py-32 transition-colors surface">
           
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
