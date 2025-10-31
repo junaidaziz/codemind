@@ -164,7 +164,7 @@ export default function Home() {
   <section id="features" className="py-20 transition-colors">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-4xl sm:text-5xl font-bold text-primary mb-4">
+              <h2 className="section-heading text-4xl sm:text-5xl mb-6">
                 AI-Powered Capabilities
               </h2>
               <p className="text-xl text-secondary max-w-3xl mx-auto">
@@ -178,7 +178,7 @@ export default function Home() {
                 <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-4">
                   <Zap className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h3 className="text-xl font-bold text-primary mb-3">
+                <h3 className="card-title text-xl mb-3">
                   Auto-Fix Code Issues
                 </h3>
                 <p className="text-secondary mb-4">
@@ -194,7 +194,7 @@ export default function Home() {
                 <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-4">
                   <Code className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                 </div>
-                <h3 className="text-xl font-bold text-primary mb-3">
+                <h3 className="card-title text-xl mb-3">
                   Code Generation
                 </h3>
                 <p className="text-secondary mb-4">
@@ -210,7 +210,7 @@ export default function Home() {
                 <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mb-4">
                   <GitBranch className="w-6 h-6 text-green-600 dark:text-green-400" />
                 </div>
-                <h3 className="text-xl font-bold text-primary mb-3">
+                <h3 className="card-title text-xl mb-3">
                   Intelligent Chat
                 </h3>
                 <p className="text-secondary mb-4">
@@ -226,7 +226,7 @@ export default function Home() {
                 <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center mb-4">
                   <Shield className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                 </div>
-                <h3 className="text-xl font-bold text-primary mb-3">
+                <h3 className="card-title text-xl mb-3">
                   Project Analytics
                 </h3>
                 <p className="text-secondary mb-4">
@@ -244,7 +244,7 @@ export default function Home() {
   <section id="contact" className="py-20 transition-colors">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-4xl sm:text-5xl font-bold text-primary mb-4">
+              <h2 className="section-heading text-4xl sm:text-5xl mb-6">
                 Get in Touch
               </h2>
               <p className="text-xl text-secondary max-w-3xl mx-auto">
