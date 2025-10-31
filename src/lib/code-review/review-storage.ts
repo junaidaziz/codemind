@@ -59,6 +59,15 @@ export class ReviewStorage {
   linesAdded: result.prAnalysis.totalAdditions,
   linesRemoved: result.prAnalysis.totalDeletions,
         summary: JSON.stringify(result.summary),
+        simulation: result.simulation
+          ? (result.simulation as unknown as Prisma.InputJsonValue)
+          : undefined,
+        documentationSuggestions: result.documentationSuggestions.length > 0
+          ? (result.documentationSuggestions as unknown as Prisma.InputJsonValue)
+          : undefined,
+        testingSuggestions: result.testingSuggestions.length > 0
+          ? (result.testingSuggestions as unknown as Prisma.InputJsonValue)
+          : undefined,
         commitSha: result.prAnalysis.headSha,
         completedAt: new Date(),
         CodeReviewComment: {
@@ -125,6 +134,15 @@ export class ReviewStorage {
   linesAdded: result.prAnalysis.totalAdditions,
   linesRemoved: result.prAnalysis.totalDeletions,
         summary: JSON.stringify(result.summary),
+        simulation: result.simulation
+          ? (result.simulation as unknown as Prisma.InputJsonValue)
+          : undefined,
+        documentationSuggestions: result.documentationSuggestions.length > 0
+          ? (result.documentationSuggestions as unknown as Prisma.InputJsonValue)
+          : undefined,
+        testingSuggestions: result.testingSuggestions.length > 0
+          ? (result.testingSuggestions as unknown as Prisma.InputJsonValue)
+          : undefined,
         commitSha: result.prAnalysis.headSha,
         completedAt: new Date(),
         updatedAt: new Date(),
@@ -415,6 +433,39 @@ export class ReviewStorage {
       default:
         return `Address ${category} issues with priority: ${severity}.`;
     }
+  }
+
+  /**
+   * Mark a set of comments as posted to GitHub by updating their githubCommentId & postedToGitHub flag.
+   * Accepts array of { reviewId, filePath, lineNumber, githubCommentId }.
+   * Performs individual updates to avoid race conditions; could batch later.
+   */
+  async markCommentsPosted(
+    reviewId: string,
+    postings: Array<{ filePath: string; lineNumber: number; githubCommentId: number }>
+  ) {
+    if (postings.length === 0) return { updated: 0 };
+    let updated = 0;
+    for (const p of postings) {
+      try {
+        await prisma.codeReviewComment.updateMany({
+          where: {
+            reviewId,
+            filePath: p.filePath,
+            lineNumber: p.lineNumber,
+            postedToGitHub: false,
+          },
+          data: {
+            postedToGitHub: true,
+            githubCommentId: p.githubCommentId,
+          },
+        });
+        updated++;
+      } catch (err) {
+        console.error('[ReviewStorage] Failed to mark comment posted', p, err);
+      }
+    }
+    return { updated };
   }
 }
 

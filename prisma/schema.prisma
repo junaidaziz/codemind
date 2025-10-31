@@ -917,6 +917,10 @@ model CodeReview {
   linesAdded         Int                   @default(0)
   linesRemoved       Int                   @default(0)
   summary            String?               @db.Text
+  // Structured JSON fields (added after initial implementation that embedded these inside summary JSON)
+  simulation         Json?
+  documentationSuggestions Json?
+  testingSuggestions Json?
   aiSuggestions      String?               @db.Text
   commitSha          String?
   completedAt        DateTime?

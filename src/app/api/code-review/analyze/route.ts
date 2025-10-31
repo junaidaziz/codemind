@@ -62,6 +62,7 @@ export async function POST(request: NextRequest) {
         estimatedReviewTime: reviewResult.estimatedReviewTime,
         documentationSuggestions: reviewResult.documentationSuggestions,
         testingSuggestions: reviewResult.testingSuggestions,
+        simulation: reviewResult.simulation,
       },
     });
   } catch (error) {

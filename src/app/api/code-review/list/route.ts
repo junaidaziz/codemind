@@ -15,7 +15,11 @@ export async function GET(request: NextRequest) {
     const storage = new ReviewStorage();
     const reviews = await storage.getProjectReviews(projectId, { limit });
 
-    const simplified = reviews.map(r => ({
+    const simplified = reviews.map(r => {
+      // simulation is a JSON field; r as returned by Prisma includes it if selected.
+      // We did not explicitly select it so TypeScript doesn't know; access via (r as { simulation?: any })
+      const simulation: { estimatedImpact?: string } | undefined = (r as unknown as { simulation?: { estimatedImpact?: string } }).simulation;
+      return {
       id: r.id,
       prNumber: r.prNumber,
       riskLevel: r.riskLevel,
@@ -27,7 +31,8 @@ export async function GET(request: NextRequest) {
       linesAdded: r.linesAdded,
       linesRemoved: r.linesRemoved,
       createdAt: r.createdAt,
-    }));
+      estimatedImpact: simulation?.estimatedImpact,
+    };});
 
     return NextResponse.json({ projectId, reviews: simplified });
   } catch (error) {
