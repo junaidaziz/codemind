@@ -43,6 +43,13 @@ export class GitHubFetcher {
   // Basic rate-limit tracking
   private remaining: number = Infinity;
   private resetAt: number = 0; // epoch ms for rate limit reset
+  // Adaptive rate limiting queue
+  private queue: Array<() => Promise<Response>> = [];
+  private processing = false;
+  private lowRemainingThreshold = 10; // when remaining < threshold, enter throttled mode
+  private baseDelayMs = 300; // base delay between requests under throttling
+  private maxDelayMs = 5000; // cap delay
+  private consecutiveThrottled = 0; // count consecutive throttled dispatches for backoff
 
   constructor(token?: string) {
     this.token = token || process.env.GITHUB_TOKEN || '';
@@ -154,13 +161,67 @@ export class GitHubFetcher {
 
   /** Rate-limit aware fetch wrapper */
   private async guardedFetch(url: string, init: RequestInit): Promise<Response> {
-    // If we're near exhaustion and have a reset time in the future, wait.
-    if (this.remaining <= 2 && this.resetAt > Date.now()) {
-      const waitMs = this.resetAt - Date.now();
-      await this.delay(waitMs);
+    return this.enqueue(() => fetch(url, init));
+  }
+
+  /** Enqueue a request respecting adaptive throttling */
+  private async enqueue(fn: () => Promise<Response>): Promise<Response> {
+    return new Promise<Response>((resolve, reject) => {
+      this.queue.push(async (): Promise<Response> => {
+        try {
+          // Pre-dispatch wait if under hard exhaustion condition
+          if (this.remaining <= 2 && this.resetAt > Date.now()) {
+            const waitMs = this.resetAt - Date.now();
+            console.warn(`[GitHubFetcher] Hard rate limit exhaustion, waiting ${waitMs}ms until reset`);
+            await this.delay(waitMs);
+          } else if (this.remaining < this.lowRemainingThreshold) {
+            // Adaptive backoff delay grows with consecutive throttled dispatches
+            const delayFactor = Math.min(this.consecutiveThrottled + 1, 10);
+            const dynamicDelay = Math.min(this.baseDelayMs * delayFactor, this.maxDelayMs);
+            await this.delay(dynamicDelay);
+            this.consecutiveThrottled++;
+          } else {
+            // Reset throttled counter when healthy
+            this.consecutiveThrottled = 0;
+          }
+
+          const response = await fn();
+          this.captureRateLimitHeaders(response);
+          // If we receive a secondary 403 rate limit response without remaining header, try exponential backoff once
+          if (response.status === 403 && this.remaining < this.lowRemainingThreshold) {
+            const retryDelay = Math.min(this.baseDelayMs * Math.pow(2, this.consecutiveThrottled), this.maxDelayMs);
+            console.warn(`[GitHubFetcher] 403 rate limit encountered, retrying after ${retryDelay}ms`);
+            await this.delay(retryDelay);
+            const retryResp = await fn();
+            this.captureRateLimitHeaders(retryResp);
+            resolve(retryResp);
+            return retryResp;
+          }
+          resolve(response);
+          return response;
+        } catch (err) {
+          reject(err);
+          throw err;
+        }
+      });
+      this.processQueue();
+    });
+  }
+
+  /** Start processing queued requests if not already */
+  private async processQueue() {
+    if (this.processing) return;
+    this.processing = true;
+    while (this.queue.length > 0) {
+      const task = this.queue.shift();
+      if (!task) continue;
+  await task();
     }
-    const response = await fetch(url, init);
-    // Read rate limit headers when present
+    this.processing = false;
+  }
+
+  /** Update internal rate limit counters from response headers */
+  private captureRateLimitHeaders(response: Response) {
     const rlRemaining = response.headers.get('X-RateLimit-Remaining');
     const rlReset = response.headers.get('X-RateLimit-Reset');
     if (rlRemaining) {
@@ -171,7 +232,6 @@ export class GitHubFetcher {
       const resetEpochSec = Number(rlReset);
       if (!isNaN(resetEpochSec)) this.resetAt = resetEpochSec * 1000;
     }
-    return response;
   }
 
   private delay(ms: number) {
@@ -311,5 +371,54 @@ export class GitHubFetcher {
     }
     const data = await response.json();
     return { id: data.id, url: data.html_url };
+  }
+
+  /**
+   * Post inline review comments for a PR.
+   * Each comment requires path, line (new file line number), body.
+   */
+  async postInlineComments(
+    owner: string,
+    repo: string,
+    prNumber: number,
+    commitSha: string,
+    comments: Array<{ path: string; line: number; body: string }>
+  ): Promise<Array<{ path: string; line: number; githubId?: number }>> {
+    const results: Array<{ path: string; line: number; githubId?: number }> = [];
+    if (!this.token) {
+      console.warn('[GitHubFetcher] Missing token, skipping inline comment post');
+      return results;
+    }
+    for (const c of comments) {
+      const url = `https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}/comments`;
+      const payload = {
+        body: c.body,
+        commit_id: commitSha,
+        path: c.path,
+        line: c.line,
+        side: 'RIGHT' as const,
+      };
+      try {
+        const response = await this.guardedFetch(url, {
+          method: 'POST',
+          headers: {
+            ...this.getHeaders(),
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) {
+          console.error('[GitHubFetcher] Failed inline comment', response.status, response.statusText);
+          results.push({ path: c.path, line: c.line });
+          continue;
+        }
+        const data = await response.json();
+        results.push({ path: c.path, line: c.line, githubId: data.id });
+      } catch (err) {
+        console.error('[GitHubFetcher] Error posting inline comment', err);
+        results.push({ path: c.path, line: c.line });
+      }
+    }
+    return results;
   }
 }
