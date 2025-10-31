@@ -1,3 +1,22 @@
+# 🔍 Vercel Build Failure Analysis
+
+**Generated on:** 2025-10-31 08:47:50 UTC
+**Deployment ID:** 
+**Repository:** junaidaziz/codemind
+**Branch:** main
+**Commit:** eb54707c56869b32a17a2c54df48b009bb6aeeeb
+
+## ❌ Build Failure Summary
+Build failed due to missing module 'next-themes'.
+
+## 🔍 Root Cause Analysis
+Unknown cause
+
+## 🛠️ Suggested Fix
+See analysis for details
+
+## 📊 Full Analysis
+```json
 {
   "deployment": {
     "uid": "dpl_BifGdwixfxSefGbz1mBnxTBYCcF5",
@@ -58,3 +77,7 @@
   },
   "timestamp": "2025-10-31T08:47:50.511Z"
 }
+```
+
+---
+*This analysis was generated automatically by our AI-powered build failure analyzer.*
