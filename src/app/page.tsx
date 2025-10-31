@@ -114,8 +114,8 @@ export default function Home() {
                       <Code className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-primary">AI-Powered Understanding</h4>
-                      <p className="text-secondary">Deep semantic analysis of your entire codebase</p>
+                      <h4 className="feature-heading">AI-Powered Understanding</h4>
+                      <p className="feature-subtext">Deep semantic analysis of your entire codebase</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
@@ -123,8 +123,8 @@ export default function Home() {
                       <GitBranch className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-primary">Automated PR Generation</h4>
-                      <p className="text-secondary">Let AI create pull requests with proper testing</p>
+                      <h4 className="feature-heading">Automated PR Generation</h4>
+                      <p className="feature-subtext">Let AI create pull requests with proper testing</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
@@ -132,8 +132,8 @@ export default function Home() {
                       <Shield className="w-5 h-5 text-green-600 dark:text-green-400" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-primary">Smart Debugging</h4>
-                      <p className="text-secondary">Identify and fix issues before they reach production</p>
+                      <h4 className="feature-heading">Smart Debugging</h4>
+                      <p className="feature-subtext">Identify and fix issues before they reach production</p>
                     </div>
                   </div>
                 </div>
