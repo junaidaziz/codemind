@@ -99,7 +99,7 @@ export default function Home() {
 
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <h3 className="text-3xl font-bold mb-6 tracking-tight text-[#1f2937] dark:text-white">
+                <h3 className="feature-heading text-3xl mb-6 tracking-tight">
                   Our Story
                 </h3>
                 <p className="text-lg text-secondary mb-6">

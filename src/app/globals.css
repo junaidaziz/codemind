@@ -251,6 +251,19 @@ html.dark pre ::selection, html.dark code ::selection {
 /* Ensures components without explicit dark: classes  */
 /* still shift when theme toggles.                    */
 /* -------------------------------------------------- */
+/* NOTE (legacy-dark-overrides):
+  This block force-adjusts common Tailwind background / border / text utility classes
+  when html.dark is present, so older components that still rely on raw Tailwind colors
+  appear correctly in dark theme.
+
+  Migration Plan:
+  1. Gradually replace bg-gray-* / text-gray-* usages with semantic surface/text utilities
+    (e.g. .surface-card, .surface-panel, .text-primary, .text-secondary).
+  2. Once coverage >90%, narrow these overrides to a compatibility wrapper or remove entirely.
+  3. Add a lint rule (future) to prevent new raw gray utility introductions without dark: variant.
+
+  Do NOT remove until audit shows minimal residual usage (search: bg-gray-50|bg-gray-100|bg-gray-200 etc.)
+*/
 html.dark .bg-white { background-color: #111827 !important; }
 html.dark .bg-gray-50 { background-color: #0f172a !important; }
 html.dark .bg-gray-100 { background-color: #1e293b !important; }
