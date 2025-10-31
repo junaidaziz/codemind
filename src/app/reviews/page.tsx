@@ -1,57 +1,72 @@
 import React from 'react';
-import { RiskBadge } from '@/components/code-review/RiskBadge';
-import { ReviewStatusChip } from '@/components/code-review/ReviewStatusChip';
 
-async function fetchReviews() {
-  const projectId = process.env.NEXT_PUBLIC_DEFAULT_PROJECT_ID || 'default';
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/code-review/reviews?projectId=${projectId}`, {
-    cache: 'no-store'
-  });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.reviews || [];
+interface ReviewRow {
+  id: string;
+  prNumber: number;
+  riskLevel: string;
+  riskScore: number;
+  overallScore: number;
+  approved: boolean;
+  requiresChanges: boolean;
+  filesAnalyzed: number;
+  linesAdded: number;
+  linesRemoved: number;
+  createdAt: string;
+  estimatedImpact?: string;
+}
+
+async function fetchReviews(): Promise<{ projectId: string; reviews: ReviewRow[] }> {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/code-review/list?projectId=default`, { cache: 'no-store' });
+  if (!res.ok) return { projectId: 'default', reviews: [] };
+  return res.json();
+}
+
+function riskColor(risk: string) {
+  switch (risk) {
+    case 'CRITICAL': return 'bg-red-600 text-white';
+    case 'HIGH': return 'bg-orange-500 text-white';
+    case 'MEDIUM': return 'bg-yellow-400 text-black';
+    case 'LOW': return 'bg-green-500 text-white';
+    default: return 'bg-gray-300 text-black';
+  }
 }
 
 export default async function ReviewsPage() {
-  const reviews = await fetchReviews();
-
+  const { reviews } = await fetchReviews();
   return (
-    <div className="max-w-5xl mx-auto px-6 py-8">
-      <h1 className="text-2xl font-semibold mb-4">Code Reviews</h1>
-      <p className="text-sm text-gray-600 mb-6">Recent automated code reviews with risk assessment and summary.</p>
-      <div className="space-y-2">
-        {reviews.length === 0 && (
-          <div className="text-sm text-gray-500">No reviews found.</div>
-        )}
-        {reviews.map((r: {
-          id: string;
-          prNumber: number;
-          filesAnalyzed: number;
-          linesAdded: number;
-          linesRemoved: number;
-          riskLevel: string;
-          riskScore: number;
-          approved: boolean;
-          requiresChanges: boolean;
-        }) => (
-          <a
-            key={r.id}
-            href={`/reviews/${r.id}`}
-            className="block border rounded hover:bg-gray-50 transition p-3"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col">
-                <span className="font-medium">PR #{r.prNumber}</span>
-                <span className="text-xs text-gray-500">Files: {r.filesAnalyzed} | +{r.linesAdded}/-{r.linesRemoved}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <RiskBadge level={r.riskLevel} score={r.riskScore} />
-                <ReviewStatusChip approved={r.approved} requiresChanges={r.requiresChanges} />
-              </div>
-            </div>
-          </a>
-        ))}
-      </div>
+    <div className="p-6 space-y-6">
+      <h1 className="text-2xl font-semibold">Code Reviews</h1>
+      <table className="min-w-full border divide-y divide-gray-200 text-sm">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-3 py-2 text-left">PR #</th>
+            <th className="px-3 py-2 text-left">Risk</th>
+            <th className="px-3 py-2 text-left">Score</th>
+            <th className="px-3 py-2 text-left">Impact</th>
+            <th className="px-3 py-2 text-left">Files</th>
+            <th className="px-3 py-2 text-left">Lines +/-</th>
+            <th className="px-3 py-2 text-left">Created</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100">
+          {reviews.map(r => (
+            <tr key={r.id} className="hover:bg-gray-50">
+              <td className="px-3 py-2 font-mono">{r.prNumber}</td>
+              <td className="px-3 py-2">
+                <span className={`px-2 py-1 rounded text-xs font-medium ${riskColor(r.riskLevel)}`}>{r.riskLevel}</span>
+              </td>
+              <td className="px-3 py-2">{r.overallScore}</td>
+              <td className="px-3 py-2 capitalize">{r.estimatedImpact || 'n/a'}</td>
+              <td className="px-3 py-2">{r.filesAnalyzed}</td>
+              <td className="px-3 py-2">+{r.linesAdded}/-{r.linesRemoved}</td>
+              <td className="px-3 py-2 text-gray-500">{new Date(r.createdAt).toLocaleDateString()}</td>
+            </tr>
+          ))}
+          {reviews.length === 0 && (
+            <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-500">No reviews yet.</td></tr>
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }

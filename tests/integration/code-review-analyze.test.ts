@@ -81,10 +81,16 @@ describe('POST /api/code-review/analyze', () => {
     expect(json.success).toBe(true);
     expect(json.review.riskScore).toBeDefined();
     expect(json.review.summary).toBeDefined();
-    expect(json.review.documentationSuggestions).toBeDefined();
-    expect(json.review.testingSuggestions).toBeDefined();
-    expect(json.review.summary.simulation).toBeDefined();
-    expect(json.review.summary.simulation.impactAnalysis.scope).toMatch(/isolated|moderate|widespread/);
+  // Structured suggestions & simulation fields
+  expect(json.review.documentationSuggestions).toBeDefined();
+  expect(Array.isArray(json.review.documentationSuggestions)).toBe(true);
+  expect(json.review.testingSuggestions).toBeDefined();
+  expect(Array.isArray(json.review.testingSuggestions)).toBe(true);
+  // Simulation now also exposed directly at top-level
+  expect(json.review.simulation).toBeDefined();
+  expect(json.review.simulation.impactAnalysis.scope).toMatch(/isolated|moderate|widespread/);
+  // Backward compatibility: summary still embeds simulation
+  expect(json.review.summary.simulation).toBeDefined();
   });
 
   it('validates missing input fields', async () => {
