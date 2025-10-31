@@ -89,7 +89,7 @@ export default function Home() {
   <section id="about" className="py-20 transition-colors">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-4xl sm:text-5xl font-extrabold mb-4 tracking-tight text-[#1f2937] dark:text-white">
+              <h2 className="section-heading text-4xl sm:text-5xl mb-6 tracking-tight">
                 About CodeMind
               </h2>
               <p className="text-xl text-secondary max-w-3xl mx-auto">
