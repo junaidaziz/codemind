@@ -78,7 +78,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <CheckCircle2 className="w-5 h-5 text-green-500" />
-                  <span className="font-medium">Free forever plan</span>
+                  <span className="heading-accent font-semibold">Free forever plan</span>
                 </div>
               </div>
             </div>
