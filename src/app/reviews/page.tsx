@@ -31,6 +31,16 @@ function riskColor(risk: string) {
   }
 }
 
+function impactColor(scope?: string) {
+  switch ((scope || '').toLowerCase()) {
+    case 'widespread': return 'bg-purple-600 text-white';
+    case 'moderate': return 'bg-indigo-500 text-white';
+    case 'isolated': return 'bg-blue-500 text-white';
+    case 'minimal': return 'bg-teal-500 text-white';
+    default: return 'bg-gray-200 text-gray-700';
+  }
+}
+
 export default async function ReviewsPage() {
   const { reviews } = await fetchReviews();
   return (
@@ -42,7 +52,7 @@ export default async function ReviewsPage() {
             <th className="px-3 py-2 text-left">PR #</th>
             <th className="px-3 py-2 text-left">Risk</th>
             <th className="px-3 py-2 text-left">Score</th>
-            <th className="px-3 py-2 text-left">Impact</th>
+            <th className="px-3 py-2 text-left">Impact Scope</th>
             <th className="px-3 py-2 text-left">Files</th>
             <th className="px-3 py-2 text-left">Lines +/-</th>
             <th className="px-3 py-2 text-left">Created</th>
@@ -56,7 +66,11 @@ export default async function ReviewsPage() {
                 <span className={`px-2 py-1 rounded text-xs font-medium ${riskColor(r.riskLevel)}`}>{r.riskLevel}</span>
               </td>
               <td className="px-3 py-2">{r.overallScore}</td>
-              <td className="px-3 py-2 capitalize">{r.estimatedImpact || 'n/a'}</td>
+              <td className="px-3 py-2">
+                <span className={`px-2 py-1 rounded text-xs font-medium capitalize ${impactColor(r.estimatedImpact)}`}>
+                  {r.estimatedImpact || 'n/a'}
+                </span>
+              </td>
               <td className="px-3 py-2">{r.filesAnalyzed}</td>
               <td className="px-3 py-2">+{r.linesAdded}/-{r.linesRemoved}</td>
               <td className="px-3 py-2 text-gray-500">{new Date(r.createdAt).toLocaleDateString()}</td>
