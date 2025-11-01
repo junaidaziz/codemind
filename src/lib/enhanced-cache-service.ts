@@ -37,7 +37,7 @@ class AdvancedCache {
 
     // Serialize and optionally compress the data
     const serialized = JSON.stringify(value);
-    let data = value;
+    const data = value;
     let compressed = false;
     let size = serialized.length;
 
