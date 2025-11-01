@@ -44,9 +44,11 @@ class AdvancedCache {
     if (this.compressionEnabled && serialized.length > 1024) {
       // Only compress if data is larger than 1KB
       try {
-        // Simple compression simulation (in production, use zlib or similar)
+        // TODO: Replace with actual compression in production (e.g., zlib.gzip)
+        // For now, simulate compression with approximate size reduction
+        // In production, use: const compressed = await gzip(Buffer.from(serialized))
         compressed = true;
-        size = Math.floor(serialized.length * 0.6); // Simulate ~40% compression
+        size = Math.floor(serialized.length * 0.6); // Estimate ~40% compression ratio
       } catch (error) {
         logger.error('Compression failed', { key }, error as Error);
       }

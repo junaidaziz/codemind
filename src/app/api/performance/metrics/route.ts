@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { performanceProfiler } from '@/lib/performance-profiler';
+import { logger } from '@/app/lib/logger';
 
 /**
  * Get performance metrics statistics
@@ -47,7 +48,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(stats);
   } catch (error) {
-    console.error('Error fetching performance metrics:', error);
+    logger.error('Error fetching performance metrics', {}, error as Error);
     return NextResponse.json(
       { error: 'Failed to fetch performance metrics' },
       { status: 500 }

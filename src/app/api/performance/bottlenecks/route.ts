@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { performanceProfiler } from '@/lib/performance-profiler';
+import { logger } from '@/app/lib/logger';
 
 /**
  * Identify performance bottlenecks
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ bottlenecks });
   } catch (error) {
-    console.error('Error identifying bottlenecks:', error);
+    logger.error('Error identifying bottlenecks', {}, error as Error);
     return NextResponse.json(
       { error: 'Failed to identify bottlenecks' },
       { status: 500 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { costBudgetService } from '@/lib/cost-budget-service';
+import { logger } from '@/app/lib/logger';
 import { z } from 'zod';
 
 const budgetSchema = z.object({
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.error('Error creating budget:', error);
+    logger.error('Error creating budget', {}, error as Error);
     return NextResponse.json(
       { error: 'Failed to create budget' },
       { status: 500 }
@@ -66,7 +67,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ budgets });
   } catch (error) {
-    console.error('Error fetching budgets:', error);
+    logger.error('Error fetching budgets', {}, error as Error);
     return NextResponse.json(
       { error: 'Failed to fetch budgets' },
       { status: 500 }
@@ -93,7 +94,7 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({ message: 'Budget deleted successfully' });
   } catch (error) {
-    console.error('Error deleting budget:', error);
+    logger.error('Error deleting budget', {}, error as Error);
     return NextResponse.json(
       { error: 'Failed to delete budget' },
       { status: 500 }

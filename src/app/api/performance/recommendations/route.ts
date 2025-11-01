@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { autoScalingService } from '@/lib/auto-scaling-service';
+import { logger } from '@/app/lib/logger';
 
 /**
  * Get auto-scaling recommendations
@@ -24,7 +25,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ recommendations });
   } catch (error) {
-    console.error('Error fetching recommendations:', error);
+    logger.error('Error fetching recommendations', {}, error as Error);
     return NextResponse.json(
       { error: 'Failed to fetch recommendations' },
       { status: 500 }
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
       status: 'success'
     });
   } catch (error) {
-    console.error('Error generating recommendations:', error);
+    logger.error('Error generating recommendations', {}, error as Error);
     return NextResponse.json(
       { error: 'Failed to generate recommendations' },
       { status: 500 }
@@ -93,7 +94,7 @@ export async function PATCH(req: NextRequest) {
       status: 'success'
     });
   } catch (error) {
-    console.error('Error updating recommendation:', error);
+    logger.error('Error updating recommendation', {}, error as Error);
     return NextResponse.json(
       { error: 'Failed to update recommendation' },
       { status: 500 }

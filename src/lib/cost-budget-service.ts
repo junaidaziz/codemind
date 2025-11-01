@@ -385,8 +385,21 @@ export class CostBudgetService {
       limit: budget.limitUsd,
     });
 
-    // TODO: Implement actual alert mechanism (email, webhook, etc.)
-    // For now, just log it
+    // TODO: Implement actual alert mechanism
+    // Options to implement:
+    // 1. Email notifications using SendGrid/AWS SES
+    // 2. Webhooks to external monitoring systems
+    // 3. Slack/Discord notifications
+    // 4. In-app notifications via WebSocket
+    // 5. SMS alerts for critical thresholds
+    // 
+    // Example implementation:
+    // await emailService.send({
+    //   to: projectOwnerEmail,
+    //   subject: `Budget Alert: ${alertType}`,
+    //   template: 'budget-alert',
+    //   data: { budget, alertType, percentUsed }
+    // });
   }
 
   private getPeriodString(budgetType: BudgetType): string {

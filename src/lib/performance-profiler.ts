@@ -61,7 +61,7 @@ export class PerformanceProfiler {
           endpoint: data.endpoint,
           operation: data.operation,
           durationMs: data.durationMs,
-          metadata: data.metadata as never,
+          metadata: data.metadata ? (data.metadata as object) : null,
           projectId: data.projectId,
           userId: data.userId,
         },

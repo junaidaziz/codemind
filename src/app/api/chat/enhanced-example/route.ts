@@ -10,6 +10,7 @@ import { aiModelService } from '@/lib/ai-model-service';
 import { performanceProfiler } from '@/lib/performance-profiler';
 import { costBudgetService } from '@/lib/cost-budget-service';
 import { enhancedCache } from '@/lib/enhanced-cache-service';
+import { logger } from '@/app/lib/logger';
 
 /**
  * Enhanced chat endpoint with automatic performance tracking,
@@ -134,7 +135,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     await apiTimer.end();
 
-    console.error('Chat API error:', error);
+    logger.error('Chat API error', {}, error as Error);
     return NextResponse.json(
       { error: 'Failed to process chat request' },
       { status: 500 }
@@ -209,7 +210,7 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Analytics error:', error);
+    logger.error('Analytics error', {}, error as Error);
     return NextResponse.json(
       { error: 'Failed to fetch analytics' },
       { status: 500 }
