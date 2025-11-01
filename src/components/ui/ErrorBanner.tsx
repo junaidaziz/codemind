@@ -14,10 +14,10 @@ const typeStyles = {
   error: {
     container: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800',
     icon: '⚠️',
-    iconColor: 'text-red-500',
-    title: 'text-red-800 dark:text-red-400',
-    message: 'text-red-700 dark:text-red-300',
-    button: 'text-red-500 hover:text-red-700 dark:hover:text-red-300'
+    iconColor: 'text-red-600 dark:text-red-400',
+    title: 'text-red-950 dark:text-red-200',
+    message: 'text-red-950 dark:text-red-200',
+    button: 'text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200'
   },
   warning: {
     container: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800',
