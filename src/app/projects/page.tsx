@@ -219,21 +219,21 @@ function ProjectsPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+    <div className="min-h-screen app-root">
       <div className="max-w-7xl mx-auto p-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold mb-2">📁 Projects Dashboard</h1>
-              <p className="text-gray-600 dark:text-gray-400">
+              <h1 className="text-4xl font-bold text-primary mb-2">📁 Projects Dashboard</h1>
+              <p className="text-secondary">
                 Manage your indexed projects and monitor their status.
               </p>
             </div>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                className="btn-accent px-4 py-2"
               >
                 + Create Project
               </button>
@@ -294,18 +294,18 @@ function ProjectsPageContent() {
         )}
 
         {/* Projects Table */}
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="surface-card overflow-hidden">
           {projects.length === 0 ? (
             <div className="p-8 text-center">
               <div className="text-6xl mb-4">📂</div>
-              <h3 className="text-xl font-semibold mb-2">No Projects Found</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
+              <h3 className="text-xl font-semibold text-primary mb-2">No Projects Found</h3>
+              <p className="text-secondary mb-4">
                 You haven&apos;t added any projects yet. Create your first project to get started!
               </p>
               <div className="flex items-center justify-center gap-3">
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  className="btn-accent px-4 py-2"
                 >
                   + Create Project
                 </button>
@@ -320,30 +320,30 @@ function ProjectsPageContent() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-gray-700">
+                <thead className="bg-gray-100 dark:bg-gray-700">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Project Name
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Last Indexed
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-medium text-secondary uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
                   {projects.map((project) => (
-                    <tr key={project.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                    <tr key={project.id} className="hover:bg-gray-100 dark:hover:bg-gray-700/50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div>
-                            <div className="text-sm font-medium">{project.name}</div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">{project.id}</div>
+                            <div className="text-sm font-medium text-primary">{project.name}</div>
+                            <div className="text-sm text-secondary">{project.id}</div>
                           </div>
                         </div>
                       </td>
@@ -353,7 +353,7 @@ function ProjectsPageContent() {
                             {project.status}
                           </span>
                           <div className="group relative">
-                            <svg className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <div className="absolute left-0 top-6 w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
@@ -362,7 +362,7 @@ function ProjectsPageContent() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                         {formatDate(project.lastIndexedAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -419,34 +419,34 @@ function ProjectsPageContent() {
         {/* Stats */}
         {projects.length > 0 && (
           <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="surface-card p-6">
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {projects.length}
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Total Projects</div>
+              <div className="text-sm text-secondary">Total Projects</div>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="surface-card p-6">
               <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {projects.filter(p => p.status === 'ready').length}
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Ready</div>
+              <div className="text-sm text-secondary">Ready</div>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="surface-card p-6">
               <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
                 {projects.filter(p => p.status === 'indexing').length}
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Indexing</div>
+              <div className="text-sm text-secondary">Indexing</div>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="surface-card p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-2xl font-bold text-red-600 dark:text-red-400">
                     {projects.filter(p => p.status === 'error').length}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Indexing Errors</div>
+                  <div className="text-sm text-secondary">Indexing Errors</div>
                 </div>
                 <div className="group relative">
-                  <svg className="w-5 h-5 text-gray-400 hover:text-gray-600 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <div className="absolute right-0 top-6 w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">

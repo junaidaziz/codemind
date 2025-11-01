@@ -535,7 +535,7 @@ function ChatPageContent() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-white dark:bg-gray-900">
+    <div className="flex flex-col h-[calc(100vh-4rem)] app-root">
       {/* Chat Page Header */}
       <div className="border-b border-gray-200 dark:border-gray-700 p-4">
         <div className="flex justify-end">
@@ -555,7 +555,7 @@ function ChatPageContent() {
             
             {/* Project Selector */}
             <div className="flex items-center gap-2">
-              <label htmlFor="project-select" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="project-select" className="text-sm font-medium text-primary">
                 Project:
               </label>
               <select
@@ -580,7 +580,7 @@ function ChatPageContent() {
                     setCurrentSessionId('');
                   }
                 }}
-                className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 bg-gray-50 dark:bg-gray-800 text-primary text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Select a project...</option>
                 {projects.map((project) => (
@@ -595,7 +595,7 @@ function ChatPageContent() {
             {currentSessionId && (
               <button
                 onClick={() => setShowCollaborationPanel(!showCollaborationPanel)}
-                className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
+                className="p-2 text-secondary hover:text-primary transition-colors"
                 title="Toggle collaboration panel"
               >
                 👥
@@ -611,7 +611,7 @@ function ChatPageContent() {
         <div className="flex-1 overflow-y-auto p-4">
           <div className="max-w-4xl mx-auto space-y-4">
           {messages.length === 0 ? (
-            <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+            <div className="text-center text-secondary py-8">
               {isRestoringSession ? (
                 <div className="flex items-center justify-center space-x-2">
                   <Spinner size="sm" />
@@ -635,8 +635,8 @@ function ChatPageContent() {
                     message.role === 'user'
                       ? 'bg-blue-500 text-white ml-8'
                       : message.role === 'command'
-                      ? 'bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-200 dark:border-purple-800 text-gray-900 dark:text-white mr-8'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white mr-8'
+                      ? 'bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-200 dark:border-purple-800 text-primary mr-8'
+                      : 'surface-card text-primary mr-8'
                   }`}
                 >
                   {/* Command Result Display */}
@@ -874,8 +874,8 @@ function ChatPageContent() {
           {/* Typing Indicators */}
           {collaboration.typingUsers.length > 0 && (
             <div className="flex justify-start">
-              <div className="max-w-3xl rounded-lg p-4 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white mr-8">
-                <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <div className="max-w-3xl rounded-lg p-4 surface-card text-primary mr-8">
+                <div className="flex items-center space-x-2 text-sm text-secondary">
                   <div className="flex space-x-1">
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -897,7 +897,7 @@ function ChatPageContent() {
 
         {/* Collaboration Panel */}
         {showCollaborationPanel && currentSessionId && (
-          <div className="w-80 border-l border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+          <div className="w-80 border-l border-gray-200 dark:border-gray-700 surface-card">
             <RealtimeCollaborationPanel
               sessionId={currentSessionId}
               onUserSelect={(user) => {
@@ -932,13 +932,13 @@ function ChatPageContent() {
               }}
               placeholder={selectedProjectId ? "Ask a question about your code..." : "Please select a project first"}
               disabled={!selectedProjectId || isStreaming}
-              className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 bg-gray-50 dark:bg-gray-800 text-primary placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               rows={3}
             />
             <button
               onClick={handleSendMessage}
               disabled={!inputMessage.trim() || !selectedProjectId || isStreaming}
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="btn-accent px-6 py-2"
             >
               {isLoading || isStreaming ? (
                 <Spinner size="sm" color="white" />
@@ -947,7 +947,7 @@ function ChatPageContent() {
               )}
             </button>
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+          <div className="text-xs text-secondary mt-2">
             Press Enter to send, Shift+Enter for new line • Use ↑/↓ arrows to navigate message history
           </div>
         </div>
