@@ -1,0 +1,166 @@
+name: Compliance Check on PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  compliance-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for better analysis
+
+      - name: Get PR metadata
+        id: pr-info
+        run: |
+          echo "pr-number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          echo "commit-sha=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
+          echo "repo-owner=${{ github.repository_owner }}" >> $GITHUB_OUTPUT
+          echo "repo-name=${{ github.event.repository.name }}" >> $GITHUB_OUTPUT
+
+      - name: Trigger Compliance Audit
+        id: audit
+        run: |
+          # Call CodeMind Compliance API
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X POST "${{ secrets.CODEMIND_API_URL }}/api/compliance/audits" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.CODEMIND_API_KEY }}" \
+            -d "{
+              \"projectId\": \"${{ secrets.CODEMIND_PROJECT_ID }}\",
+              \"prNumber\": ${{ steps.pr-info.outputs.pr-number }},
+              \"commitSha\": \"${{ steps.pr-info.outputs.commit-sha }}\",
+              \"triggerType\": \"PR_EVENT\"
+            }")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $BODY"
+          
+          # Check for success
+          if [ "$HTTP_CODE" -ne 200 ] && [ "$HTTP_CODE" -ne 201 ]; then
+            echo "::warning::Compliance audit request failed with status $HTTP_CODE"
+            echo "audit-id=" >> $GITHUB_OUTPUT
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 0  # Don't fail the workflow, just warn
+          fi
+          
+          # Extract audit ID and status from response
+          AUDIT_ID=$(echo "$BODY" | jq -r '.id // ""')
+          STATUS=$(echo "$BODY" | jq -r '.status // "PENDING"')
+          
+          echo "audit-id=$AUDIT_ID" >> $GITHUB_OUTPUT
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+
+      - name: Wait for audit completion
+        if: steps.audit.outputs.audit-id
+        id: wait-audit
+        timeout-minutes: 5
+        run: |
+          AUDIT_ID="${{ steps.audit.outputs.audit-id }}"
+          MAX_ATTEMPTS=30
+          ATTEMPT=0
+          
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            RESPONSE=$(curl -s \
+              -H "Authorization: Bearer ${{ secrets.CODEMIND_API_KEY }}" \
+              "${{ secrets.CODEMIND_API_URL }}/api/compliance/audits/$AUDIT_ID")
+            
+            STATUS=$(echo "$RESPONSE" | jq -r '.status // "UNKNOWN"')
+            
+            if [ "$STATUS" = "COMPLETED" ] || [ "$STATUS" = "FAILED" ]; then
+              echo "Audit completed with status: $STATUS"
+              echo "status=$STATUS" >> $GITHUB_OUTPUT
+              
+              # Extract metrics
+              VIOLATIONS=$(echo "$RESPONSE" | jq -r '.violationsFound // 0')
+              CRITICAL=$(echo "$RESPONSE" | jq -r '.criticalCount // 0')
+              HIGH=$(echo "$RESPONSE" | jq -r '.highCount // 0')
+              SCORE=$(echo "$RESPONSE" | jq -r '.overallScore // 0')
+              
+              echo "violations=$VIOLATIONS" >> $GITHUB_OUTPUT
+              echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
+              echo "high=$HIGH" >> $GITHUB_OUTPUT
+              echo "score=$SCORE" >> $GITHUB_OUTPUT
+              
+              break
+            fi
+            
+            ATTEMPT=$((ATTEMPT + 1))
+            sleep 10
+          done
+
+      - name: Post Compliance Report
+        if: always() && steps.audit.outputs.audit-id
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const auditId = '${{ steps.audit.outputs.audit-id }}';
+            const status = '${{ steps.wait-audit.outputs.status }}' || 'PENDING';
+            const violations = parseInt('${{ steps.wait-audit.outputs.violations }}' || '0', 10);
+            const critical = parseInt('${{ steps.wait-audit.outputs.critical }}' || '0', 10);
+            const high = parseInt('${{ steps.wait-audit.outputs.high }}' || '0', 10);
+            const score = parseFloat('${{ steps.wait-audit.outputs.score }}' || '0');
+            const apiUrl = '${{ secrets.CODEMIND_API_URL }}';
+            
+            let statusEmoji = '⏳';
+            let statusText = 'Pending';
+            
+            if (status === 'COMPLETED') {
+              if (critical > 0) {
+                statusEmoji = '🚨';
+                statusText = 'Critical Issues Found';
+              } else if (high > 0) {
+                statusEmoji = '⚠️';
+                statusText = 'Issues Found';
+              } else if (violations > 0) {
+                statusEmoji = '⚡';
+                statusText = 'Minor Issues';
+              } else {
+                statusEmoji = '✅';
+                statusText = 'Passed';
+              }
+            } else if (status === 'FAILED') {
+              statusEmoji = '❌';
+              statusText = 'Failed';
+            }
+            
+            const body = `## ${statusEmoji} Compliance Check ${statusText}
+            
+            **Compliance Score:** ${score.toFixed(1)}/100
+            
+            **Violations:** ${violations}
+            ${critical > 0 ? `- 🚨 Critical: ${critical}` : ''}
+            ${high > 0 ? `- ⚠️ High: ${high}` : ''}
+            
+            [View Detailed Report](${apiUrl}/compliance/audits/${auditId})
+            
+            ---
+            *Automated compliance check powered by CodeMind*`;
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: Check Critical Violations
+        if: steps.wait-audit.outputs.critical && steps.wait-audit.outputs.critical != '0'
+        run: |
+          echo "::error::Critical compliance violations detected!"
+          echo "Critical violations: ${{ steps.wait-audit.outputs.critical }}"
+          echo "Please address critical issues before merging."
+          # Optionally fail the workflow
+          # exit 1
