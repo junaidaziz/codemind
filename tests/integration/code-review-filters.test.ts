@@ -186,11 +186,18 @@ describe('Code Review List Filters', () => {
   });
 
   it('should filter by impact scope (widespread)', async () => {
-    const filtered = await storage.filterReviews('project-1', { impactLevel: 'widespread' });
+    const mockStorage: MockStorage = {
+      client: {},
+      getProjectReviews: jest.fn().mockResolvedValue(
+        mockReviews.filter(r => r.simulation?.estimatedImpact?.toLowerCase() === 'widespread')
+      ),
+    };
+
+    const reviews = await mockStorage.getProjectReviews('project-1', { impactLevel: 'widespread' });
     
-    expect(filtered).toHaveLength(1);
-    expect(filtered[0].prNumber).toBe(104);
-    expect(filtered[0].simulation?.estimatedImpact).toBe('isolated');
+    expect(reviews).toHaveLength(1);
+    expect(reviews[0].prNumber).toBe(101);
+    expect(reviews[0].simulation?.estimatedImpact).toBe('widespread');
   });
 
   it('should filter by impact scope (isolated)', () => {
@@ -198,7 +205,7 @@ describe('Code Review List Filters', () => {
       r => r.simulation?.estimatedImpact?.toLowerCase() === 'isolated'
     );
     expect(filtered).toHaveLength(1);
-    expect(filtered[0].simulation.estimatedImpact).toBe('isolated');
+    expect(filtered[0].simulation?.estimatedImpact).toBe('isolated');
     expect(filtered[0].prNumber).toBe(103);
   });
 

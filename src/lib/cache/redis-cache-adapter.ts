@@ -31,14 +31,17 @@ export class RedisCacheAdapter implements CacheAdapter {
       // Try Vercel KV first (if available)
       if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
         try {
-          const { createClient } = await import('@vercel/kv');
-          this.client = createClient({
-            url: process.env.KV_REST_API_URL,
-            token: process.env.KV_REST_API_TOKEN,
-          }) as RedisClient;
-          this.connected = true;
-          console.log('[RedisCacheAdapter] Connected to Vercel KV');
-          return;
+          // @ts-expect-error - Optional dependency, may not be installed
+          const { createClient } = await import('@vercel/kv').catch(() => ({ createClient: null }));
+          if (createClient) {
+            this.client = createClient({
+              url: process.env.KV_REST_API_URL,
+              token: process.env.KV_REST_API_TOKEN,
+            }) as RedisClient;
+            this.connected = true;
+            console.log('[RedisCacheAdapter] Connected to Vercel KV');
+            return;
+          }
         } catch {
           console.warn('[RedisCacheAdapter] @vercel/kv not installed, trying ioredis...');
         }
@@ -46,11 +49,14 @@ export class RedisCacheAdapter implements CacheAdapter {
       // Fallback to ioredis
       if (redisUrl || process.env.REDIS_URL) {
         try {
-          const Redis = (await import('ioredis')).default;
-          this.client = new Redis(redisUrl || process.env.REDIS_URL) as unknown as RedisClient;
-          this.connected = true;
-          console.log('[RedisCacheAdapter] Connected to Redis');
-          return;
+          // @ts-expect-error - Optional dependency, may not be installed
+          const ioredis = await import('ioredis').catch(() => ({ default: null }));
+          if (ioredis.default) {
+            this.client = new ioredis.default(redisUrl || process.env.REDIS_URL) as unknown as RedisClient;
+            this.connected = true;
+            console.log('[RedisCacheAdapter] Connected to Redis');
+            return;
+          }
         } catch {
           console.warn('[RedisCacheAdapter] ioredis not installed');
         }
