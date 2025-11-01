@@ -93,6 +93,7 @@ const nextConfig: NextConfig = {
   },
   eslint: {
     ignoreDuringBuilds: false,
+    dirs: ['src'],
   },
 
   // Redirects for better SEO

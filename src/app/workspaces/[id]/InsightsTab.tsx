@@ -121,13 +121,13 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
 
   if (repositories.length === 0) {
     return (
-      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12">
+      <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12">
         <div className="text-center">
           <div className="text-6xl mb-4">📊</div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          <h3 className="text-xl font-semibold text-primary mb-2">
             No Repositories Yet
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-secondary mb-6">
             Add repositories to your workspace to see insights and analytics
           </p>
         </div>
@@ -137,10 +137,10 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
 
   if (loading) {
     return (
-      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12">
+      <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12">
         <div className="flex flex-col items-center justify-center">
           <InlineSpinner />
-          <p className="text-gray-600 dark:text-gray-400 mt-4">Loading insights...</p>
+          <p className="text-secondary mt-4">Loading insights...</p>
         </div>
       </div>
     );
@@ -176,17 +176,17 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
     <div className="space-y-6">
       {/* Header with Time Range Selector */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <h2 className="text-2xl font-bold text-primary">
           Workspace Insights
         </h2>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-1">
+          <div className="flex items-center gap-2 surface-card border border-gray-200 dark:border-gray-700 rounded-lg p-1">
             <button
               onClick={() => setTimeRange('7d')}
               className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
                 timeRange === '7d'
                   ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                  : 'text-secondary hover:text-primary'
               }`}
             >
               7 Days
@@ -196,7 +196,7 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
               className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
                 timeRange === '30d'
                   ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                  : 'text-secondary hover:text-primary'
               }`}
             >
               30 Days
@@ -206,7 +206,7 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
               className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
                 timeRange === '90d'
                   ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                  : 'text-secondary hover:text-primary'
               }`}
             >
               90 Days
@@ -215,7 +215,7 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
           <button
             onClick={() => fetchInsights(true)}
             disabled={refreshing}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="btn-accent px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {refreshing ? <InlineSpinner /> : '🔄'}
             {refreshing ? 'Refreshing...' : 'Refresh'}
@@ -225,52 +225,52 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-3xl">💾</span>
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Commits</div>
-          <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="text-sm text-secondary mb-1">Total Commits</div>
+          <div className="text-2xl font-bold text-primary">
             {insights.overview.totalCommits.toLocaleString()}
           </div>
         </div>
 
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-3xl">🔀</span>
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Pull Requests</div>
-          <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="text-sm text-secondary mb-1">Pull Requests</div>
+          <div className="text-2xl font-bold text-primary">
             {insights.overview.totalPullRequests.toLocaleString()}
           </div>
         </div>
 
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-3xl">🐛</span>
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Issues</div>
-          <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="text-sm text-secondary mb-1">Issues</div>
+          <div className="text-2xl font-bold text-primary">
             {insights.overview.totalIssues.toLocaleString()}
           </div>
         </div>
 
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-3xl">👥</span>
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Contributors</div>
-          <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="text-sm text-secondary mb-1">Contributors</div>
+          <div className="text-2xl font-bold text-primary">
             {insights.overview.totalContributors.toLocaleString()}
           </div>
         </div>
 
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-3xl">📁</span>
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Active Repos</div>
-          <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="text-sm text-secondary mb-1">Active Repos</div>
+          <div className="text-2xl font-bold text-primary">
             {insights.overview.activeRepositories}
           </div>
         </div>
@@ -278,8 +278,8 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Activity */}
-        <div className="lg:col-span-2 bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+        <div className="lg:col-span-2 surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-semibold text-primary mb-4">
             Recent Activity
           </h3>
           <div className="space-y-3">
@@ -290,11 +290,11 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
               >
                 <span className="text-2xl">{getEventIcon(activity.eventType)}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                  <p className="text-sm font-medium text-primary truncate">
                     {activity.title}
                   </p>
                   {activity.description && (
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                    <p className="text-xs text-secondary mt-1">
                       {activity.description}
                     </p>
                   )}
@@ -308,8 +308,8 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
         </div>
 
         {/* Top Contributors */}
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+        <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-semibold text-primary mb-4">
             Top Contributors
           </h3>
           <div className="space-y-3">
@@ -322,10 +322,10 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
                   #{index + 1}
                 </span>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <p className="text-sm font-medium text-primary">
                     {contributor.login}
                   </p>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                  <p className="text-xs text-secondary">
                     {contributor.contributions} contributions
                   </p>
                 </div>
@@ -336,15 +336,15 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
       </div>
 
       {/* Activity Trend Chart */}
-      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+      <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h3 className="text-lg font-semibold text-primary mb-4">
           Activity Trend (Last 7 Days)
         </h3>
         <div className="space-y-4">
           {insights.activityTrend.map((day) => (
             <div key={day.date} className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400 font-medium">{day.date}</span>
+                <span className="text-secondary font-medium">{day.date}</span>
                 <div className="flex items-center gap-4 text-xs">
                   <span className="text-blue-600 dark:text-blue-400">
                     💾 {day.commits}
@@ -381,30 +381,30 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
 
       {/* Repository Stats */}
       {insights.repositoryStats.length > 0 && (
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+        <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-semibold text-primary mb-4">
             Repository Statistics
           </h3>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                  <th className="text-left py-3 px-4 text-sm font-medium text-secondary">
                     Repository
                   </th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                  <th className="text-right py-3 px-4 text-sm font-medium text-secondary">
                     Commits
                   </th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                  <th className="text-right py-3 px-4 text-sm font-medium text-secondary">
                     PRs
                   </th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                  <th className="text-right py-3 px-4 text-sm font-medium text-secondary">
                     Issues
                   </th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                  <th className="text-right py-3 px-4 text-sm font-medium text-secondary">
                     Contributors
                   </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                  <th className="text-left py-3 px-4 text-sm font-medium text-secondary">
                     Last Activity
                   </th>
                 </tr>
@@ -416,23 +416,23 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
                     className="border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
                   >
                     <td className="py-3 px-4">
-                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <div className="text-sm font-medium text-primary">
                         {stat.owner}/{stat.repo}
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-right text-sm text-gray-600 dark:text-gray-400">
+                    <td className="py-3 px-4 text-right text-sm text-secondary">
                       {stat.commits.toLocaleString()}
                     </td>
-                    <td className="py-3 px-4 text-right text-sm text-gray-600 dark:text-gray-400">
+                    <td className="py-3 px-4 text-right text-sm text-secondary">
                       {stat.pullRequests.toLocaleString()}
                     </td>
-                    <td className="py-3 px-4 text-right text-sm text-gray-600 dark:text-gray-400">
+                    <td className="py-3 px-4 text-right text-sm text-secondary">
                       {stat.issues.toLocaleString()}
                     </td>
-                    <td className="py-3 px-4 text-right text-sm text-gray-600 dark:text-gray-400">
+                    <td className="py-3 px-4 text-right text-sm text-secondary">
                       {stat.contributors.toLocaleString()}
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
+                    <td className="py-3 px-4 text-sm text-secondary">
                       {formatTimeAgo(stat.lastActivity)}
                     </td>
                   </tr>
