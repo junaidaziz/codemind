@@ -1,3 +1,22 @@
+# 🔍 Vercel Build Failure Analysis
+
+**Generated on:** 2025-11-01 13:05:25 UTC
+**Deployment ID:** 
+**Repository:** junaidaziz/codemind
+**Branch:** main
+**Commit:** 8d5c126ae37fc49772e2f319b6585f721d84b668
+
+## ❌ Build Failure Summary
+Build failed due to unresolved module dependencies and a missing suspense boundary.
+
+## 🔍 Root Cause Analysis
+Unknown cause
+
+## 🛠️ Suggested Fix
+See analysis for details
+
+## 📊 Full Analysis
+```json
 {
   "deployment": {
     "uid": "dpl_85eD8jViEBdYmTm7o5jQkZ8VaxpD",
@@ -58,3 +77,7 @@
   },
   "timestamp": "2025-11-01T13:05:25.291Z"
 }
+```
+
+---
+*This analysis was generated automatically by our AI-powered build failure analyzer.*
