@@ -1,3 +1,22 @@
+# 🔍 Vercel Build Failure Analysis
+
+**Generated on:** 2025-11-01 06:30:48 UTC
+**Deployment ID:** 
+**Repository:** junaidaziz/codemind
+**Branch:** main
+**Commit:** 5f59ef185161922bdefdcea73c0d082c0a0033db
+
+## ❌ Build Failure Summary
+Build failed due to TypeScript type error in health-check route.
+
+## 🔍 Root Cause Analysis
+Unknown cause
+
+## 🛠️ Suggested Fix
+See analysis for details
+
+## 📊 Full Analysis
+```json
 {
   "deployment": {
     "uid": "dpl_2iy7iCNajPnmHnrxfBr9FxGNaXKe",
@@ -58,3 +77,7 @@
   },
   "timestamp": "2025-11-01T06:30:47.950Z"
 }
+```
+
+---
+*This analysis was generated automatically by our AI-powered build failure analyzer.*
