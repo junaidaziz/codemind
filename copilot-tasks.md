@@ -16,11 +16,6 @@
    - Export/import rule configurations
    - Per-project rule customization
 
-2. **Theme System Fixes** - ⏱️ In Progress
-   - Fix dashboard and protected pages showing dark theme in light mode
-   - Update card backgrounds for better light theme visibility
-   - Ensure consistent theme behavior across all pages
-
 ### **Secondary Features (Backlog)**
 
 **Code Review Automation:**
