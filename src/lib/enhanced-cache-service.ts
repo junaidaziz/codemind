@@ -11,6 +11,9 @@ interface CacheEntry<T = unknown> {
   compressed: boolean;
 }
 
+// Global registry to track cleanup intervals
+const cleanupIntervals = new Map<string, NodeJS.Timeout>();
+
 /**
  * Advanced in-memory cache with LRU eviction, compression, and performance tracking
  */
@@ -21,18 +24,33 @@ class AdvancedCache {
   private currentSize: number = 0; // Current cache size in bytes
   private cleanupInterval: NodeJS.Timeout | null = null;
   private compressionEnabled: boolean;
+  private instanceId: string;
 
   constructor(maxSizeMB: number = 100, compressionEnabled: boolean = false) {
     this.maxSize = maxSizeMB * 1024 * 1024; // Convert to bytes
     this.compressionEnabled = compressionEnabled;
+    this.instanceId = `cache-${Date.now()}-${Math.random()}`;
 
     // Clean up expired entries every 5 minutes
-    // Only set interval if not already set (prevents multiple intervals in hot reload)
-    if (!this.cleanupInterval) {
+    // Use global registry to prevent duplicate intervals
+    if (!cleanupIntervals.has(this.instanceId)) {
       this.cleanupInterval = setInterval(() => {
         this.cleanup();
       }, 5 * 60 * 1000);
+      cleanupIntervals.set(this.instanceId, this.cleanupInterval);
     }
+  }
+
+  /**
+   * Destroy this cache instance and clean up resources
+   */
+  destroy(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      cleanupIntervals.delete(this.instanceId);
+      this.cleanupInterval = null;
+    }
+    this.clear();
   }
 
   async set(key: string, value: unknown, ttlSeconds: number = 300): Promise<void> {

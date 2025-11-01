@@ -1,5 +1,6 @@
 /**
  * Default compliance rules for common security and quality checks
+ * Note: Patterns are stored as strings and should be converted to RegExp when evaluating rules
  */
 export const defaultComplianceRules = [
   {
@@ -12,18 +13,20 @@ export const defaultComplianceRules = [
     condition: {
       type: 'pattern_match',
       patterns: [
-        /api[_-]?key\s*=\s*['"][^'"]+['"]/i,
-        /password\s*=\s*['"][^'"]+['"]/i,
-        /secret\s*=\s*['"][^'"]+['"]/i,
-        /token\s*=\s*['"][^'"]+['"]/i,
-        /AKIA[0-9A-Z]{16}/,  // AWS Access Key
+        'api[_-]?key\\s*=\\s*[\'"][^\'"]+[\'"]',
+        'password\\s*=\\s*[\'"][^\'"]+[\'"]',
+        'secret\\s*=\\s*[\'"][^\'"]+[\'"]',
+        'token\\s*=\\s*[\'"][^\'"]+[\'"]',
+        'AKIA[0-9A-Z]{16}',  // AWS Access Key
       ],
+      patternFlags: 'i', // case-insensitive
       excludePatterns: [
-        /example/i,
-        /placeholder/i,
-        /your_/i,
-        /xxx+/i,
+        'example',
+        'placeholder',
+        'your_',
+        'xxx+',
       ],
+      excludePatternFlags: 'i',
     },
     action: {
       type: 'block',
@@ -45,10 +48,11 @@ export const defaultComplianceRules = [
     condition: {
       type: 'pattern_match',
       patterns: [
-        /execute\s*\(\s*['"].*\$\{/i,
-        /query\s*\(\s*['"].*\$\{/i,
-        /raw\s*\(\s*['"].*\$\{/i,
+        'execute\\s*\\(\\s*[\'"].*\\$\\{',
+        'query\\s*\\(\\s*[\'"].*\\$\\{',
+        'raw\\s*\\(\\s*[\'"].*\\$\\{',
       ],
+      patternFlags: 'i',
     },
     action: {
       type: 'warn',
@@ -69,9 +73,9 @@ export const defaultComplianceRules = [
     enabled: true,
     condition: {
       type: 'pattern_match',
-      patterns: [/console\.(log|debug|info)/],
+      patterns: ['console\\.(log|debug|info)'],
       filePatterns: ['src/**/*.ts', 'src/**/*.tsx', 'src/**/*.js', 'src/**/*.jsx'],
-      excludePatterns: [/\.test\./, /\.spec\./],
+      excludePatterns: ['\\.test\\.', '\\.spec\\.'],
     },
     action: {
       type: 'warn',
@@ -113,7 +117,7 @@ export const defaultComplianceRules = [
       type: 'file_analysis',
       files: ['package.json'],
       check: 'version_ranges',
-      patterns: [/\^/, /~/, /\*/],
+      patterns: ['\\^', '~', '\\*'],
     },
     action: {
       type: 'warn',
@@ -176,9 +180,9 @@ export const defaultComplianceRules = [
     condition: {
       type: 'pattern_match',
       patterns: [
-        /<img(?![^>]*alt=)/,  // img without alt
-        /<button(?![^>]*aria-label)/,  // button without aria-label
-        /<input(?![^>]*aria-label)/,  // input without aria-label
+        '<img(?![^>]*alt=)',  // img without alt
+        '<button(?![^>]*aria-label)',  // button without aria-label
+        '<input(?![^>]*aria-label)',  // input without aria-label
       ],
       filePatterns: ['**/*.tsx', '**/*.jsx'],
     },
@@ -202,11 +206,12 @@ export const defaultComplianceRules = [
     condition: {
       type: 'pattern_match',
       patterns: [
-        /log.*password/i,
-        /log.*credit.*card/i,
-        /log.*ssn/i,
-        /log.*email.*password/i,
+        'log.*password',
+        'log.*credit.*card',
+        'log.*ssn',
+        'log.*email.*password',
       ],
+      patternFlags: 'i',
     },
     action: {
       type: 'block',

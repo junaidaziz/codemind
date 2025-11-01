@@ -434,8 +434,8 @@ export class CostBudgetService {
       case 'daily':
         return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
       case 'weekly':
-        // If today is Sunday (0), end date is tomorrow; otherwise calculate days until Sunday
-        const daysUntilSunday = now.getDay() === 0 ? 1 : 7 - now.getDay();
+        // If today is Sunday (0), end date is next Sunday (7 days later); otherwise calculate days until Sunday
+        const daysUntilSunday = now.getDay() === 0 ? 7 : 7 - now.getDay();
         return new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilSunday);
       case 'monthly':
         return new Date(now.getFullYear(), now.getMonth() + 1, 1);

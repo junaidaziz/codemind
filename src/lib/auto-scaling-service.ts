@@ -342,10 +342,9 @@ export class AutoScalingService {
 
     // If cache hit rate is low, recommend optimization
     if (cachePerf.hitRate < CACHE_HIT_RATE_THRESHOLD && cachePerf.totalRequests > MIN_REQUESTS_FOR_CACHE_ANALYSIS) {
-      const potentialSavings =
-        (cachePerf.misses * cachePerf.avgMissLatency -
-          cachePerf.misses * cachePerf.avgHitLatency) /
-        1000; // Convert to seconds
+      // Calculate total potential latency reduction by converting misses to hits
+      const potentialLatencyReduction =
+        cachePerf.misses * (cachePerf.avgMissLatency - cachePerf.avgHitLatency);
 
       recommendations.push({
         projectId,
@@ -372,7 +371,7 @@ export class AutoScalingService {
           ],
           targetHitRate: '80%+',
         },
-        estimatedImpact: `Reduce average latency by ${Math.round(potentialSavings)}ms per request`,
+        estimatedImpact: `Potential total latency reduction: ${Math.round(potentialLatencyReduction)}ms`,
       });
     }
 

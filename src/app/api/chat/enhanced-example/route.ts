@@ -6,6 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { createHash } from 'crypto';
 import { aiModelService } from '@/lib/ai-model-service';
 import { performanceProfiler } from '@/lib/performance-profiler';
 import { costBudgetService } from '@/lib/cost-budget-service';
@@ -48,10 +49,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Try to get from enhanced cache first (if enabled)
-    // Use a hash of the messages for a reliable cache key
-    const messagesHash = Buffer.from(JSON.stringify(messages))
-      .toString('base64')
-      .substring(0, 50);
+    // Use a proper hash of the messages for a reliable cache key without collision risk
+    const messagesHash = createHash('sha256')
+      .update(JSON.stringify(messages))
+      .digest('hex');
     const cacheKey = `chat:${projectId}:${messagesHash}`;
     
     if (useCache) {

@@ -394,7 +394,8 @@ export class PerformanceProfiler {
 
   private percentile(sortedValues: number[], percentile: number): number {
     if (sortedValues.length === 0) return 0;
-    const index = Math.floor(sortedValues.length * percentile);
+    if (sortedValues.length === 1) return sortedValues[0];
+    const index = Math.ceil(sortedValues.length * percentile) - 1;
     return sortedValues[Math.max(0, Math.min(index, sortedValues.length - 1))];
   }
 }
