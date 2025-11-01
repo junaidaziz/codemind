@@ -1,3 +1,22 @@
+# 🔍 Vercel Build Failure Analysis
+
+**Generated on:** 2025-11-01 17:51:50 UTC
+**Deployment ID:** 
+**Repository:** junaidaziz/codemind
+**Branch:** main
+**Commit:** edd1fe5a91c1dca94cb1c3b49c095d171b849c00
+
+## ❌ Build Failure Summary
+Build failed due to TypeScript error regarding ZodError.
+
+## 🔍 Root Cause Analysis
+Unknown cause
+
+## 🛠️ Suggested Fix
+See analysis for details
+
+## 📊 Full Analysis
+```json
 {
   "deployment": {
     "uid": "dpl_8g1CDDEYKcX7sYmJ8mSBJ9o84wq4",
@@ -59,3 +78,7 @@
   },
   "timestamp": "2025-11-01T17:51:50.036Z"
 }
+```
+
+---
+*This analysis was generated automatically by our AI-powered build failure analyzer.*
