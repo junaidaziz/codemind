@@ -202,7 +202,7 @@ export default function CrossRepoLinksTab({ workspaceId }: CrossRepoLinksTabProp
           </div>
 
           {/* Links List */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="p-6">
               <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                 Recent Links ({links.recentLinks.length})
@@ -276,7 +276,7 @@ export default function CrossRepoLinksTab({ workspaceId }: CrossRepoLinksTabProp
       )}
 
       {!links && !loading && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
           <div className="text-6xl mb-6">🔀</div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
             No Cross-Repo Links Yet
@@ -304,7 +304,7 @@ export default function CrossRepoLinksTab({ workspaceId }: CrossRepoLinksTabProp
       {/* Create Link Modal */}
       {showCreateLink && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 Create Cross-Repo Link

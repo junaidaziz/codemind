@@ -308,7 +308,7 @@ export function GitHubIntegration({ projectId }: GitHubIntegrationProps) {
             variant="outline"
             size="sm"
             aria-busy={syncing}
-            className="relative bg-white dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 hover:dark:bg-gray-700"
+            className="relative bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 hover:dark:bg-gray-700"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
             <span>Sync Issues</span>
@@ -322,7 +322,7 @@ export function GitHubIntegration({ projectId }: GitHubIntegrationProps) {
             variant="outline"
             size="sm"
             aria-busy={syncing}
-            className="relative bg-white dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 hover:dark:bg-gray-700"
+            className="relative bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 hover:dark:bg-gray-700"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
             <span>Sync PRs</span>
@@ -361,7 +361,7 @@ export function GitHubIntegration({ projectId }: GitHubIntegrationProps) {
                 <p className="text-sm text-gray-600 dark:text-gray-300">Loading issues...</p>
               </div>
             ) : issues.length === 0 ? (
-              <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+              <Card className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                 <CardContent className="pt-6">
                   <div className="text-center text-gray-500 dark:text-gray-400">
                     <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -373,7 +373,7 @@ export function GitHubIntegration({ projectId }: GitHubIntegrationProps) {
               issues.map((issue) => {
                 const isProcessing = processingIssues.has(issue.id);
                 return (
-                  <Card key={issue.id} className="hover:shadow-md transition-shadow bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                  <Card key={issue.id} className="hover:shadow-md transition-shadow bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-3">
@@ -490,7 +490,7 @@ export function GitHubIntegration({ projectId }: GitHubIntegrationProps) {
   <TabsContent value="pull-requests" className="mt-6" aria-label="GitHub pull requests list">
           <div className="grid gap-4">
             {pullRequests.length === 0 ? (
-              <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+              <Card className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                 <CardContent className="pt-6">
                   <div className="text-center text-gray-500 dark:text-gray-400">
                     <GitPullRequest className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -500,7 +500,7 @@ export function GitHubIntegration({ projectId }: GitHubIntegrationProps) {
               </Card>
             ) : (
               pullRequests.map((pr) => (
-                <Card key={pr.id} className="hover:shadow-md transition-shadow bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                <Card key={pr.id} className="hover:shadow-md transition-shadow bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-3">

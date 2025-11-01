@@ -113,7 +113,7 @@ export default function DashboardClient() {
 
         <Link
           href="/chat"
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
+          className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="text-3xl">💬</div>
@@ -131,7 +131,7 @@ export default function DashboardClient() {
 
         <Link
           href="/apr"
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
+          className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="text-3xl">🤖</div>
@@ -149,7 +149,7 @@ export default function DashboardClient() {
       </div>
 
       {/* Stats Overview */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
           📈 Quick Stats
         </h2>
@@ -190,7 +190,7 @@ export default function DashboardClient() {
       </div>
 
       {/* Recent Activity Preview */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             🎬 Recent Activity

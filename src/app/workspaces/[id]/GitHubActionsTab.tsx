@@ -198,7 +198,7 @@ export default function GitHubActionsTab({ workspaceId }: GitHubActionsTabProps)
       {/* Header with Stats */}
       {summary && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Runs</p>
@@ -207,7 +207,7 @@ export default function GitHubActionsTab({ workspaceId }: GitHubActionsTabProps)
               <div className="text-4xl">🔄</div>
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Successful</p>
@@ -216,7 +216,7 @@ export default function GitHubActionsTab({ workspaceId }: GitHubActionsTabProps)
               <div className="text-4xl">✅</div>
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Failed</p>
@@ -299,7 +299,7 @@ export default function GitHubActionsTab({ workspaceId }: GitHubActionsTabProps)
 
       {/* Health Metrics Modal */}
       {showHealthMetrics && healthMetrics && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Build Health Metrics</h3>
             <button
@@ -350,7 +350,7 @@ export default function GitHubActionsTab({ workspaceId }: GitHubActionsTabProps)
             .map((run) => (
               <div
                 key={run.id}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4"
+                className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -438,7 +438,7 @@ export default function GitHubActionsTab({ workspaceId }: GitHubActionsTabProps)
             ))}
         </div>
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
           <div className="text-6xl mb-6">🔄</div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
             No Workflow Runs Found

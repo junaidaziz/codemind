@@ -163,7 +163,7 @@ export function ErrorCard({
   className = ''
 }: ErrorCardProps) {
   return (
-    <div className={`bg-white dark:bg-gray-800 border border-red-200 dark:border-red-800 rounded-lg p-6 ${className}`}>
+    <div className={`bg-gray-50 dark:bg-gray-800 border border-red-200 dark:border-red-800 rounded-lg p-6 ${className}`}>
       <div className="flex items-start">
         <div className="flex-shrink-0">
           <span className="text-2xl">❌</span>

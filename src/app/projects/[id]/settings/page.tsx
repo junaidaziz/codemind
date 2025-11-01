@@ -439,7 +439,7 @@ function ProjectSettingsPageContent() {
             </div>
 
             {/* Configuration Form */}
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
               <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg font-semibold">Integration Settings</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -616,7 +616,7 @@ function ProjectSettingsPageContent() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 border border-red-200 dark:border-red-700 rounded-lg">
+            <div className="bg-gray-50 dark:bg-gray-800 border border-red-200 dark:border-red-700 rounded-lg">
               <div className="p-6">
                 <h4 className="text-lg font-semibold text-red-900 dark:text-red-100 mb-2">
                   Reset Configuration

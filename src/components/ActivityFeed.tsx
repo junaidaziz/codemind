@@ -147,7 +147,7 @@ export default function ActivityFeed({ projectId, limit = 50 }: ActivityFeedProp
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow p-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -279,12 +279,12 @@ function ActivityEventCard({ event, isLast }: ActivityEventCardProps) {
       )}
 
       {/* Event icon */}
-      <div className="absolute left-0 top-0 flex items-center justify-center w-6 h-6 bg-white dark:bg-gray-800 border-2 border-blue-500 rounded-full text-sm">
+      <div className="absolute left-0 top-0 flex items-center justify-center w-6 h-6 bg-gray-50 dark:bg-gray-800 border-2 border-blue-500 rounded-full text-sm">
         {getEventIcon(event.eventType)}
       </div>
 
       {/* Event card */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow">
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow">
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">

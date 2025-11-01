@@ -41,7 +41,7 @@ export default function APRFilters({ filters, onFilterChange }: APRFiltersProps)
   ];
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Project Filter */}
         <div>

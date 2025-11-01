@@ -239,7 +239,7 @@ export default function AIMetricsPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+      <div className="bg-gray-50 dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
@@ -274,7 +274,7 @@ export default function AIMetricsPage() {
                   {exporting ? 'Exporting...' : 'Export'}
                 </button>
                 
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                <div className="absolute right-0 mt-2 w-48 bg-gray-50 dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
                   <button
                     onClick={() => handleExport('csv')}
                     disabled={exporting}
@@ -345,7 +345,7 @@ export default function AIMetricsPage() {
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Total Fixes */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <div className="flex items-center justify-between mb-2">
                   <div className="text-sm text-gray-600 dark:text-gray-400">AI Fixes</div>
                   <div className="text-2xl">🔧</div>
@@ -359,7 +359,7 @@ export default function AIMetricsPage() {
               </div>
 
               {/* Success Rate */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <div className="flex items-center justify-between mb-2">
                   <div className="text-sm text-gray-600 dark:text-gray-400">Success Rate</div>
                   <div className="text-2xl">✅</div>
@@ -373,7 +373,7 @@ export default function AIMetricsPage() {
               </div>
 
               {/* PRs Created */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <div className="flex items-center justify-between mb-2">
                   <div className="text-sm text-gray-600 dark:text-gray-400">AI PRs</div>
                   <div className="text-2xl">🔀</div>
@@ -387,7 +387,7 @@ export default function AIMetricsPage() {
               </div>
 
               {/* Tests Generated */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <div className="flex items-center justify-between mb-2">
                   <div className="text-sm text-gray-600 dark:text-gray-400">Tests</div>
                   <div className="text-2xl">🧪</div>
@@ -418,7 +418,7 @@ export default function AIMetricsPage() {
 
             {/* Trends Chart */}
             {data.trends.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                   Activity Trends
                 </h2>
@@ -453,7 +453,7 @@ export default function AIMetricsPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Top Projects */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                   Most Active Projects
                 </h2>
@@ -489,7 +489,7 @@ export default function AIMetricsPage() {
               </div>
 
               {/* Recent Actions */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                   Recent AI Actions
                 </h2>
@@ -533,7 +533,7 @@ export default function AIMetricsPage() {
       {/* Slack Modal */}
       {showSlackModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full">
             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">

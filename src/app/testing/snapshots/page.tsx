@@ -215,7 +215,7 @@ export default function SnapshotManagerPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+      <div className="bg-gray-50 dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
@@ -255,25 +255,25 @@ export default function SnapshotManagerPage() {
         {/* Analysis Stats */}
         {analysis && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Snapshots</div>
               <div className="text-2xl font-bold text-gray-900 dark:text-white">
                 {analysis.totalSnapshots}
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Obsolete</div>
               <div className="text-2xl font-bold text-red-600">
                 {analysis.obsoleteSnapshots}
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Changed</div>
               <div className="text-2xl font-bold text-yellow-600">
                 {analysis.changedSnapshots}
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Size</div>
               <div className="text-2xl font-bold text-gray-900 dark:text-white">
                 {formatBytes(analysis.totalSize)}
@@ -285,7 +285,7 @@ export default function SnapshotManagerPage() {
         {viewMode === 'list' ? (
           <>
             {/* Controls */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
               <div className="space-y-4">
                 {/* Search and Filter */}
                 <div className="flex gap-3">
@@ -343,7 +343,7 @@ export default function SnapshotManagerPage() {
             </div>
 
             {/* Snapshot List */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
@@ -438,14 +438,14 @@ export default function SnapshotManagerPage() {
           /* Changes View */
           <div className="space-y-4">
             {changes.length === 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
                 <div className="text-gray-500 dark:text-gray-400">No snapshot changes detected</div>
               </div>
             ) : (
               changes.map((change, idx) => (
                 <div
                   key={idx}
-                  className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6"
+                  className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div>
@@ -485,7 +485,7 @@ export default function SnapshotManagerPage() {
       {/* Diff Modal */}
       {selectedChange && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <div>

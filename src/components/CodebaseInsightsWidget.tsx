@@ -141,7 +141,7 @@ export default function CodebaseInsightsWidget({
 
   if (loading && !insights) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-md p-6">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
           <div className="space-y-3">
@@ -198,7 +198,7 @@ export default function CodebaseInsightsWidget({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-md p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <TrendingUp className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -244,7 +244,7 @@ export default function CodebaseInsightsWidget({
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-md p-6">
           <div className="flex items-center gap-3 mb-2">
             <FileCode className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -259,7 +259,7 @@ export default function CodebaseInsightsWidget({
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-md p-6">
           <div className="flex items-center gap-3 mb-2">
             <GitBranch className="w-5 h-5 text-green-600 dark:text-green-400" />
             <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -274,7 +274,7 @@ export default function CodebaseInsightsWidget({
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-md p-6">
           <div className="flex items-center gap-3 mb-2">
             <TrendingUp className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -289,7 +289,7 @@ export default function CodebaseInsightsWidget({
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-md p-6">
           <div className="flex items-center gap-3 mb-2">
             <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
             <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -308,7 +308,7 @@ export default function CodebaseInsightsWidget({
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Most Changed Files Bar Chart */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Most Changed Files
           </h3>
@@ -347,7 +347,7 @@ export default function CodebaseInsightsWidget({
         </div>
 
         {/* File Type Distribution Pie Chart */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             File Type Distribution
           </h3>
@@ -393,7 +393,7 @@ export default function CodebaseInsightsWidget({
 
       {/* Complexity Hotspots Table */}
       {(insights.complexityHotspots || []).length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
             Complexity Hotspots
@@ -436,7 +436,7 @@ export default function CodebaseInsightsWidget({
       )}
 
       {/* Recent Activity */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-md p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           Commit Activity Trends
         </h3>

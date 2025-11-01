@@ -5,16 +5,6 @@
 
 ---
 
-## Core Features Status 🎯
-
-✅ **Feature #11 – Code Review Automation** (COMPLETE)
-✅ **Feature #10 – CI/CD & DevOps Integration** (COMPLETE)
-✅ **Slack/Discord Notifications** (COMPLETE)
-✅ **Parallel File Analysis Worker Pool** (COMPLETE)
-✅ **Configurable Rule Weights** (COMPLETE)
-
----
-
 ## Pending Tasks & Enhancements 🚀
 
 ### **High-Impact Enhancements**
@@ -25,6 +15,11 @@
    - Weight adjustment sliders with live preview
    - Export/import rule configurations
    - Per-project rule customization
+
+2. **Theme System Fixes** - ⏱️ In Progress
+   - Fix dashboard and protected pages showing dark theme in light mode
+   - Update card backgrounds for better light theme visibility
+   - Ensure consistent theme behavior across all pages
 
 ### **Secondary Features (Backlog)**
 
@@ -64,5 +59,4 @@
 ---
 
 **Built with ❤️ by Junaid Aziz**
-
 

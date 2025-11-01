@@ -191,7 +191,7 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
     <div className="space-y-6">
       {/* Header with Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Repositories</p>
@@ -200,7 +200,7 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
             <div className="text-4xl">📁</div>
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Protected</p>
@@ -209,7 +209,7 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
             <div className="text-4xl">🛡️</div>
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Unprotected</p>
@@ -218,7 +218,7 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
             <div className="text-4xl">⚠️</div>
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Compliance</p>
@@ -283,7 +283,7 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
 
       {/* Compliance Report Modal */}
       {showReport && report && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">📋 Compliance Report</h3>
             <button
@@ -363,7 +363,7 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
 
       {/* Policy Configuration Modal */}
       {showPolicyConfig && selectedRepo && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
               Configure Protection: {selectedRepo.owner}/{selectedRepo.repo}
@@ -483,7 +483,7 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
           {protections.map((repo, idx) => (
             <div
               key={idx}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4"
+              className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4"
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1">
@@ -531,7 +531,7 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
           ))}
         </div>
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
           <div className="text-6xl mb-6">🛡️</div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
             No Repositories Found

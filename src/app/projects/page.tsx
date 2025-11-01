@@ -294,7 +294,7 @@ function ProjectsPageContent() {
         )}
 
         {/* Projects Table */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
           {projects.length === 0 ? (
             <div className="p-8 text-center">
               <div className="text-6xl mb-4">📂</div>
@@ -419,25 +419,25 @@ function ProjectsPageContent() {
         {/* Stats */}
         {projects.length > 0 && (
           <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {projects.length}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Total Projects</div>
             </div>
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
               <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {projects.filter(p => p.status === 'ready').length}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Ready</div>
             </div>
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
               <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
                 {projects.filter(p => p.status === 'indexing').length}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Indexing</div>
             </div>
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-2xl font-bold text-red-600 dark:text-red-400">
@@ -468,7 +468,7 @@ function ProjectsPageContent() {
       {/* Create Project Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
             <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Create New Project</h2>
             
             <div className="space-y-4">

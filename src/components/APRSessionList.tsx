@@ -90,7 +90,7 @@ function SessionCard({ session, isSelected, onClick }: SessionCardProps) {
       className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
         isSelected
           ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-          : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600'
+          : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600'
       }`}
     >
       <div className="flex items-start justify-between mb-2">

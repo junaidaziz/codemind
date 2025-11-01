@@ -580,7 +580,7 @@ function ChatPageContent() {
                     setCurrentSessionId('');
                   }
                 }}
-                className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Select a project...</option>
                 {projects.map((project) => (
@@ -932,7 +932,7 @@ function ChatPageContent() {
               }}
               placeholder={selectedProjectId ? "Ask a question about your code..." : "Please select a project first"}
               disabled={!selectedProjectId || isStreaming}
-              className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               rows={3}
             />
             <button

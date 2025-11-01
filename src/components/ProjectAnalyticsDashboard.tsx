@@ -303,7 +303,7 @@ export const ProjectAnalyticsDashboard: React.FC<ProjectAnalyticsDashboardProps>
             <select
               value={timeframe}
               onChange={(e) => setTimeframe(e.target.value)}
-              className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 text-sm bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
             >
               <option value="7d">Last 7 days</option>
               <option value="30d">Last 30 days</option>
@@ -458,7 +458,7 @@ export const ProjectAnalyticsDashboard: React.FC<ProjectAnalyticsDashboardProps>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center">
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Commits</p>
@@ -468,7 +468,7 @@ export const ProjectAnalyticsDashboard: React.FC<ProjectAnalyticsDashboardProps>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center">
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Contributors</p>
@@ -478,7 +478,7 @@ export const ProjectAnalyticsDashboard: React.FC<ProjectAnalyticsDashboardProps>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center">
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pull Requests</p>
@@ -491,7 +491,7 @@ export const ProjectAnalyticsDashboard: React.FC<ProjectAnalyticsDashboardProps>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center">
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Issues</p>
@@ -585,7 +585,7 @@ export const ProjectAnalyticsDashboard: React.FC<ProjectAnalyticsDashboardProps>
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Activity Trends */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Activity Overview</h3>
           <LineChartComponent
             data={activityChartData}
@@ -597,7 +597,7 @@ export const ProjectAnalyticsDashboard: React.FC<ProjectAnalyticsDashboardProps>
         </div>
 
         {/* Contributor Distribution */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Top Contributors</h3>
           <DoughnutChartComponent
             data={contributorChartData}
@@ -609,7 +609,7 @@ export const ProjectAnalyticsDashboard: React.FC<ProjectAnalyticsDashboardProps>
         </div>
 
         {/* Multi-line Activity Chart */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 lg:col-span-2">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 lg:col-span-2">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Activity Breakdown</h3>
           <MultiLineChartComponent
             data={commitActivityData}
@@ -626,7 +626,7 @@ export const ProjectAnalyticsDashboard: React.FC<ProjectAnalyticsDashboardProps>
         </div>
 
         {/* Code Changes Over Time */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 lg:col-span-2">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 lg:col-span-2">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Code Changes</h3>
           <MultiLineChartComponent
             data={codeChangesChartData}
@@ -669,7 +669,7 @@ export const ProjectAnalyticsDashboard: React.FC<ProjectAnalyticsDashboardProps>
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center">
             <TrendingUp className="h-5 w-5 text-blue-600 mr-2" />
             <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg. Time to Merge</h4>
@@ -679,7 +679,7 @@ export const ProjectAnalyticsDashboard: React.FC<ProjectAnalyticsDashboardProps>
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center">
             <TrendingUp className="h-5 w-5 text-green-600 mr-2" />
             <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400">PR Merge Rate</h4>
@@ -689,7 +689,7 @@ export const ProjectAnalyticsDashboard: React.FC<ProjectAnalyticsDashboardProps>
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center">
             <TrendingUp className="h-5 w-5 text-purple-600 mr-2" />
             <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400">Review Turnaround</h4>
@@ -701,7 +701,7 @@ export const ProjectAnalyticsDashboard: React.FC<ProjectAnalyticsDashboardProps>
       </div>
 
       {/* Contributors List */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Team Contributors</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
           {data.contributors.slice(0, 12).map((contributor) => (
@@ -747,7 +747,7 @@ export const ProjectAnalyticsDashboard: React.FC<ProjectAnalyticsDashboardProps>
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Commits */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Commits</h3>
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {data.recentCommits.slice(0, 10).map((commit) => (
@@ -770,7 +770,7 @@ export const ProjectAnalyticsDashboard: React.FC<ProjectAnalyticsDashboardProps>
         </div>
 
         {/* Recent Pull Requests */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Pull Requests</h3>
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {data.recentPullRequests.slice(0, 10).map((pr) => (

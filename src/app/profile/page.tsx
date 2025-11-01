@@ -62,7 +62,7 @@ function ProfilePageContent() {
 
         <div className="grid md:grid-cols-2 gap-8">
           {/* Profile Information */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <h2 className="text-xl font-semibold mb-4">Profile Information</h2>
             
             <div className="space-y-4">
@@ -105,7 +105,7 @@ function ProfilePageContent() {
           </div>
 
           {/* Account Actions */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <h2 className="text-xl font-semibold mb-4">Account Actions</h2>
             
             <div className="space-y-4">

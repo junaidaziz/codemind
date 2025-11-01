@@ -281,7 +281,7 @@ function TasksPageContent() {
             filteredTasks.map((task) => (
               <div
                 key={task.id}
-                className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md transition-shadow"
+                className="bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">

@@ -96,7 +96,7 @@ export default function DependenciesTab({ workspaceId }: DependenciesTabProps) {
   return (
     <div className="space-y-6">
       {/* Graph Options */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Dependency Graph Options
         </h3>
@@ -195,7 +195,7 @@ export default function DependenciesTab({ workspaceId }: DependenciesTabProps) {
           </div>
 
           {/* Analysis Actions */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Run Analysis
             </h3>
@@ -239,7 +239,7 @@ export default function DependenciesTab({ workspaceId }: DependenciesTabProps) {
           )}
 
           {analysis && !analyzing && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                 Analysis Results: {activeAnalysis}
               </h3>
@@ -250,7 +250,7 @@ export default function DependenciesTab({ workspaceId }: DependenciesTabProps) {
           )}
 
           {/* Dependency List */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Dependencies ({graph.nodes.length})
             </h3>
@@ -289,7 +289,7 @@ export default function DependenciesTab({ workspaceId }: DependenciesTabProps) {
       )}
 
       {!graph && !loading && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
           <div className="text-6xl mb-6">🔗</div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
             No Dependency Graph Yet

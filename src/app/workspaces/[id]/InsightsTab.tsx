@@ -121,7 +121,7 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
 
   if (repositories.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12">
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12">
         <div className="text-center">
           <div className="text-6xl mb-4">📊</div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
@@ -137,7 +137,7 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12">
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12">
         <div className="flex flex-col items-center justify-center">
           <InlineSpinner />
           <p className="text-gray-600 dark:text-gray-400 mt-4">Loading insights...</p>
@@ -180,7 +180,7 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
           Workspace Insights
         </h2>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-1">
+          <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-1">
             <button
               onClick={() => setTimeRange('7d')}
               className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
@@ -225,7 +225,7 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-3xl">💾</span>
           </div>
@@ -235,7 +235,7 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-3xl">🔀</span>
           </div>
@@ -245,7 +245,7 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-3xl">🐛</span>
           </div>
@@ -255,7 +255,7 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-3xl">👥</span>
           </div>
@@ -265,7 +265,7 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-3xl">📁</span>
           </div>
@@ -278,7 +278,7 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Activity */}
-        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="lg:col-span-2 bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
             Recent Activity
           </h3>
@@ -308,7 +308,7 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
         </div>
 
         {/* Top Contributors */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
             Top Contributors
           </h3>
@@ -336,7 +336,7 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
       </div>
 
       {/* Activity Trend Chart */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Activity Trend (Last 7 Days)
         </h3>
@@ -381,7 +381,7 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
 
       {/* Repository Stats */}
       {insights.repositoryStats.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
             Repository Statistics
           </h3>

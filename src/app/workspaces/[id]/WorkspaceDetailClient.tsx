@@ -573,7 +573,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
             </div>
 
             {workspace.repositories?.length === 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
                 <div className="text-6xl mb-6">📦</div>
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
                   No Repositories Yet
@@ -612,7 +612,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                   .map((repo) => (
                     <div
                       key={repo.fullName}
-                      className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
+                      className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -700,7 +700,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
         )}
 
         {activeTab === 'settings' && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                 Workspace Settings
@@ -773,7 +773,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
         {/* Add Repository Modal */}
         {showAddRepo && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
               <div className="p-6">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                   Add Repository
@@ -823,7 +823,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
         {/* Bulk Add Repositories Modal */}
         {showBulkAdd && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full">
               <div className="p-6">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                   Bulk Add Repositories
@@ -876,7 +876,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
         {/* Edit Repository Modal */}
         {editingRepo && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
               <div className="p-6">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                   Edit Repository
@@ -932,7 +932,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
         {/* Edit Workspace Modal */}
         {showEditWorkspace && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
               <div className="p-6">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                   Edit Workspace
