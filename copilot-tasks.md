@@ -7,15 +7,6 @@
 
 ## Pending Tasks & Enhancements 🚀
 
-### **High-Impact Enhancements**
-
-1. **Rule Weights Settings UI** - ⏱️ 1-2 days 
-   - UI for rule management (/settings/code-review)
-   - Preset selector (strict, balanced, lenient)
-   - Weight adjustment sliders with live preview
-   - Export/import rule configurations
-   - Per-project rule customization
-
 ### **Secondary Features (Backlog)**
 
 **Code Review Automation:**
