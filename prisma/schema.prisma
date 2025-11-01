@@ -1196,8 +1196,6 @@ model Deployment {
   @@index([status, createdAt(sort: Desc)])
 }
 
-// Compliance Foundation Models
-
 model ComplianceRule {
   id             String             @id @default(cuid())
   name           String
