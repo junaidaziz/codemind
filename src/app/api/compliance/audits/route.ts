@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
 async function processAudit(
   auditId: string,
   projectId: string,
-  prNumber?: number
+  _prNumber?: number
 ) {
   const startTime = Date.now();
 
