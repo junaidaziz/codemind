@@ -26,7 +26,7 @@ export async function initializeDefaultRules(
         const existing = await ComplianceRuleService.listRules({
           organizationId: options.organizationId,
           projectId: options.projectId,
-          limit: 1,
+          limit: 1000, // Fetch all rules to check for duplicates
         });
 
         const alreadyExists = existing.rules.some(
@@ -241,6 +241,17 @@ export async function importRules(
     errorMessages: [] as string[],
   };
 
+  // Fetch existing rules once for efficient duplicate checking
+  let existingRules: Array<{ name: string }> = [];
+  if (options?.skipExisting) {
+    const existing = await ComplianceRuleService.listRules({
+      organizationId: options.organizationId,
+      projectId: options.projectId,
+      limit: 1000,
+    });
+    existingRules = existing.rules.map((r) => ({ name: r.name }));
+  }
+
   for (const ruleData of data.rules) {
     try {
       // Validate condition
@@ -255,13 +266,7 @@ export async function importRules(
 
       // Check if rule already exists
       if (options?.skipExisting) {
-        const existing = await ComplianceRuleService.listRules({
-          organizationId: options.organizationId,
-          projectId: options.projectId,
-          limit: 1000,
-        });
-
-        const alreadyExists = existing.rules.some(
+        const alreadyExists = existingRules.some(
           (r) => r.name === ruleData.name
         );
 

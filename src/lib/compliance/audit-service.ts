@@ -6,6 +6,23 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+/**
+ * Sanitize user input for AI prompts to prevent prompt injection
+ */
+function sanitizeForAI(input: string): string {
+  if (!input) return '';
+  
+  // Remove or escape potential prompt injection patterns
+  return input
+    .replace(/\[INST\]/gi, '') // Remove instruction markers
+    .replace(/\[\/INST\]/gi, '')
+    .replace(/```/g, '   ') // Remove code block markers
+    .replace(/System:/gi, 'User System:') // Prevent system impersonation
+    .replace(/Assistant:/gi, 'User Assistant:')
+    .replace(/Human:/gi, 'User Human:')
+    .substring(0, 5000); // Limit length to prevent token exhaustion
+}
+
 export interface CreateAuditInput {
   projectId: string;
   prNumber?: number;
@@ -256,15 +273,20 @@ export class ComplianceAuditService {
     }
 
     try {
+      // Sanitize user input to prevent prompt injection
+      const sanitizedDetails = sanitizeForAI(JSON.stringify(violation.details, null, 2));
+      const sanitizedMessage = sanitizeForAI(violation.message);
+      const sanitizedFilePath = sanitizeForAI(violation.filePath || 'N/A');
+
       const prompt = `Analyze this compliance violation and provide a detailed explanation and suggested fix:
 
 Rule: ${violation.rule.name}
 Category: ${violation.rule.category}
 Severity: ${violation.severity}
-Message: ${violation.message}
-File: ${violation.filePath || 'N/A'}
+Message: ${sanitizedMessage}
+File: ${sanitizedFilePath}
 Line: ${violation.lineNumber || 'N/A'}
-Details: ${JSON.stringify(violation.details, null, 2)}
+Details: ${sanitizedDetails}
 
 Please provide:
 1. A detailed analysis of why this is a violation
@@ -344,11 +366,11 @@ Please provide:
 
     try {
       const violationSummary = violations.map((v) => ({
-        rule: v.rule.name,
+        rule: sanitizeForAI(v.rule.name),
         category: v.rule.category,
         severity: v.severity,
-        message: v.message,
-        file: v.filePath,
+        message: sanitizeForAI(v.message),
+        file: sanitizeForAI(v.filePath || ''),
       }));
 
       const prompt = `Analyze this compliance audit report and provide overall insights:

@@ -130,6 +130,15 @@ async function processAudit(
     // 2. Run each rule against the code
     // 3. Create violations for any failures
     // 4. Generate AI insights
+    //
+    // NOTE: This is a skeleton implementation. The actual rule evaluation
+    // engine needs to be implemented based on the rule condition types:
+    // - pattern_match: Search code for regex patterns
+    // - ast_analysis: Parse code AST and check for violations
+    // - file_analysis: Check file content (e.g., package.json)
+    // - license_check: Verify dependency licenses
+    // - coverage_check: Check test coverage metrics
+    // - bundle_size: Verify bundle size limits
 
     // For now, we'll create a sample implementation
     const violations = [];
@@ -138,11 +147,10 @@ async function processAudit(
     let mediumCount = 0;
     let lowCount = 0;
 
-    // Simulate rule checking
+    // Simulate rule checking - actual implementation would evaluate rules here
     for (const rule of rules) {
-      // This is where actual rule evaluation would happen
-      // For demonstration, we'll skip actual checking
       console.log(`Checking rule: ${rule.name}`);
+      // Rule evaluation logic would go here
     }
 
     // Count violations by severity
