@@ -108,7 +108,7 @@ export default function DependenciesTab({ workspaceId }: DependenciesTabProps) {
               onChange={(e) => setGraphOptions({ ...graphOptions, includeDevDeps: e.target.checked })}
               className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
             />
-            <span className="text-sm text-gray-700 dark:text-gray-300">Include dev dependencies</span>
+            <span className="text-sm text-secondary">Include dev dependencies</span>
           </label>
           <label className="flex items-center gap-2">
             <input
@@ -117,7 +117,7 @@ export default function DependenciesTab({ workspaceId }: DependenciesTabProps) {
               onChange={(e) => setGraphOptions({ ...graphOptions, includePeerDeps: e.target.checked })}
               className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
             />
-            <span className="text-sm text-gray-700 dark:text-gray-300">Include peer dependencies</span>
+            <span className="text-sm text-secondary">Include peer dependencies</span>
           </label>
           <label className="flex items-center gap-2">
             <input
@@ -126,10 +126,10 @@ export default function DependenciesTab({ workspaceId }: DependenciesTabProps) {
               onChange={(e) => setGraphOptions({ ...graphOptions, includeTransitive: e.target.checked })}
               className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
             />
-            <span className="text-sm text-gray-700 dark:text-gray-300">Include transitive dependencies</span>
+            <span className="text-sm text-secondary">Include transitive dependencies</span>
           </label>
           <div>
-            <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Max Depth</label>
+            <label className="block text-sm text-secondary mb-1">Max Depth</label>
             <input
               type="number"
               min={1}
@@ -155,7 +155,7 @@ export default function DependenciesTab({ workspaceId }: DependenciesTabProps) {
           <div className="flex items-start gap-3">
             <span className="text-red-600 dark:text-red-400 text-xl">⚠️</span>
             <div className="flex-1">
-              <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+              <p className="text-sm text-red-900 dark:text-red-200">{error}</p>
             </div>
             <button
               onClick={() => setError(null)}

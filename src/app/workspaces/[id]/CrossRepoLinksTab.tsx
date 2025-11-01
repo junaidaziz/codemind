@@ -112,7 +112,7 @@ export default function CrossRepoLinksTab({ workspaceId }: CrossRepoLinksTabProp
 
   const getRelationshipBadge = (relationship: string) => {
     const badges: Record<string, { color: string; emoji: string }> = {
-      'blocks': { color: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200', emoji: '🚫' },
+      'blocks': { color: 'bg-red-100 dark:bg-red-900/30 text-red-900 dark:text-red-200', emoji: '🚫' },
       'blocked-by': { color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200', emoji: '⏸️' },
       'related-to': { color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200', emoji: '🔗' },
       'duplicates': { color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200', emoji: '🔄' },
@@ -169,7 +169,7 @@ export default function CrossRepoLinksTab({ workspaceId }: CrossRepoLinksTabProp
           <div className="flex items-start gap-3">
             <span className="text-red-600 dark:text-red-400 text-xl">⚠️</span>
             <div className="flex-1">
-              <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+              <p className="text-sm text-red-900 dark:text-red-200">{error}</p>
             </div>
             <button
               onClick={() => setError(null)}
