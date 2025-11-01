@@ -19,6 +19,8 @@ import type {
 } from '@/types/code-review';
 import { DEFAULT_REVIEW_CONFIG } from '@/types/code-review';
 import { createWorkerPool, type WorkerTask } from './worker-pool';
+import type { RuleWeightsConfig } from './rule-weights-config';
+import { BALANCED_PRESET } from './rule-weights-config';
 
 export interface CodeReviewerOptions extends Partial<ReviewConfiguration> {
   /**
@@ -37,6 +39,12 @@ export interface CodeReviewerOptions extends Partial<ReviewConfiguration> {
    * Progress callback for file analysis
    */
   onProgress?: (completed: number, total: number) => void;
+  
+  /**
+   * Custom rule weights configuration
+   * Default: BALANCED_PRESET
+   */
+  ruleWeightsConfig?: RuleWeightsConfig;
 }
 
 export class CodeReviewer {
@@ -44,9 +52,11 @@ export class CodeReviewer {
   private maxWorkers: number;
   private enableParallelAnalysis: boolean;
   private onProgress?: (completed: number, total: number) => void;
+  private ruleWeightsConfig: RuleWeightsConfig;
 
   constructor(options?: CodeReviewerOptions) {
     this.config = { ...DEFAULT_REVIEW_CONFIG, ...options };
+    this.ruleWeightsConfig = options?.ruleWeightsConfig || BALANCED_PRESET;
     
     // Read from environment variables with fallbacks
     const envMaxWorkers = process.env.CODE_REVIEW_MAX_WORKERS 
@@ -538,7 +548,7 @@ export class CodeReviewer {
   private async calculateRiskScore(prAnalysis: PRAnalysis): Promise<RiskScore> {
     // Import the risk scorer (we'll create this next)
     const { RiskScorer } = await import('./risk-scorer');
-    const scorer = new RiskScorer();
+    const scorer = new RiskScorer(this.ruleWeightsConfig);
     return scorer.calculateRisk(prAnalysis);
   }
 
@@ -772,8 +782,7 @@ export class CodeReviewer {
   }
 
   private severityWeight(severity: ReviewSeverity): number {
-    const weights = { critical: 5, high: 4, medium: 3, low: 2, info: 1 };
-    return weights[severity];
+    return this.ruleWeightsConfig.severityPenalties[severity];
   }
 
   /**

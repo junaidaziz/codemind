@@ -10,8 +10,16 @@ import type {
   RiskFactor,
   RiskLevel,
 } from '@/types/code-review';
+import type { RuleWeightsConfig } from './rule-weights-config';
+import { BALANCED_PRESET } from './rule-weights-config';
 
 export class RiskScorer {
+  private config: RuleWeightsConfig;
+
+  constructor(config?: RuleWeightsConfig) {
+    this.config = config || BALANCED_PRESET;
+  }
+
   /**
    * Calculate comprehensive risk score for a PR
    */
@@ -51,20 +59,21 @@ export class RiskScorer {
    */
   private assessChangeSize(prAnalysis: PRAnalysis): RiskFactor {
     const totalChanges = prAnalysis.totalAdditions + prAnalysis.totalDeletions;
+    const thresholds = this.config.changeSizeThresholds;
     
     let score: number;
     let impact: RiskLevel;
 
-    if (totalChanges < 50) {
+    if (totalChanges < thresholds.small) {
       score = 10;
       impact = 'low';
-    } else if (totalChanges < 200) {
+    } else if (totalChanges < thresholds.medium) {
       score = 30;
       impact = 'low';
-    } else if (totalChanges < 500) {
+    } else if (totalChanges < thresholds.large) {
       score = 60;
       impact = 'medium';
-    } else if (totalChanges < 1000) {
+    } else if (totalChanges < thresholds.veryLarge) {
       score = 80;
       impact = 'high';
     } else {
@@ -75,7 +84,7 @@ export class RiskScorer {
     return {
       factor: 'changeSize',
       score,
-      weight: 0.25,
+      weight: this.config.riskFactorWeights.changeSize,
       description: `${totalChanges} lines changed (${prAnalysis.totalAdditions}+ / ${prAnalysis.totalDeletions}-)`,
       impact,
     };
@@ -86,17 +95,18 @@ export class RiskScorer {
    */
   private assessFileCount(prAnalysis: PRAnalysis): RiskFactor {
     const fileCount = prAnalysis.filesChanged.length;
+    const thresholds = this.config.fileCountThresholds;
     
     let score: number;
     let impact: RiskLevel;
 
-    if (fileCount <= 3) {
+    if (fileCount <= thresholds.few) {
       score = 10;
       impact = 'low';
-    } else if (fileCount <= 10) {
+    } else if (fileCount <= thresholds.moderate) {
       score = 40;
       impact = 'medium';
-    } else if (fileCount <= 20) {
+    } else if (fileCount <= thresholds.many) {
       score = 70;
       impact = 'high';
     } else {
@@ -107,7 +117,7 @@ export class RiskScorer {
     return {
       factor: 'fileCount',
       score,
-      weight: 0.15,
+      weight: this.config.riskFactorWeights.fileCount,
       description: `${fileCount} files modified`,
       impact,
     };
@@ -160,7 +170,7 @@ export class RiskScorer {
     return {
       factor: 'criticalFiles',
       score,
-      weight: 0.35,
+      weight: this.config.riskFactorWeights.criticalFiles,
       description,
       impact,
     };
@@ -204,7 +214,7 @@ export class RiskScorer {
     return {
       factor: 'complexity',
       score,
-      weight: 0.15,
+      weight: this.config.riskFactorWeights.complexity,
       description: this.generateComplexityDescription(prAnalysis),
       impact,
     };

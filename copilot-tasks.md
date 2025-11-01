@@ -18,7 +18,7 @@
 
 ### **High-Impact Enhancements**
 
-1. **Configurable Rule Weights** - ⏱️ 1-2 days
+1. **Configurable Rule Weights** - ⏱️ 1-2 days 
    - User-defined rule severity adjustments
    - Per-project rule configuration
    - UI for rule management (/settings/rules)
