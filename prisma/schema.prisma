@@ -502,6 +502,7 @@ model Organization {
   OrganizationInvite OrganizationInvite[]
   OrganizationMember OrganizationMember[]
   Project            Project[]
+  CostBudget         CostBudget[]
 
   @@index([ownerId])
 }
@@ -574,6 +575,9 @@ model Project {
   TimeTracking      TimeTracking[]
   ToolExecution     ToolExecution[]
   AIModelUsage      AIModelUsage[]
+  CostBudget        CostBudget[]
+  PerformanceMetric PerformanceMetric[]
+  AutoScalingRecommendation AutoScalingRecommendation[]
 
   @@index([organizationId])
 }
@@ -763,6 +767,8 @@ model User {
   ProjectMember_addedBy                                 ProjectMember[]      @relation("ProjectMember_addedBy")
   accounts                                              Account[]
   sessions                                              Session[]
+  CostBudget                                            CostBudget[]
+  PerformanceMetric                                     PerformanceMetric[]
 }
 
 model Account {
@@ -1185,4 +1191,80 @@ model Deployment {
   @@index([projectId, createdAt(sort: Desc)])
   @@index([commitSha])
   @@index([status, createdAt(sort: Desc)])
+}
+
+model CostBudget {
+  id                String   @id @default(cuid())
+  projectId         String?
+  organizationId    String?
+  userId            String?
+  budgetType        String   @default("monthly") // "daily", "weekly", "monthly", "yearly", "total"
+  limitUsd          Float
+  currentSpendUsd   Float    @default(0)
+  warningThreshold  Float    @default(0.8) // Alert when 80% of budget is used
+  criticalThreshold Float    @default(0.95) // Critical alert at 95%
+  period            String? // "2024-01", "2024-W01", etc. for time-based budgets
+  startDate         DateTime @default(now())
+  endDate           DateTime?
+  isActive          Boolean  @default(true)
+  alertsEnabled     Boolean  @default(true)
+  lastAlertSent     DateTime?
+  lastAlertType     String? // "warning", "critical", "exceeded"
+  metadata          Json? // Additional configuration
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  project      Project?      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, isActive])
+  @@index([organizationId, isActive])
+  @@index([userId, isActive])
+  @@index([budgetType, period])
+}
+
+model PerformanceMetric {
+  id              String   @id @default(cuid())
+  projectId       String?
+  userId          String?
+  metricType      String // "api_latency", "db_query_time", "cache_hit_rate", "ai_response_time"
+  metricName      String // Specific metric name
+  value           Float
+  unit            String   @default("ms") // "ms", "seconds", "percentage", "count"
+  endpoint        String? // API endpoint or operation name
+  operation       String? // Specific operation being measured
+  durationMs      Int?
+  metadata        Json? // Additional context
+  timestamp       DateTime @default(now())
+
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, metricType, timestamp(sort: Desc)])
+  @@index([metricType, timestamp(sort: Desc)])
+  @@index([endpoint, timestamp(sort: Desc)])
+}
+
+model AutoScalingRecommendation {
+  id              String   @id @default(cuid())
+  projectId       String
+  recommendationType String // "scale_up", "scale_down", "optimize_cache", "reduce_model_usage"
+  priority        String   @default("medium") // "low", "medium", "high", "critical"
+  title           String
+  description     String   @db.Text
+  currentMetrics  Json // Current performance/cost metrics
+  recommendation  Json // Recommended actions
+  estimatedSavings Float? // Estimated cost savings (USD)
+  estimatedImpact String? // Impact description
+  implemented     Boolean  @default(false)
+  implementedAt   DateTime?
+  dismissedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, implemented, createdAt(sort: Desc)])
+  @@index([priority, createdAt(sort: Desc)])
 }

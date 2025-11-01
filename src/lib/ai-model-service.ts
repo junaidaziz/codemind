@@ -3,6 +3,8 @@ import Anthropic from '@anthropic-ai/sdk';
 import { aiPromptCache } from './ai-prompt-cache';
 import { env } from '../types/env';
 import prisma from '../app/lib/db';
+import { costBudgetService } from './cost-budget-service';
+import { performanceProfiler } from './performance-profiler';
 
 export type AIProvider = 'openai' | 'anthropic' | 'mistral' | 'local';
 
@@ -287,6 +289,27 @@ export class AIModelService {
           costUsd: response.costUsd,
           durationMs: response.durationMs,
           success: true,
+        });
+
+        // Update budget spend
+        await costBudgetService.updateBudgetSpend(options.projectId, response.costUsd);
+
+        // Track performance metric
+        await performanceProfiler.recordMetric({
+          metricType: 'ai_response_time',
+          metricName: model,
+          value: response.durationMs,
+          unit: 'ms',
+          operation: options.operation || 'chat',
+          durationMs: response.durationMs,
+          projectId: options.projectId,
+          userId: options.userId,
+          metadata: {
+            model,
+            provider: modelConfig.provider,
+            totalTokens: response.totalTokens,
+            costUsd: response.costUsd,
+          },
         });
       }
 
