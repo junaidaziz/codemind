@@ -1,10 +1,5 @@
 // Landing page sections composed from reusable components
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import HeroSection from '@/components/landing/HeroSection';
-import AboutSection from '@/components/landing/AboutSection';
-import FeaturesSection from '@/components/landing/FeaturesSection';
-import ContactSection from '@/components/landing/ContactSection';
+import HomePageClient from './HomePageClient';
 import type { Metadata } from 'next';
 
 // Force dynamic rendering
@@ -31,18 +26,5 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  return (
-  <div className="min-h-screen app-root surface-panel minimal rounded-none border-0">
-      <Header />
-      
-      <main>
-        <HeroSection />
-        <AboutSection />
-        <FeaturesSection />
-        <ContactSection />
-      </main>
-
-      <Footer />
-    </div>
-  );
+  return <HomePageClient />;
 }

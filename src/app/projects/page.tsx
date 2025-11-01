@@ -252,10 +252,17 @@ function ProjectsPageContent() {
               <div className="text-blue-600 dark:text-blue-400 text-xl">💡</div>
               <div>
                 <h3 className="font-semibold text-blue-900 dark:text-blue-300 mb-1">About Project Indexing</h3>
-                <p className="text-sm text-blue-800 dark:text-blue-300 leading-relaxed">
-                  Indexing analyzes your repository structure, extracts code context, and creates AI embeddings for intelligent chat responses. 
-                  Projects must be indexed before you can chat with them. Re-index after significant code changes to keep the AI knowledge up-to-date.
+                <p className="text-sm text-blue-800 dark:text-blue-300 leading-relaxed mb-3">
+                  Indexing analyzes your repository to create a searchable knowledge base for AI-powered conversations. 
+                  This process scans your codebase, extracts structure and context, and generates embeddings that enable 
+                  intelligent responses about your code.
                 </p>
+                <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1.5 list-disc list-inside">
+                  <li><strong>Initial indexing</strong> is required before you can chat with your project</li>
+                  <li><strong>Re-index</strong> after major changes to keep AI knowledge current</li>
+                  <li><strong>Indexing time</strong> varies based on repository size (typically 2-10 minutes)</li>
+                  <li><strong>Background processing</strong> allows you to continue working while indexing completes</li>
+                </ul>
               </div>
             </div>
           </div>
