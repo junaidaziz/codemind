@@ -65,10 +65,10 @@ export default function DashboardClient() {
     <>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+        <h1 className="text-4xl font-bold text-primary mb-2">
           📊 Dashboard
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-secondary text-lg">
           Welcome to your AI development command center
         </p>
       </div>
@@ -77,43 +77,43 @@ export default function DashboardClient() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Link
           href="/workspaces"
-          className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
+          className="surface-card p-6 hover:shadow-md transition-shadow"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="text-3xl">�️</div>
+            <div className="text-3xl">🏢</div>
             <div className="text-sm font-medium text-blue-600 dark:text-blue-400">
               View All →
             </div>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          <h3 className="text-lg font-semibold text-primary mb-2">
             Workspaces
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-secondary">
             Multi-repo workspace management
           </p>
         </Link>
 
         <Link
           href="/projects"
-          className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
+          className="surface-card p-6 hover:shadow-md transition-shadow"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="text-3xl">�</div>
+            <div className="text-3xl">📁</div>
             <div className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
               View All →
             </div>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          <h3 className="text-lg font-semibold text-primary mb-2">
             Projects
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-secondary">
             Individual project repositories
           </p>
         </Link>
 
         <Link
           href="/chat"
-          className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
+          className="surface-card p-6 hover:shadow-md transition-shadow"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="text-3xl">💬</div>
@@ -121,17 +121,17 @@ export default function DashboardClient() {
               Start Chat →
             </div>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          <h3 className="text-lg font-semibold text-primary mb-2">
             AI Chat
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-secondary">
             Chat with your codebase using AI
           </p>
         </Link>
 
         <Link
           href="/apr"
-          className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
+          className="surface-card p-6 hover:shadow-md transition-shadow"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="text-3xl">🤖</div>
@@ -139,18 +139,18 @@ export default function DashboardClient() {
               View APR →
             </div>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          <h3 className="text-lg font-semibold text-primary mb-2">
             Autonomous PRs
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-secondary">
             AI-powered pull requests
           </p>
         </Link>
       </div>
 
-      {/* Stats Overview */}
-      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            {/* Stats Overview */}
+      <div className="surface-card p-6 mb-8">
+        <h2 className="text-xl font-semibold text-primary mb-4">
           📈 Quick Stats
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -158,7 +158,7 @@ export default function DashboardClient() {
             <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
               {stats?.workspaces ?? '0'}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-sm text-secondary">
               Workspaces
             </div>
           </div>
@@ -166,7 +166,7 @@ export default function DashboardClient() {
             <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">
               {stats?.repositories ?? '0'}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-sm text-secondary">
               Repositories
             </div>
           </div>
@@ -174,7 +174,7 @@ export default function DashboardClient() {
             <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
               {stats?.messages ?? '0'}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-sm text-secondary">
               Chat Messages
             </div>
           </div>
@@ -182,7 +182,7 @@ export default function DashboardClient() {
             <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
               {stats?.aprSessions ?? '0'}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-sm text-secondary">
               APR Sessions
             </div>
           </div>
@@ -190,9 +190,9 @@ export default function DashboardClient() {
       </div>
 
       {/* Recent Activity Preview */}
-      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+      <div className="surface-card p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          <h2 className="text-xl font-semibold text-primary">
             🎬 Recent Activity
           </h2>
           <Link
@@ -204,7 +204,7 @@ export default function DashboardClient() {
         </div>
         
         {!stats?.recentActivity || stats.recentActivity.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <div className="text-center py-8 text-secondary">
             <p>Your recent AI activities will appear here</p>
             <Link
               href="/projects"
@@ -218,7 +218,7 @@ export default function DashboardClient() {
             {stats.recentActivity.map((activity) => (
               <div
                 key={activity.id}
-                className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
               >
                 <div className="text-2xl">
                   {activity.eventType === 'APR_CODE_GENERATION' && '🤖'}
@@ -229,15 +229,15 @@ export default function DashboardClient() {
                   {!['APR_CODE_GENERATION', 'APR_COMPLETED', 'APR_PR_CREATED', 'CHAT_MESSAGE', 'INDEXING_COMPLETED'].includes(activity.eventType) && '📌'}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <p className="text-sm font-medium text-primary">
                     {activity.title}
                   </p>
                   {activity.description && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <p className="text-xs text-secondary mt-1">
                       {activity.description}
                     </p>
                   )}
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  <p className="text-xs text-secondary mt-1">
                     {activity.project?.name} • {new Date(activity.createdAt).toLocaleDateString()}
                   </p>
                 </div>
