@@ -155,7 +155,7 @@ export default function InsightsTab({ workspaceId, repositories }: InsightsTabPr
             <h3 className="text-lg font-semibold text-red-900 dark:text-red-100 mb-1">
               Failed to Load Insights
             </h3>
-            <p className="text-sm text-red-900 dark:text-red-200">{error}</p>
+            <p className="text-sm text-red-950 dark:text-red-200">{error}</p>
           </div>
           <button
             onClick={() => fetchInsights(true)}

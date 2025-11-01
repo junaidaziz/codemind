@@ -395,7 +395,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
       <div className="min-h-screen app-root py-8 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-8 text-center">
-            <p className="text-red-900 dark:text-red-200 mb-4">Workspace not found</p>
+            <p className="text-red-950 dark:text-red-200 mb-4">Workspace not found</p>
             <Link
               href="/workspaces"
               className="btn-accent px-6 py-3 inline-block"
@@ -455,7 +455,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
             <div className="flex items-start gap-3">
               <span className="text-red-600 dark:text-red-400 text-xl">⚠️</span>
               <div className="flex-1">
-                <p className="text-sm text-red-900 dark:text-red-200">{error}</p>
+                <p className="text-sm text-red-950 dark:text-red-200">{error}</p>
               </div>
               <button
                 onClick={() => setError(null)}

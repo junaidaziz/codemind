@@ -93,18 +93,18 @@ export function AppHeader() {
             <nav className="hidden md:flex space-x-1">
                 <Link
                   href="/dashboard"
-                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-900 dark:text-gray-300 hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-all"
+                  className="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-all"
                 >
                 ⚡ Dashboard
               </Link>
 
-              <Link href="/projects" className="px-3 py-2 rounded-md text-sm font-medium text-gray-900 dark:text-gray-300 hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-all">📁 Projects</Link>
-              <Link href="/workspaces" className="px-3 py-2 rounded-md text-sm font-medium text-gray-900 dark:text-gray-300 hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-all">🏢 Workspaces</Link>
-              <Link href="/chat" className="px-3 py-2 rounded-md text-sm font-medium text-gray-900 dark:text-gray-300 hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-all">💬 Chat</Link>
-              <Link href="/apr" className="px-3 py-2 rounded-md text-sm font-medium text-gray-900 dark:text-gray-300 hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-all">🤖 APR</Link>
-              <Link href="/activity" className="px-3 py-2 rounded-md text-sm font-medium text-gray-900 dark:text-gray-300 hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-all">🎬 Activity</Link>
-              <Link href="/analytics" className="px-3 py-2 rounded-md text-sm font-medium text-gray-900 dark:text-gray-300 hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-all">📊 Analytics</Link>
-              <Link href="/docs" className="px-3 py-2 rounded-md text-sm font-medium text-gray-900 dark:text-gray-300 hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-all">📚 Docs</Link>
+              <Link href="/projects" className="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-all">📁 Projects</Link>
+              <Link href="/workspaces" className="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-all">🏢 Workspaces</Link>
+              <Link href="/chat" className="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-all">💬 Chat</Link>
+              <Link href="/apr" className="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-all">🤖 APR</Link>
+              <Link href="/activity" className="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-all">🎬 Activity</Link>
+              <Link href="/analytics" className="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-all">📊 Analytics</Link>
+              <Link href="/docs" className="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-all">📚 Docs</Link>
             </nav>
           </div>
 
@@ -120,7 +120,7 @@ export function AppHeader() {
                 {userInitials}
               </div>
               {/* User Name */}
-              <span className="hidden sm:block text-sm font-medium text-gray-900 dark:text-gray-300 group-hover:text-white">
+              <span className="hidden sm:block text-sm font-medium text-secondary group-hover:text-white">
                 {userName}
               </span>
               {/* Dropdown Icon */}
@@ -160,7 +160,7 @@ export function AppHeader() {
                   <Link
                     href="/dashboard"
                     onClick={() => setIsDropdownOpen(false)}
-                    className="group flex items-center px-4 py-2 text-sm text-gray-900 dark:text-gray-300 hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-colors"
+                    className="group flex items-center px-4 py-2 text-sm text-secondary hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-colors"
                   >
                     <svg
                       className="w-4 h-4 mr-3 text-gray-500 dark:text-gray-400 group-hover:text-white"
@@ -181,7 +181,7 @@ export function AppHeader() {
                   <Link
                     href="/profile"
                     onClick={() => setIsDropdownOpen(false)}
-                    className="group flex items-center px-4 py-2 text-sm text-gray-900 dark:text-gray-300 hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-colors"
+                    className="group flex items-center px-4 py-2 text-sm text-secondary hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-colors"
                   >
                     <svg
                       className="w-4 h-4 mr-3 text-gray-500 dark:text-gray-400 group-hover:text-white"
@@ -201,7 +201,7 @@ export function AppHeader() {
                   <Link
                     href="/docs"
                     onClick={() => setIsDropdownOpen(false)}
-                    className="group flex items-center px-4 py-2 text-sm text-gray-900 dark:text-gray-300 hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-colors"
+                    className="group flex items-center px-4 py-2 text-sm text-secondary hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-colors"
                   >
                     <svg
                       className="w-4 h-4 mr-3 text-gray-500 dark:text-gray-400 group-hover:text-white"

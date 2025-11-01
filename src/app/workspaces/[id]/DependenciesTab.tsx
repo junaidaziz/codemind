@@ -155,7 +155,7 @@ export default function DependenciesTab({ workspaceId }: DependenciesTabProps) {
           <div className="flex items-start gap-3">
             <span className="text-red-600 dark:text-red-400 text-xl">⚠️</span>
             <div className="flex-1">
-              <p className="text-sm text-red-900 dark:text-red-200">{error}</p>
+              <p className="text-sm text-red-950 dark:text-red-200">{error}</p>
             </div>
             <button
               onClick={() => setError(null)}

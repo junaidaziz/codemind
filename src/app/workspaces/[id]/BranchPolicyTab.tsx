@@ -235,7 +235,7 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
           <div className="flex items-start gap-3">
             <span className="text-red-600 dark:text-red-400 text-xl">⚠️</span>
             <div className="flex-1">
-              <p className="text-sm text-red-900 dark:text-red-200">{error}</p>
+              <p className="text-sm text-red-950 dark:text-red-200">{error}</p>
             </div>
             <button
               onClick={() => setError(null)}
@@ -494,7 +494,7 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
                     <span className={`px-2 py-1 text-xs font-medium rounded ${
                       repo.protected
                         ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
-                        : 'bg-red-100 dark:bg-red-900/30 text-red-900 dark:text-red-200'
+                        : 'bg-red-100 dark:bg-red-900/30 text-red-950 dark:text-red-200'
                     }`}>
                       {repo.protected ? '🛡️ Protected' : '⚠️ Unprotected'}
                     </span>
