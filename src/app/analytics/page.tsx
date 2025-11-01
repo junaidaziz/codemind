@@ -4,6 +4,7 @@ import React, { Suspense } from 'react';
 import DeveloperInsightsDashboard from '../../components/DeveloperInsightsDashboard';
 import { ErrorBoundary } from '../../components/ui/ErrorBoundary';
 import { Spinner } from '../../components/ui/Spinner';
+import { ErrorBanner } from '@/components/ui';
 
 // Loading component for dashboard
 const DashboardLoading = () => (
@@ -20,15 +21,11 @@ const DashboardLoading = () => (
 // Error fallback component
 const DashboardError = ({ error, resetError }: { error: Error; resetError: () => void }) => (
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center">
-      <div className="text-red-600 dark:text-red-400 text-6xl mb-4">⚠️</div>
-      <h2 className="text-xl font-semibold text-red-800 dark:text-red-200 mb-2">
-        Analytics Dashboard Error
-      </h2>
-      <p className="text-red-600 dark:text-red-300 mb-4">
-        {error.message || 'Failed to load the analytics dashboard'}
-      </p>
-      <div className="space-x-4">
+    <ErrorBanner 
+      title="Analytics Dashboard Error"
+      message={error.message || 'Failed to load the analytics dashboard'}
+    >
+      <div className="space-x-4 mt-4">
         <button
           onClick={resetError}
           className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white px-4 py-2 rounded-md transition-colors"
@@ -46,7 +43,7 @@ const DashboardError = ({ error, resetError }: { error: Error; resetError: () =>
           Reload Page
         </button>
       </div>
-    </div>
+    </ErrorBanner>
   </div>
 );
 

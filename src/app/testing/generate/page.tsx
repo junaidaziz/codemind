@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { ErrorBanner } from '@/components/ui';
 
 interface FileNode {
   path: string;
@@ -447,11 +448,7 @@ export default function TestGenerationPage() {
             )}
 
             {/* Error Display */}
-            {error && (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-              </div>
-            )}
+            {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
           </div>
         </div>
       </div>

@@ -18,6 +18,7 @@ import {
   X,
   GitBranch
 } from 'lucide-react';
+import { ErrorBanner } from '@/components/ui';
 
 interface ProjectAnalyticsData {
   summary: {
@@ -215,18 +216,14 @@ export const ProjectAnalyticsDashboard: React.FC<ProjectAnalyticsDashboardProps>
 
   if (error) {
     return (
-      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-        <div className="flex items-center">
-          <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-          <span className="ml-2 text-red-700 dark:text-red-300">{error}</span>
-        </div>
+      <ErrorBanner message={error}>
         <button
           onClick={fetchAnalytics}
-          className="mt-2 text-sm text-red-600 dark:text-red-400 hover:underline"
+          className="mt-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
         >
           Try again
         </button>
-      </div>
+      </ErrorBanner>
     );
   }
 

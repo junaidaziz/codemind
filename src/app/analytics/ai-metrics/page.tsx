@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { ErrorBanner } from '@/components/ui';
 
 interface AIMetricsSummary {
   totalFixes: number;
@@ -337,9 +338,7 @@ export default function AIMetricsPage() {
             <div className="text-gray-500">Loading metrics...</div>
           </div>
         ) : error ? (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-          </div>
+          <ErrorBanner message={error} onDismiss={() => setError(null)} />
         ) : data ? (
           <div className="space-y-6">
             {/* Summary Cards */}
@@ -580,8 +579,8 @@ export default function AIMetricsPage() {
                 </p>
               </div>
               {error && (
-                <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                  <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                <div className="mb-4">
+                  <ErrorBanner message={error} onDismiss={() => setError(null)} />
                 </div>
               )}
             </div>

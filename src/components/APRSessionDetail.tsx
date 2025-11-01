@@ -4,6 +4,7 @@ import { APRSession } from './APRDashboard';
 import { format } from 'date-fns';
 import { useState } from 'react';
 import { getRiskColor, getRiskEmoji, type RiskLevel } from '@/lib/pr-risk-scorer';
+import { ErrorBanner } from '@/components/ui';
 
 interface APRSessionDetailProps {
   session: APRSession;
@@ -205,9 +206,7 @@ function OverviewTab({ session }: { session: APRSession }) {
       {session.errorMessage && (
         <div>
           <h4 className="font-semibold text-red-600 dark:text-red-400 mb-2">❌ Error</h4>
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-3">
-            <p className="text-sm text-red-800 dark:text-red-200">{session.errorMessage}</p>
-          </div>
+          <ErrorBanner message={session.errorMessage} />
         </div>
       )}
     </div>

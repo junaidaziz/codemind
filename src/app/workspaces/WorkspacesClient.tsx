@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiGet, apiPost, apiDelete } from '@/lib/api-client';
-import { InlineSpinner } from '@/components/ui';
+import { InlineSpinner, ErrorBanner } from '@/components/ui';
 
 interface Workspace {
   id: string;
@@ -143,19 +143,8 @@ export default function WorkspacesClient() {
 
         {/* Error Banner */}
         {error && (
-          <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <span className="text-red-600 dark:text-red-400 text-xl">⚠️</span>
-              <div className="flex-1">
-                <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
-              </div>
-              <button
-                onClick={() => setError(null)}
-                className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200"
-              >
-                ✕
-              </button>
-            </div>
+          <div className="mb-6">
+            <ErrorBanner message={error} onDismiss={() => setError(null)} />
           </div>
         )}
 
