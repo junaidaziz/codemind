@@ -435,7 +435,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowEditWorkspace(true)}
-                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-primary font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                className="px-4 py-2 bg-gray-600 dark:bg-gray-700 text-white font-medium rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
               >
                 Edit
               </button>
