@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiGet, apiPost, apiDelete } from '@/lib/api-client';
 import { InlineSpinner } from '@/components/ui';
-import { useAuth } from '@/app/contexts/AuthContext';
 
 interface Workspace {
   id: string;
@@ -109,21 +108,21 @@ export default function WorkspacesClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen app-root">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            <h1 className="text-3xl font-bold text-primary mb-2">
               🗂️ Workspaces
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-secondary">
               Manage multi-repository workspaces for coordinated development
             </p>
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+            className="btn-accent px-6 py-3"
           >
             + New Workspace
           </button>
@@ -137,7 +136,7 @@ export default function WorkspacesClient() {
               placeholder="Search workspaces by name or description..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-primary"
             />
           </div>
         )}
@@ -162,19 +161,19 @@ export default function WorkspacesClient() {
 
         {/* Workspaces Grid */}
         {workspaces.length === 0 ? (
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+          <div className="surface-card p-12 text-center">
             <div className="max-w-2xl mx-auto">
               <div className="text-6xl mb-6">📦</div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+              <h2 className="text-2xl font-bold text-primary mb-4">
                 No Workspaces Yet
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-8">
+              <p className="text-secondary mb-8">
                 Create your first workspace to start managing multiple repositories together.
                 Workspaces help you coordinate development across related projects.
               </p>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                className="btn-accent px-8 py-3"
               >
                 Create Your First Workspace
               </button>
@@ -194,16 +193,16 @@ export default function WorkspacesClient() {
               .map((workspace) => (
               <div
                 key={workspace.id}
-                className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow overflow-hidden"
+                className="surface-card hover:shadow-md transition-shadow overflow-hidden"
               >
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                      <h3 className="text-lg font-semibold text-primary mb-2">
                         {workspace.name}
                       </h3>
                       {workspace.description && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                        <p className="text-sm text-secondary line-clamp-2">
                           {workspace.description}
                         </p>
                       )}
@@ -211,7 +210,7 @@ export default function WorkspacesClient() {
                   </div>
 
                   {/* Stats */}
-                  <div className="flex items-center gap-4 mb-4 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center gap-4 mb-4 text-sm text-secondary">
                     <div className="flex items-center gap-1">
                       <span>📁</span>
                       <span>{workspace.repositories?.length || 0} repos</span>
@@ -228,7 +227,7 @@ export default function WorkspacesClient() {
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/workspaces/${workspace.id}`}
-                      className="flex-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors text-center"
+                      className="flex-1 btn-accent px-4 py-2 text-center"
                     >
                       Open
                     </Link>
@@ -244,7 +243,7 @@ export default function WorkspacesClient() {
 
                 {/* Footer */}
                 <div className="px-6 py-3 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-700">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-secondary">
                     Created {new Date(workspace.createdAt).toLocaleDateString()}
                   </p>
                 </div>
@@ -256,15 +255,15 @@ export default function WorkspacesClient() {
         {/* Create Modal */}
         {showCreateModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div className="surface-card max-w-md w-full">
               <div className="p-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                <h2 className="text-2xl font-bold text-primary mb-4">
                   Create New Workspace
                 </h2>
                 <form onSubmit={handleCreate}>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-primary mb-2">
                         Workspace Name *
                       </label>
                       <input
@@ -272,13 +271,13 @@ export default function WorkspacesClient() {
                         value={createData.name}
                         onChange={(e) => setCreateData({ ...createData, name: e.target.value })}
                         placeholder="My Awesome Workspace"
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-primary"
                         required
                         autoFocus
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-primary mb-2">
                         Description
                       </label>
                       <textarea
@@ -286,7 +285,7 @@ export default function WorkspacesClient() {
                         onChange={(e) => setCreateData({ ...createData, description: e.target.value })}
                         placeholder="A workspace for managing related microservices..."
                         rows={3}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 resize-none"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-primary resize-none"
                       />
                     </div>
                   </div>
@@ -294,7 +293,7 @@ export default function WorkspacesClient() {
                     <button
                       type="submit"
                       disabled={creating}
-                      className="flex-1 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 btn-accent px-6 py-3"
                     >
                       {creating ? <InlineSpinner /> : 'Create Workspace'}
                     </button>
@@ -306,7 +305,7 @@ export default function WorkspacesClient() {
                         setError(null);
                       }}
                       disabled={creating}
-                      className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-primary font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Cancel
                     </button>

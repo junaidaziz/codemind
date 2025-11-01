@@ -99,6 +99,7 @@ export function AppHeader() {
               </Link>
 
               <Link href="/projects" className="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-primary hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">📁 Projects</Link>
+              <Link href="/workspaces" className="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-primary hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">🏢 Workspaces</Link>
               <Link href="/chat" className="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-primary hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">💬 Chat</Link>
               <Link href="/apr" className="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-primary hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">🤖 APR</Link>
               <Link href="/activity" className="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-primary hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">🎬 Activity</Link>

@@ -392,13 +392,13 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
 
   if (!workspace) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4">
+      <div className="min-h-screen app-root py-8 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-8 text-center">
             <p className="text-red-800 dark:text-red-200 mb-4">Workspace not found</p>
             <Link
               href="/workspaces"
-              className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors inline-block"
+              className="btn-accent px-6 py-3 inline-block"
             >
               Back to Workspaces
             </Link>
@@ -409,7 +409,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen app-root">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -423,11 +423,11 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+              <h1 className="text-3xl font-bold text-primary mb-2">
                 {workspace.name}
               </h1>
               {workspace.description && (
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-secondary">
                   {workspace.description}
                 </p>
               )}
@@ -435,7 +435,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowEditWorkspace(true)}
-                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-primary font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               >
                 Edit
               </button>
@@ -475,7 +475,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
               className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'repositories'
                   ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  : 'border-transparent text-secondary hover:text-primary'
               }`}
             >
               📁 Repositories ({workspace.repositories?.length || 0})
@@ -485,7 +485,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
               className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'dependencies'
                   ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  : 'border-transparent text-secondary hover:text-primary'
               }`}
             >
               🔗 Dependencies
@@ -495,7 +495,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
               className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'cross-repo-links'
                   ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  : 'border-transparent text-secondary hover:text-primary'
               }`}
             >
               🔀 Cross-Repo Links
@@ -505,7 +505,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
               className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'github-actions'
                   ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  : 'border-transparent text-secondary hover:text-primary'
               }`}
             >
               🔄 GitHub Actions
@@ -515,7 +515,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
               className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'branch-policy'
                   ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  : 'border-transparent text-secondary hover:text-primary'
               }`}
             >
               🛡️ Branch Policy
@@ -525,7 +525,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
               className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'settings'
                   ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  : 'border-transparent text-secondary hover:text-primary'
               }`}
             >
               ⚙️ Settings
@@ -535,10 +535,10 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
               className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'insights'
                   ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  : 'border-transparent text-secondary hover:text-primary'
               }`}
             >
-              � Insights
+              📊 Insights
             </button>
           </nav>
         </div>
@@ -553,7 +553,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                   placeholder="Search repositories..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-primary"
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -565,7 +565,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                 </button>
                 <button
                   onClick={() => setShowAddRepo(true)}
-                  className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
+                  className="btn-accent px-4 py-2 whitespace-nowrap"
                 >
                   + Add Repository
                 </button>
@@ -573,18 +573,18 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
             </div>
 
             {workspace.repositories?.length === 0 ? (
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+              <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
                 <div className="text-6xl mb-6">📦</div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                <h3 className="text-xl font-semibold text-primary mb-4">
                   No Repositories Yet
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                <p className="text-secondary mb-6">
                   Add your first repository to start managing them together in this workspace.
                 </p>
                 <div className="flex items-center justify-center gap-3">
                   <button
                     onClick={() => setShowAddRepo(true)}
-                    className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                    className="btn-accent px-6 py-3"
                   >
                     Add Repository
                   </button>
@@ -612,7 +612,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                   .map((repo) => (
                     <div
                       key={repo.fullName}
-                      className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
+                      className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -700,15 +700,15 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
         )}
 
         {activeTab === 'settings' && (
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+              <h2 className="text-xl font-semibold text-primary">
                 Workspace Settings
               </h2>
               <button
                 onClick={handleUpdateSettings}
                 disabled={updatingSettings}
-                className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-accent px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {updatingSettings ? <InlineSpinner size="sm" /> : 'Save Settings'}
               </button>
@@ -725,8 +725,8 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                     className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                   />
                   <div>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">Auto-sync repositories</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="font-medium text-primary">Auto-sync repositories</div>
+                    <div className="text-sm text-secondary">
                       Automatically sync repository data at regular intervals
                     </div>
                   </div>
@@ -734,7 +734,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
               </div>
               {settingsData.autoSync && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-primary mb-2">
                     Sync Interval (minutes)
                   </label>
                   <input
@@ -746,16 +746,16 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                     }}
                     min={5}
                     max={1440}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-primary"
                   />
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                  <p className="text-sm text-secondary mt-2">
                     How often to sync repository data (5-1440 minutes)
                   </p>
                 </div>
               )}
               <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Sync Information</h3>
-                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <h3 className="font-medium text-primary mb-3">Sync Information</h3>
+                <div className="space-y-2 text-sm text-secondary">
                   <p>• Repository data includes metadata, branches, commits, and contributors</p>
                   <p>• Auto-sync helps keep your workspace up-to-date with GitHub changes</p>
                   <p>• Manual sync is always available via the repository list</p>
@@ -773,14 +773,14 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
         {/* Add Repository Modal */}
         {showAddRepo && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div className="surface-card rounded-lg shadow-xl max-w-md w-full">
               <div className="p-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                <h2 className="text-2xl font-bold text-primary mb-4">
                   Add Repository
                 </h2>
                 <form onSubmit={handleAddRepository}>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-primary mb-2">
                       Repository URL or Owner/Name *
                     </label>
                     <input
@@ -788,7 +788,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                       value={repoUrl}
                       onChange={(e) => setRepoUrl(e.target.value)}
                       placeholder="owner/repo or https://github.com/owner/repo"
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-primary"
                       required
                       autoFocus
                     />
@@ -797,7 +797,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                     <button
                       type="submit"
                       disabled={adding}
-                      className="flex-1 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="btn-accent flex-1 px-6 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {adding ? <InlineSpinner /> : 'Add Repository'}
                     </button>
@@ -823,14 +823,14 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
         {/* Bulk Add Repositories Modal */}
         {showBulkAdd && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full">
+            <div className="surface-card rounded-lg shadow-xl max-w-2xl w-full">
               <div className="p-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                <h2 className="text-2xl font-bold text-primary mb-4">
                   Bulk Add Repositories
                 </h2>
                 <form onSubmit={handleBulkAddRepositories}>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-primary mb-2">
                       Repository URLs (one per line) *
                     </label>
                     <textarea
@@ -838,11 +838,11 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                       onChange={(e) => setBulkRepoUrls(e.target.value)}
                       placeholder="owner/repo&#10;https://github.com/owner/another-repo&#10;owner/third-repo"
                       rows={10}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 resize-none font-mono text-sm"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-primary resize-none font-mono text-sm"
                       required
                       autoFocus
                     />
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    <p className="text-sm text-secondary mt-2">
                       Each line can be in format: <code className="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded">owner/repo</code> or full GitHub URL
                     </p>
                   </div>
@@ -862,7 +862,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                         setError(null);
                       }}
                       disabled={adding}
-                      className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-primary font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Cancel
                     </button>
@@ -876,17 +876,17 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
         {/* Edit Repository Modal */}
         {editingRepo && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div className="surface-card rounded-lg shadow-xl max-w-md w-full">
               <div className="p-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                <h2 className="text-2xl font-bold text-primary mb-4">
                   Edit Repository
                 </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                <p className="text-sm text-secondary mb-4">
                   Currently: <strong>{editingRepo.owner}/{editingRepo.name}</strong>
                 </p>
                 <form onSubmit={handleEditRepository}>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-primary mb-2">
                       New Repository URL or Owner/Name *
                     </label>
                     <input
@@ -894,11 +894,11 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                       value={editRepoUrl}
                       onChange={(e) => setEditRepoUrl(e.target.value)}
                       placeholder="owner/repo or https://github.com/owner/repo"
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-primary"
                       required
                       autoFocus
                     />
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    <p className="text-sm text-secondary mt-2">
                       ⚠️ This will remove the current repository and add the new one
                     </p>
                   </div>
@@ -906,7 +906,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                     <button
                       type="submit"
                       disabled={updating}
-                      className="flex-1 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="btn-accent flex-1 px-6 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {updating ? <InlineSpinner /> : 'Update Repository'}
                     </button>
@@ -932,15 +932,15 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
         {/* Edit Workspace Modal */}
         {showEditWorkspace && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div className="surface-card rounded-lg shadow-xl max-w-md w-full">
               <div className="p-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                <h2 className="text-2xl font-bold text-primary mb-4">
                   Edit Workspace
                 </h2>
                 <form onSubmit={handleUpdateWorkspace}>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-primary mb-2">
                         Workspace Name *
                       </label>
                       <input
@@ -948,13 +948,13 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                         value={editData.name}
                         onChange={(e) => setEditData({ ...editData, name: e.target.value })}
                         placeholder="My Awesome Workspace"
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-primary"
                         required
                         autoFocus
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-primary mb-2">
                         Description
                       </label>
                       <textarea
@@ -962,7 +962,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                         onChange={(e) => setEditData({ ...editData, description: e.target.value })}
                         placeholder="A workspace for managing related microservices..."
                         rows={3}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 resize-none"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-primary resize-none"
                       />
                     </div>
                   </div>
@@ -970,7 +970,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                     <button
                       type="submit"
                       disabled={updating}
-                      className="flex-1 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="btn-accent flex-1 px-6 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {updating ? <InlineSpinner /> : 'Save Changes'}
                     </button>
@@ -985,7 +985,7 @@ export default function WorkspaceDetailClient({ workspaceId }: WorkspaceDetailCl
                         setError(null);
                       }}
                       disabled={updating}
-                      className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-primary font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Cancel
                     </button>
