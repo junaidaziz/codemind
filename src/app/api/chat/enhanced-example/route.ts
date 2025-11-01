@@ -48,7 +48,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Try to get from enhanced cache first (if enabled)
-    const cacheKey = `chat:${projectId}:${JSON.stringify(messages).substring(0, 100)}`;
+    // Use a hash of the messages for a reliable cache key
+    const messagesHash = Buffer.from(JSON.stringify(messages))
+      .toString('base64')
+      .substring(0, 50);
+    const cacheKey = `chat:${projectId}:${messagesHash}`;
     
     if (useCache) {
       const cached = await enhancedCache.get(cacheKey);

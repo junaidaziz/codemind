@@ -66,7 +66,7 @@ describe('CostBudgetService', () => {
         limitUsd: 100,
       });
 
-      expect(result).toEqual({ id: 'budget-1', status: 'created' });
+      expect(result).toEqual({ id: 'budget-1', operation: 'create' });
       expect(prisma.costBudget.create).toHaveBeenCalled();
     });
 
@@ -89,7 +89,7 @@ describe('CostBudgetService', () => {
         limitUsd: 100,
       });
 
-      expect(result).toEqual({ id: 'budget-1', status: 'created' });
+      expect(result).toEqual({ id: 'budget-1', operation: 'update' });
       expect(prisma.costBudget.update).toHaveBeenCalled();
     });
   });

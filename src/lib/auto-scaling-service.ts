@@ -3,6 +3,14 @@ import { logger } from '../app/lib/logger';
 import { performanceProfiler } from './performance-profiler';
 import { costBudgetService } from './cost-budget-service';
 
+// Configuration constants
+const EXPENSIVE_MODELS = ['gpt-4', 'gpt-4-turbo-preview', 'claude-3-opus-20240229'];
+const COST_THRESHOLD_USD = 50; // Minimum total cost to trigger model optimization recommendations
+const EXPENSIVE_MODEL_RATIO_THRESHOLD = 0.6; // 60% of costs from expensive models
+const POTENTIAL_SAVINGS_RATIO = 0.7; // Estimate 70% savings by using cheaper models
+const CACHE_HIT_RATE_THRESHOLD = 50; // Minimum acceptable cache hit rate percentage
+const MIN_REQUESTS_FOR_CACHE_ANALYSIS = 100; // Minimum requests before analyzing cache performance
+
 export type RecommendationType =
   | 'scale_up'
   | 'scale_down'
@@ -236,11 +244,10 @@ export class AutoScalingService {
     });
 
     // Check if using expensive models for simple tasks
-    const expensiveModels = ['gpt-4', 'gpt-4-turbo-preview', 'claude-3-opus-20240229'];
     let expensiveCost = 0;
 
     modelCosts.forEach((stats, model) => {
-      if (expensiveModels.includes(model)) {
+      if (EXPENSIVE_MODELS.includes(model)) {
         expensiveCost += stats.cost;
       }
     });
@@ -251,8 +258,8 @@ export class AutoScalingService {
     );
 
     // If >60% of costs are from expensive models, suggest optimization
-    if (totalCost > 50 && expensiveCost / totalCost > 0.6) {
-      const potentialSavings = expensiveCost * 0.7; // 70% savings by using cheaper models
+    if (totalCost > COST_THRESHOLD_USD && expensiveCost / totalCost > EXPENSIVE_MODEL_RATIO_THRESHOLD) {
+      const potentialSavings = expensiveCost * POTENTIAL_SAVINGS_RATIO;
 
       recommendations.push({
         projectId,
@@ -333,8 +340,8 @@ export class AutoScalingService {
 
     if (!cachePerf) return recommendations;
 
-    // If cache hit rate is low (<50%), recommend optimization
-    if (cachePerf.hitRate < 50 && cachePerf.totalRequests > 100) {
+    // If cache hit rate is low, recommend optimization
+    if (cachePerf.hitRate < CACHE_HIT_RATE_THRESHOLD && cachePerf.totalRequests > MIN_REQUESTS_FOR_CACHE_ANALYSIS) {
       const potentialSavings =
         (cachePerf.misses * cachePerf.avgMissLatency -
           cachePerf.misses * cachePerf.avgHitLatency) /

@@ -31,7 +31,9 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    return NextResponse.json(result, { status: 201 });
+    // Return appropriate status code based on operation
+    const statusCode = result.operation === 'create' ? 201 : 200;
+    return NextResponse.json(result, { status: statusCode });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(

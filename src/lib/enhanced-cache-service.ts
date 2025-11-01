@@ -19,7 +19,7 @@ class AdvancedCache {
   private accessOrder: string[] = []; // For LRU tracking
   private maxSize: number; // Max cache size in MB
   private currentSize: number = 0; // Current cache size in bytes
-  private cleanupInterval: NodeJS.Timeout;
+  private cleanupInterval: NodeJS.Timeout | null = null;
   private compressionEnabled: boolean;
 
   constructor(maxSizeMB: number = 100, compressionEnabled: boolean = false) {
@@ -27,9 +27,12 @@ class AdvancedCache {
     this.compressionEnabled = compressionEnabled;
 
     // Clean up expired entries every 5 minutes
-    this.cleanupInterval = setInterval(() => {
-      this.cleanup();
-    }, 5 * 60 * 1000);
+    // Only set interval if not already set (prevents multiple intervals in hot reload)
+    if (!this.cleanupInterval) {
+      this.cleanupInterval = setInterval(() => {
+        this.cleanup();
+      }, 5 * 60 * 1000);
+    }
   }
 
   async set(key: string, value: unknown, ttlSeconds: number = 300): Promise<void> {
@@ -48,7 +51,8 @@ class AdvancedCache {
         // For now, simulate compression with approximate size reduction
         // In production, use: const compressed = await gzip(Buffer.from(serialized))
         compressed = true;
-        size = Math.floor(serialized.length * 0.6); // Estimate ~40% compression ratio
+        // Placeholder: assume 60% of original size (~40% reduction). Replace with actual compression ratio.
+        size = Math.floor(serialized.length * 0.6);
       } catch (error) {
         logger.error('Compression failed', { key }, error as Error);
       }
@@ -149,7 +153,11 @@ class AdvancedCache {
 
   // Invalidate all keys matching a pattern
   invalidatePattern(pattern: string): number {
-    const regex = new RegExp(pattern.replace('*', '.*'));
+    // Escape regex special characters except '*', then replace '*' with '.*'
+    const escapedPattern = pattern
+      .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+      .replace(/\*/g, '.*');
+    const regex = new RegExp(escapedPattern);
     let deleted = 0;
 
     for (const key of this.cache.keys()) {

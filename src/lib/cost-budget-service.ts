@@ -32,7 +32,7 @@ export class CostBudgetService {
     projectId: string,
     budgetType: BudgetType,
     config: BudgetConfig
-  ): Promise<{ id: string; status: string }> {
+  ): Promise<{ id: string; operation: 'create' | 'update' }> {
     try {
       const period = this.getPeriodString(budgetType);
       const endDate = this.getEndDate(budgetType);
@@ -48,6 +48,8 @@ export class CostBudgetService {
       });
 
       let budget;
+      let operation: 'create' | 'update';
+      
       if (existing) {
         // Update existing budget
         budget = await prisma.costBudget.update({
@@ -60,6 +62,7 @@ export class CostBudgetService {
             endDate,
           },
         });
+        operation = 'update';
       } else {
         // Create new budget
         budget = await prisma.costBudget.create({
@@ -74,6 +77,7 @@ export class CostBudgetService {
             endDate,
           },
         });
+        operation = 'create';
       }
 
       logger.info('Budget configured', {
@@ -81,9 +85,10 @@ export class CostBudgetService {
         projectId,
         budgetType,
         limitUsd: config.limitUsd,
+        operation,
       });
 
-      return { id: budget.id, status: 'created' };
+      return { id: budget.id, operation };
     } catch (error) {
       logger.error('Failed to set budget', { projectId, budgetType }, error as Error);
       throw error;
@@ -325,9 +330,7 @@ export class CostBudgetService {
       // 1. We have an alert to send
       // 2. This is a new alert type OR enough time has passed since last alert
       if (alertType && this.shouldSendAlert(budget, alertType)) {
-        await this.sendBudgetAlert(budget, alertType, percentUsed);
-        
-        // Update last alert info
+        // Update last alert info first to prevent race condition
         await prisma.costBudget.update({
           where: { id: budgetId },
           data: {
@@ -335,6 +338,9 @@ export class CostBudgetService {
             lastAlertType: alertType,
           },
         });
+        
+        // Then send the alert
+        await this.sendBudgetAlert(budget, alertType, percentUsed);
       }
     } catch (error) {
       logger.error('Failed to check budget alerts', { budgetId }, error as Error);
@@ -428,7 +434,8 @@ export class CostBudgetService {
       case 'daily':
         return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
       case 'weekly':
-        const daysUntilSunday = 7 - now.getDay();
+        // If today is Sunday (0), end date is tomorrow; otherwise calculate days until Sunday
+        const daysUntilSunday = now.getDay() === 0 ? 1 : 7 - now.getDay();
         return new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilSunday);
       case 'monthly':
         return new Date(now.getFullYear(), now.getMonth() + 1, 1);
