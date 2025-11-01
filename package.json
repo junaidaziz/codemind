@@ -27,6 +27,8 @@
     "health:check": "node scripts/monitor-deployment-health.js --timeframe 1h",
     "notifications:setup": "node scripts/setup-notifications.js",
     "notifications:test": "node scripts/setup-notifications.js --test",
+    "notifications:verify": "node scripts/test-notifications.js",
+    "benchmark:worker-pool": "node scripts/benchmark-worker-pool.mjs",
     "agent:install": "cd services/agent-core && npm install --legacy-peer-deps",
     "agent:build": "cd services/agent-core && npm run build",
     "agent:dev": "cd services/agent-core && npm run dev",

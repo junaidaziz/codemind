@@ -3,12 +3,8 @@
  */
 
 import type { PRAnalysis, FileChange } from '@/types/code-review';
+import { CacheAdapter, getCacheAdapter } from '@/lib/cache';
 import crypto from 'crypto';
-
-interface CacheEntry<T> {
-  data: T;
-  expires: number; // epoch ms
-}
 
 export interface GitHubPRData {
   number: number;
@@ -36,8 +32,8 @@ export interface GitHubFileData {
 
 export class GitHubFetcher {
   private token: string;
-  // Simple in-memory TTL cache (instance-scoped)
-  private cache: Map<string, CacheEntry<unknown>> = new Map();
+  // Cache adapter (pluggable: memory or Redis)
+  private cache: CacheAdapter;
   private cacheTTLPR: number;
   private cacheTTLFiles: number;
   // Basic rate-limit tracking
@@ -50,9 +46,11 @@ export class GitHubFetcher {
   private baseDelayMs = 300; // base delay between requests under throttling
   private maxDelayMs = 5000; // cap delay
   private consecutiveThrottled = 0; // count consecutive throttled dispatches for backoff
+  private jitterRangeMs = 150; // add small jitter to avoid thundering herd
 
-  constructor(token?: string) {
+  constructor(token?: string, cacheAdapter?: CacheAdapter) {
     this.token = token || process.env.GITHUB_TOKEN || '';
+    this.cache = cacheAdapter || getCacheAdapter();
     // Allow override via env (ms). Defaults chosen to balance freshness vs API savings.
     this.cacheTTLPR = this.parseTTL(process.env.GITHUB_FETCH_CACHE_TTL_PR, 30_000); // 30s default
     this.cacheTTLFiles = this.parseTTL(process.env.GITHUB_FETCH_CACHE_TTL_FILES, 60_000); // 60s default
@@ -66,35 +64,13 @@ export class GitHubFetcher {
   }
 
   /** Public helper to clear cache (useful for tests) */
-  clearCache() {
-    this.cache.clear();
+  async clearCache() {
+    await this.cache.clear();
   }
 
   /** Build a cache key */
   private key(kind: string, owner: string, repo: string, pr: number): string {
     return `${kind}:${owner}/${repo}#${pr}`;
-  }
-
-  /** Generic getter from cache */
-  private fromCache<T>(key: string): T | undefined {
-    const entry = this.cache.get(key);
-    if (!entry) return undefined;
-    if (Date.now() > entry.expires) {
-      this.cache.delete(key);
-      return undefined;
-    }
-    return entry.data as T;
-  }
-
-  /** Store into cache with TTL */
-  private toCache<T>(key: string, data: T, ttl: number) {
-    this.cache.set(key, { data, expires: Date.now() + ttl });
-    // Lightweight LRU cleanup (trim if > 500 entries)
-    if (this.cache.size > 500) {
-      // Remove the oldest by expires ordering
-      const oldestKey = [...this.cache.entries()].sort((a, b) => a[1].expires - b[1].expires)[0]?.[0];
-      if (oldestKey) this.cache.delete(oldestKey);
-    }
   }
 
   /**
@@ -122,7 +98,7 @@ export class GitHubFetcher {
     prNumber: number
   ): Promise<GitHubPRData> {
     const cacheKey = this.key('pr', owner, repo, prNumber);
-    const cached = this.fromCache<GitHubPRData>(cacheKey);
+    const cached = await this.cache.get<GitHubPRData>(cacheKey);
     if (cached) return cached;
 
     const url = `https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}`;
@@ -132,7 +108,7 @@ export class GitHubFetcher {
       throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
     }
     const data: GitHubPRData = await response.json();
-    this.toCache(cacheKey, data, this.cacheTTLPR);
+    await this.cache.set(cacheKey, data, this.cacheTTLPR);
     return data;
   }
 
@@ -145,7 +121,7 @@ export class GitHubFetcher {
     prNumber: number
   ): Promise<GitHubFileData[]> {
     const cacheKey = this.key('files', owner, repo, prNumber);
-    const cached = this.fromCache<GitHubFileData[]>(cacheKey);
+    const cached = await this.cache.get<GitHubFileData[]>(cacheKey);
     if (cached) return cached;
 
     const url = `https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}/files`;
@@ -155,7 +131,7 @@ export class GitHubFetcher {
       throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
     }
     const data: GitHubFileData[] = await response.json();
-    this.toCache(cacheKey, data, this.cacheTTLFiles);
+    await this.cache.set(cacheKey, data, this.cacheTTLFiles);
     return data;
   }
 
@@ -177,7 +153,9 @@ export class GitHubFetcher {
           } else if (this.remaining < this.lowRemainingThreshold) {
             // Adaptive backoff delay grows with consecutive throttled dispatches
             const delayFactor = Math.min(this.consecutiveThrottled + 1, 10);
-            const dynamicDelay = Math.min(this.baseDelayMs * delayFactor, this.maxDelayMs);
+            const base = Math.min(this.baseDelayMs * delayFactor, this.maxDelayMs);
+            const jitter = Math.floor(Math.random() * this.jitterRangeMs);
+            const dynamicDelay = base + jitter;
             await this.delay(dynamicDelay);
             this.consecutiveThrottled++;
           } else {
@@ -232,6 +210,16 @@ export class GitHubFetcher {
       const resetEpochSec = Number(rlReset);
       if (!isNaN(resetEpochSec)) this.resetAt = resetEpochSec * 1000;
     }
+  }
+
+  /** Expose internal rate-limit stats for diagnostics */
+  getRateLimitStats() {
+    return {
+      remaining: this.remaining,
+      resetAt: this.resetAt,
+      consecutiveThrottled: this.consecutiveThrottled,
+      queueSize: this.queue.length,
+    };
   }
 
   private delay(ms: number) {

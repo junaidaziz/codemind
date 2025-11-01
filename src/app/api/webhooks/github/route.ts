@@ -138,6 +138,9 @@ async function handlePRAnalysis(payload: GitHubWebhookPayload, incremental: bool
   // Post review summary as comment on GitHub (if token available)
   await postReviewComment(fetcher, owner, repo, pull_request.number, reviewResult);
 
+  // Post inline high/critical comments and persist posted state
+  await postInlineHighSeverityComments(fetcher, owner, repo, pull_request.number, reviewResult, storage, repository.full_name);
+
     console.log(
       `[Webhook] ${incremental ? 'Incremental' : 'Full'} analysis complete for PR #${pull_request.number}. Risk: ${reviewResult.riskScore.level}`
     );
@@ -207,6 +210,28 @@ async function postReviewComment(
     } else {
       console.log(`[Webhook] Skipped posting comment (no token or error)`);
     }
+
+    // Post a second more detailed comment for critical/high issues (first implementation)
+    const significant = comments.filter((c: ReviewComment) => c.severity === 'critical' || c.severity === 'high');
+    if (significant.length > 0) {
+      let detailsBody = `### 🔎 Detailed High Severity Findings (Top ${Math.min(10, significant.length)})\n\n`;
+      detailsBody += `The following issues were detected and classified as high impact. Address these before merging.\n\n`;
+      for (const c of significant.slice(0, 10)) {
+        detailsBody += `- **${c.severity.toUpperCase()} | ${c.category}**: ${c.message} *(file: ${c.file}${c.line ? `:${c.line}` : ''})*`;
+        if (c.suggestion) {
+          detailsBody += `\n  - Suggestion: ${c.suggestion}`;
+        }
+        detailsBody += '\n';
+      }
+      if (significant.length > 10) {
+        detailsBody += `\n...and ${significant.length - 10} more high severity issues.\n`;
+      }
+      detailsBody += `\n---\n_Inline diff comments are planned; current version lists issues for manual navigation._`;      
+      const postedDetails = await fetcher.postComment(owner, repo, prNumber, detailsBody);
+      if (postedDetails) {
+        console.log(`[Webhook] Posted detailed issues comment id=${postedDetails.id}`);
+      }
+    }
   } catch (error) {
     console.error(`[Webhook] Error posting review comment:`, error);
     // Don't throw - posting comment failure shouldn't fail the webhook
@@ -232,3 +257,52 @@ function getRiskEmoji(level: string): string {
 }
 
 export const dynamic = 'force-dynamic';
+
+/**
+ * Post inline high/critical comments and mark them as posted in DB
+ */
+async function postInlineHighSeverityComments(
+  fetcher: GitHubFetcher,
+  owner: string,
+  repo: string,
+  prNumber: number,
+  reviewResult: CodeReviewResult,
+  storage: ReviewStorage,
+  projectId: string
+) {
+  try {
+    if (!reviewResult.prAnalysis.headSha) return;
+    const significant = reviewResult.comments.filter(c => (c.severity === 'critical' || c.severity === 'high') && typeof c.line === 'number');
+    if (significant.length === 0) return;
+    // Fetch already posted coordinates to avoid duplicates on re-analysis
+  const postedCoords = await storage.getPostedInlineCommentCoordinates(projectId, prNumber);
+    // Build unique inline comment payloads (limit to 20)
+    const unique = new Set<string>();
+    const toPost = significant.slice(0, 50).filter(c => {
+      const key = `${c.file}:${c.line}`;
+      if (unique.has(key)) return false;
+  if (postedCoords.has(key)) return false; // Skip if already posted previously
+      unique.add(key);
+      return true;
+    }).slice(0, 20).map(c => ({
+      path: c.file,
+      line: c.line!,
+      body: `**${c.severity.toUpperCase()} ${c.category}**: ${c.message}\n${c.suggestion ? `Suggestion: ${c.suggestion}` : ''}`,
+    }));
+    if (toPost.length === 0) return;
+  const postedResults = await fetcher.postInlineComments(owner, repo, prNumber, reviewResult.prAnalysis.headSha, toPost);
+  const success = postedResults.filter((p: { githubId?: number }) => p.githubId);
+    if (success.length > 0) {
+      console.log(`[Webhook] Posted ${success.length} inline high severity comments.`);
+      // Fetch review id to update comments
+      const reviewRecord = await storage.getReview(projectId, prNumber);
+      if (reviewRecord) {
+        const mappings = success.map(s => ({ filePath: s.path, lineNumber: s.line, githubCommentId: s.githubId! }));
+        const { updated } = await storage.markCommentsPosted(reviewRecord.id, mappings);
+        console.log(`[Webhook] Persisted posted state for ${updated} comments.`);
+      }
+    }
+  } catch (err) {
+    console.error('[Webhook] Inline comment posting error', err);
+  }
+}

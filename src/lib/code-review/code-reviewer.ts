@@ -18,12 +18,51 @@ import type {
   ReviewCategory,
 } from '@/types/code-review';
 import { DEFAULT_REVIEW_CONFIG } from '@/types/code-review';
+import { createWorkerPool, type WorkerTask } from './worker-pool';
+
+export interface CodeReviewerOptions extends Partial<ReviewConfiguration> {
+  /**
+   * Maximum number of concurrent workers for file analysis
+   * Default: auto-detected based on CPU cores
+   */
+  maxWorkers?: number;
+  
+  /**
+   * Enable parallel file analysis using worker pool
+   * Default: true
+   */
+  enableParallelAnalysis?: boolean;
+  
+  /**
+   * Progress callback for file analysis
+   */
+  onProgress?: (completed: number, total: number) => void;
+}
 
 export class CodeReviewer {
   private config: ReviewConfiguration;
+  private maxWorkers: number;
+  private enableParallelAnalysis: boolean;
+  private onProgress?: (completed: number, total: number) => void;
 
-  constructor(config?: Partial<ReviewConfiguration>) {
-    this.config = { ...DEFAULT_REVIEW_CONFIG, ...config };
+  constructor(options?: CodeReviewerOptions) {
+    this.config = { ...DEFAULT_REVIEW_CONFIG, ...options };
+    
+    // Read from environment variables with fallbacks
+    const envMaxWorkers = process.env.CODE_REVIEW_MAX_WORKERS 
+      ? parseInt(process.env.CODE_REVIEW_MAX_WORKERS, 10) 
+      : undefined;
+    
+    const envParallelEnabled = process.env.CODE_REVIEW_PARALLEL_ANALYSIS !== 'false';
+    
+    this.maxWorkers = options?.maxWorkers ?? envMaxWorkers ?? 4;
+    this.enableParallelAnalysis = options?.enableParallelAnalysis ?? envParallelEnabled;
+    this.onProgress = options?.onProgress;
+    
+    console.log(
+      `[CodeReviewer] Initialized with parallel analysis: ${this.enableParallelAnalysis}, ` +
+      `max workers: ${this.maxWorkers}`
+    );
   }
 
   /**
@@ -81,17 +120,33 @@ export class CodeReviewer {
    * and skips full test/documentation passes for speed.
    */
   async analyzeChangedFiles(prAnalysis: PRAnalysis): Promise<CodeReviewResult> {
-    const filtered: PRAnalysis = {
-      ...prAnalysis,
-      filesChanged: prAnalysis.filesChanged.filter(f => f.patch && f.status !== 'removed'),
-    };
+    // Only consider modified/added files with patches; ignore removed for incremental pass
+    const changedFiles = prAnalysis.filesChanged.filter(f => f.patch && (f.status === 'modified' || f.status === 'added'));
+    const filtered: PRAnalysis = { ...prAnalysis, filesChanged: changedFiles };
+
+    // If change size is minimal, skip deep analysis sections to save time
+    const totalAdditions = changedFiles.reduce((s, f) => s + f.additions, 0);
+    const minimalChange = totalAdditions < 20 && changedFiles.length < 5;
+
+    // Core comments only for changed files
     const comments = await this.generateReviewComments(filtered);
-    const riskScore = await this.calculateRiskScore(filtered);
-    // Lightweight doc/test suggestions only if significant additions
-    const significant = filtered.filesChanged.some(f => f.additions > 20);
-    const docSuggestions = significant ? await this.analyzeDocumentation(filtered) : [];
-    const testSuggestions = significant ? await this.analyzeTestCoverage(filtered) : [];
+
+    // Risk score recalculated but can apply dampening if minimal change
+    let riskScore = await this.calculateRiskScore(filtered);
+    if (minimalChange && riskScore.overall > 0) {
+      // Apply a dampening factor to reflect limited scope
+      riskScore = { ...riskScore, overall: Math.max(0, Math.round(riskScore.overall * 0.7)) };
+    }
+
+    // Lightweight doc/test suggestions only if significant net additions or critical/high issues present
+    const highSeverityCount = comments.filter(c => c.severity === 'critical' || c.severity === 'high').length;
+    const shouldSuggest = !minimalChange || highSeverityCount > 0 || changedFiles.some(f => f.additions > 30);
+    const docSuggestions = shouldSuggest ? await this.analyzeDocumentation(filtered) : [];
+    const testSuggestions = shouldSuggest ? await this.analyzeTestCoverage(filtered) : [];
+
+    // Generate simulation based on affected subset only
     const simulation = this.generateSimulation(filtered, comments);
+
     const summary = this.generateSummary(
       comments,
       riskScore,
@@ -126,18 +181,92 @@ export class CodeReviewer {
   private async generateReviewComments(
     prAnalysis: PRAnalysis
   ): Promise<ReviewComment[]> {
+    const filesToAnalyze = prAnalysis.filesChanged.filter(
+      file => !this.shouldSkipFile(file)
+    );
+
+    if (filesToAnalyze.length === 0) {
+      return [];
+    }
+
+    // Use parallel analysis if enabled and there are multiple files
+    if (this.enableParallelAnalysis && filesToAnalyze.length > 1) {
+      return this.generateReviewCommentsParallel(filesToAnalyze);
+    }
+
+    // Sequential analysis for single file or when parallel is disabled
+    return this.generateReviewCommentsSequential(filesToAnalyze);
+  }
+
+  /**
+   * Generate review comments using parallel worker pool
+   */
+  private async generateReviewCommentsParallel(
+    files: FileChange[]
+  ): Promise<ReviewComment[]> {
+    const workerPool = createWorkerPool<FileChange, ReviewComment[]>({
+      maxWorkers: this.maxWorkers,
+      onProgress: this.onProgress,
+      onError: (taskId, error) => {
+        console.error(`[CodeReviewer] Error analyzing file ${taskId}:`, error.message);
+      },
+      continueOnError: true, // Continue analyzing other files even if one fails
+    });
+
+    // Create tasks for each file
+    const tasks: WorkerTask<FileChange, ReviewComment[]>[] = files.map(file => ({
+      id: file.filename,
+      data: file,
+      execute: async (fileData) => this.analyzeFile(fileData),
+    }));
+
+    console.log(`[CodeReviewer] Starting parallel analysis of ${files.length} files with ${this.maxWorkers} workers...`);
+    const startTime = Date.now();
+
+    // Execute all tasks in parallel
+    const results = await workerPool.executeTasks(tasks);
+
+    const stats = workerPool.getStats();
+    const duration = Date.now() - startTime;
+    
+    console.log(
+      `[CodeReviewer] Parallel analysis complete: ${stats.completedTasks}/${stats.totalTasks} files analyzed in ${duration}ms ` +
+      `(${stats.failedTasks} failed)`
+    );
+
+    // Flatten all comments from all files
+    const allComments: ReviewComment[] = [];
+    results.forEach(comments => {
+      allComments.push(...comments);
+    });
+
+    // Sort by severity
+    return allComments.sort((a, b) => 
+      this.severityWeight(b.severity) - this.severityWeight(a.severity)
+    );
+  }
+
+  /**
+   * Generate review comments sequentially (fallback/single file)
+   */
+  private async generateReviewCommentsSequential(
+    files: FileChange[]
+  ): Promise<ReviewComment[]> {
     const comments: ReviewComment[] = [];
 
-    for (const file of prAnalysis.filesChanged) {
-      // Skip non-code files
-      if (this.shouldSkipFile(file)) continue;
-
+    for (const file of files) {
       const fileComments = await this.analyzeFile(file);
       comments.push(...fileComments);
+      
+      if (this.onProgress) {
+        this.onProgress(comments.length, files.length);
+      }
     }
 
     // Sort by severity
-    return comments.sort((a, b) => this.severityWeight(b.severity) - this.severityWeight(a.severity));
+    return comments.sort((a, b) => 
+      this.severityWeight(b.severity) - this.severityWeight(a.severity)
+    );
   }
 
   /**

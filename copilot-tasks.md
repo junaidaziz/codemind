@@ -5,32 +5,63 @@
 
 ---
 
-## 🎯 ACTIVE ROADMAP (Completed items removed)
+## Core Features Status 🎯
 
-### **Current Focus: Feature #11 – Code Review Automation**
-Priority: ⭐⭐⭐ CORE DIFFERENTIATOR | Effort (remaining): ~3 weeks
+✅ **Feature #11 – Code Review Automation** (COMPLETE)
+✅ **Feature #10 – CI/CD & DevOps Integration** (COMPLETE)
+✅ **Slack/Discord Notifications** (COMPLETE)
+✅ **Parallel File Analysis Worker Pool** (COMPLETE)
 
-Remaining High-Impact Tasks:
-1. Persist & expose review simulation (affected components + dependency surface) ⏳
-2. Persist & surface documentation/testing suggestions in UI ⏳
-3. Integration tests: analyze endpoint + webhook end‑to‑end ⏳
-4. Minimal UI: PR review list + detail view (risk, comments, suggestions, simulation) ⏳
-5. Incremental re-analysis optimization (selective file refresh + improved duplicate suppression) ⏳
-6. Adaptive GitHub API backoff + shared response caching ⏳
+---
 
-Secondary Enhancements (Backlog):
-- Parallel file analysis worker pool
-- Configurable rule weights (user overrides)
-- Slack/Discord notification on completed reviews
+## Pending Tasks & Enhancements 🚀
 
-### **Next Up: Feature #10 – CI/CD & DevOps Integration**
-Early Scope (defer until Feature #11 core shipped):
-- GitHub Actions integration: pre-merge AI check job
-- Deployment event ingestion (Vercel) → summarize build & risk
-- Post-deploy health scan & rollback suggestion draft
+### **High-Impact Enhancements**
 
-### **Future (Watchlist)**
-Feature #9: VS Code Extension (trigger only after demand threshold)
-Feature #15: Performance & Cost Optimization (activate post real usage metrics)
+1. **Configurable Rule Weights** - ⏱️ 1-2 days
+   - User-defined rule severity adjustments
+   - Per-project rule configuration
+   - UI for rule management (/settings/rules)
+   - Export/import rule presets
+   - Default profiles (strict, balanced, lenient)
+
+### **Secondary Features (Backlog)**
+
+**Code Review Automation:**
+- Fine-tune incremental re-analysis heuristics
+- Add support for custom rule plugins
+- Multi-language support beyond TypeScript/JavaScript
+
+**CI/CD & DevOps:**
+- Rollback suggestion generation based on health checks
+- Multi-environment deployment comparison
+- Build performance analytics dashboard
+- Integration with CircleCI, Jenkins, GitLab CI
+
+**Data & Analytics:**
+- Team performance metrics (review turnaround time, approval rates)
+- Code quality trends over time
+- Developer productivity insights
+- Export reports (PDF, CSV)
+
+### **Future Major Features** (activate on demand)
+
+**Feature #9: VS Code Extension**
+- Local code analysis before commit
+- PR review visualization in editor
+- Inline suggestion application
+- Real-time feedback as you code
+- Trigger: User demand + stable API
+
+**Feature #15: Performance & Cost Optimization**
+- AI model cost tracking and budgeting
+- Query optimization and advanced caching
+- Load testing and performance profiling
+- Auto-scaling recommendations
+- Trigger: Real production usage metrics
+
+---
 
 **Built with ❤️ by Junaid Aziz**
+
+

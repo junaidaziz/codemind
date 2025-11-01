@@ -65,12 +65,45 @@ GITHUB_TOKEN="ghp_your-github-personal-access-token"
 
 ### Notifications
 
+Configure Slack and Discord webhooks to receive real-time notifications for code reviews, deployments, and health check failures.
+
 ```bash
 # Slack webhook for notifications
+# Get this from: https://api.slack.com/messaging/webhooks
 SLACK_WEBHOOK_URL="https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
 
 # Discord webhook for notifications
+# Get this from: Server Settings → Integrations → Webhooks
 DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/YOUR/WEBHOOK/URL"
+```
+
+**Notification Events:**
+- `review_completed` - Code review analysis completed
+- `review_high_risk` - High-risk issues detected in code review
+- `deployment_ready` - Deployment completed successfully
+- `deployment_failed` - Deployment failed
+- `health_check_failed` - Health check detected issues
+
+**Setting up Slack webhook:**
+1. Go to https://api.slack.com/messaging/webhooks
+2. Create a new app or use existing one
+3. Enable "Incoming Webhooks"
+4. Add webhook to your desired channel
+5. Copy the webhook URL
+
+**Setting up Discord webhook:**
+1. Open Discord server settings
+2. Go to Integrations → Webhooks
+3. Create a new webhook
+4. Select the channel for notifications
+5. Copy the webhook URL
+
+### Vercel Integration
+
+```bash
+# Vercel webhook secret for deployment event verification
+# Generate using: openssl rand -base64 32
+VERCEL_WEBHOOK_SECRET="your-webhook-secret"
 ```
 
 ### Error Tracking
@@ -87,12 +120,27 @@ NODE_ENV="development"
 PORT="3000"
 ```
 
-### Redis Cache
+### Cache Configuration
 
 ```bash
-# Redis connection for caching (optional)
+# Cache adapter type: 'memory' (default) or 'redis'
+CACHE_ADAPTER="memory"
+
+# Redis connection URL (required when CACHE_ADAPTER=redis)
 REDIS_URL="redis://localhost:6379"
+
+# Or use Vercel KV (automatically detected if both are set)
+KV_REST_API_URL="https://your-kv-url.upstash.io"
+KV_REST_API_TOKEN="your-kv-token"
+
+# GitHub API cache TTL (milliseconds)
+GITHUB_FETCH_CACHE_TTL_PR="30000"      # 30 seconds for PR data
+GITHUB_FETCH_CACHE_TTL_FILES="60000"   # 60 seconds for file data
 ```
+
+> **Note:** The cache adapter defaults to in-memory with LRU eviction (500 entries max).
+> For production deployments with multiple instances, use `CACHE_ADAPTER=redis` with 
+> either a Redis URL or Vercel KV credentials.
 
 ### Rate Limiting
 
@@ -128,6 +176,23 @@ ENABLE_SSO="true"
 ENABLE_TEAMS="true"
 ENABLE_ANALYTICS="true"
 ```
+
+### Code Review Performance
+
+```bash
+# Enable parallel file analysis using worker pool
+# Default: true
+CODE_REVIEW_PARALLEL_ANALYSIS="true"
+
+# Maximum number of concurrent workers for file analysis
+# Default: auto-detected (CPU cores - 1, min 2, max 8)
+# Set lower for resource-constrained environments
+CODE_REVIEW_MAX_WORKERS="4"
+```
+
+> **Note:** Parallel analysis significantly speeds up code reviews for PRs with multiple files.
+> For small PRs (<5 files), sequential processing may be faster due to coordination overhead.
+> Adjust `CODE_REVIEW_MAX_WORKERS` based on your deployment environment's CPU resources.
 
 ## Setup Instructions
 

@@ -1155,3 +1155,34 @@ enum RiskFactor {
   COMPLEXITY
   TEST_COVERAGE
 }
+
+enum DeploymentStatus {
+  QUEUED
+  BUILDING
+  READY
+  ERROR
+  CANCELED
+}
+
+model Deployment {
+  id                String            @id @default(cuid())
+  projectId         String
+  commitSha         String?
+  branch            String?
+  status            DeploymentStatus  @default(QUEUED)
+  url               String?           @db.Text
+  deploymentUrl     String?           @db.Text  // Vercel deployment URL
+  environment       String?           // production, preview, development
+  provider          String            @default("vercel")  // vercel, railway, etc.
+  buildDuration     Int?              // milliseconds
+  healthCheckResult Json?             // { status: 'healthy'|'unhealthy', checks: [...] }
+  errorMessage      String?           @db.Text
+  metadata          Json?             // Additional provider-specific data
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  deployedAt        DateTime?
+  
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([commitSha])
+  @@index([status, createdAt(sort: Desc)])
+}

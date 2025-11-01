@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { CodeReviewer } from '@/lib/code-review/code-reviewer';
 import { GitHubFetcher } from '@/lib/code-review/github-fetcher';
 import { ReviewStorage } from '@/lib/code-review/review-storage';
+import { notifyCodeReviewCompleted } from '@/lib/notifications/notification-helpers';
 
 /**
  * POST /api/code-review/analyze
@@ -46,6 +47,19 @@ export async function POST(request: NextRequest) {
     );
 
     console.log(`[Code Review] Analysis complete for PR #${prNumber}. Risk: ${reviewResult.riskScore.level}`);
+
+    // Send notification
+    const highRiskSuggestions = reviewResult.comments.filter(c => c.severity === 'critical' || c.severity === 'high').length;
+    await notifyCodeReviewCompleted({
+      pullRequestUrl: prAnalysis.url || `https://github.com/${owner}/${repo}/pull/${prNumber}`,
+      suggestionsCount: reviewResult.comments.length,
+      highRiskCount: highRiskSuggestions,
+      repository: `${owner}/${repo}`,
+      branch: prAnalysis.headBranch,
+    }).catch(error => {
+      console.error('[Code Review] Notification failed:', error);
+      // Don't fail the request if notification fails
+    });
 
     return NextResponse.json({
       success: true,

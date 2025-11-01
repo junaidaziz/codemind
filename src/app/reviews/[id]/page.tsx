@@ -1,7 +1,7 @@
 import React from 'react';
 import { RiskBadge } from '@/components/code-review/RiskBadge';
 import { ReviewStatusChip } from '@/components/code-review/ReviewStatusChip';
-import type { ReviewSummary, ReviewSimulation, AffectedComponent } from '@/types/code-review';
+import type { ReviewSummary, ReviewSimulation, AffectedComponent, DocumentationSuggestion, TestingSuggestion } from '@/types/code-review';
 
 interface ReviewDetailResponse {
   id: string;
@@ -59,8 +59,10 @@ function severityColor(sev: string) {
 }
 
 // Parsed summary type (subset of ReviewSummary with optional simulation)
-interface ParsedSummary extends Omit<ReviewSummary, 'simulation'> {
+interface ParsedSummary extends Omit<ReviewSummary, 'simulation' | 'documentationSuggestions' | 'testingSuggestions'> {
   simulation?: ReviewSimulation;
+  documentationSuggestions?: DocumentationSuggestion[];
+  testingSuggestions?: TestingSuggestion[];
 }
 
 export default async function ReviewDetailPage({ params }: { params: { id: string } }) {
@@ -91,6 +93,14 @@ export default async function ReviewDetailPage({ params }: { params: { id: strin
   } catch {
     // swallow JSON parse error; fallback already set
   }
+
+  // Attempt to hydrate suggestions & simulation from structured columns if not embedded in summary
+  // @ts-expect-error runtime augmentation from API response
+  if (!parsedSummary.simulation && review.simulation) parsedSummary.simulation = review.simulation as ReviewSimulation;
+  // @ts-expect-error runtime augmentation from API response
+  if (!parsedSummary.documentationSuggestions && review.documentationSuggestions) parsedSummary.documentationSuggestions = review.documentationSuggestions as DocumentationSuggestion[];
+  // @ts-expect-error runtime augmentation from API response
+  if (!parsedSummary.testingSuggestions && review.testingSuggestions) parsedSummary.testingSuggestions = review.testingSuggestions as TestingSuggestion[];
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
@@ -154,6 +164,45 @@ export default async function ReviewDetailPage({ params }: { params: { id: strin
           </div>
         </section>
       )}
+        {(parsedSummary.documentationSuggestions && parsedSummary.documentationSuggestions.length > 0) && (
+          <section>
+            <h2 className="text-lg font-medium mb-2">Documentation Suggestions</h2>
+            <ul className="space-y-2">
+              {parsedSummary.documentationSuggestions.map((s, idx) => (
+                <li key={idx} className="border rounded p-2 text-xs bg-white shadow-sm">
+                  <div className="flex justify-between mb-1">
+                    <span className="font-semibold">{s.type}</span>
+                    <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700 border text-[10px]">{s.priority}</span>
+                  </div>
+                  <p className="mb-1 text-gray-700">{s.suggestion}</p>
+                  <p className="text-[10px] text-gray-500">{s.file} @ {s.location}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {(parsedSummary.testingSuggestions && parsedSummary.testingSuggestions.length > 0) && (
+          <section>
+            <h2 className="text-lg font-medium mb-2">Testing Suggestions</h2>
+            <ul className="space-y-2">
+              {parsedSummary.testingSuggestions.map((s, idx) => (
+                <li key={idx} className="border rounded p-2 text-xs bg-white shadow-sm">
+                  <div className="flex justify-between mb-1">
+                    <span className="font-semibold">{s.type}</span>
+                    <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700 border text-[10px]">{s.priority}</span>
+                  </div>
+                  <p className="mb-1 text-gray-700">{s.suggestion}</p>
+                  {s.estimatedCoverage != null && (
+                    <p className="text-[10px] text-gray-500">Est. Coverage: {s.estimatedCoverage}%</p>
+                  )}
+                  <p className="text-[10px] text-gray-500">Files: {s.files.join(', ')}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
 
       <section>
         <h2 className="text-lg font-medium mb-2">Risk Factors</h2>
