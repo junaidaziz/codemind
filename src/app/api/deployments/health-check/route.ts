@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { notifyHealthCheckFailed } from '@/lib/notifications/notification-helpers';
+import { Prisma } from '@prisma/client';
 
 interface HealthCheckResult {
   status: 'healthy' | 'unhealthy' | 'unknown';
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
     await prisma.deployment.update({
       where: { id: deploymentId },
       data: {
-        healthCheckResult: result as unknown as Record<string, unknown>,
+        healthCheckResult: JSON.parse(JSON.stringify(result)) as Prisma.InputJsonValue,
         updatedAt: new Date(),
       },
     });

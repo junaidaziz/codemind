@@ -30,10 +30,24 @@ jest.mock('@/lib/code-review/github-fetcher', () => ({
 }));
 
 // Mock ReviewStorage to accumulate reviews for stats
-const stored: any[] = [];
+interface StoredReview {
+  projectId: string;
+  prNumber: number;
+  riskLevel: string;
+  overallScore: number;
+  approved: boolean;
+  requiresChanges: boolean;
+  simulation: unknown;
+}
+
+const stored: StoredReview[] = [];
 jest.mock('@/lib/code-review/review-storage', () => ({
   ReviewStorage: class {
-    async saveReview(projectId: string, prNumber: number, result: any) {
+    async saveReview(projectId: string, prNumber: number, result: {
+      riskScore: { level: string };
+      summary: { overallScore: number; approved: boolean; requiresChanges: boolean };
+      simulation: unknown;
+    }) {
       stored.push({ projectId, prNumber, riskLevel: result.riskScore.level.toUpperCase(), overallScore: result.summary.overallScore, approved: result.summary.approved, requiresChanges: result.summary.requiresChanges, simulation: result.simulation });
       return { id: `rev-${prNumber}`, projectId, prNumber };
     }
