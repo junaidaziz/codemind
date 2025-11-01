@@ -763,6 +763,9 @@ model User {
   ProjectMember_addedBy                                 ProjectMember[]      @relation("ProjectMember_addedBy")
   accounts                                              Account[]
   sessions                                              Session[]
+  ComplianceRule                                        ComplianceRule[]
+  ComplianceViolation                                   ComplianceViolation[]
+  ComplianceAudit                                       ComplianceAudit[]
 }
 
 model Account {
@@ -1185,4 +1188,145 @@ model Deployment {
   @@index([projectId, createdAt(sort: Desc)])
   @@index([commitSha])
   @@index([status, createdAt(sort: Desc)])
+}
+
+// Compliance Foundation Models
+
+model ComplianceRule {
+  id              String              @id @default(cuid())
+  name            String
+  description     String              @db.Text
+  category        ComplianceCategory
+  severity        RuleSeverity        @default(MEDIUM)
+  ruleType        RuleType            @default(CODE_QUALITY)
+  enabled         Boolean             @default(true)
+  condition       Json                // Rule conditions (e.g., file patterns, code patterns, metrics)
+  action          Json?               // Actions to take when rule is violated
+  metadata        Json?               // Additional rule configuration
+  organizationId  String?
+  projectId       String?
+  createdBy       String
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  violations      ComplianceViolation[]
+  User            User                @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  
+  @@index([category, enabled])
+  @@index([organizationId, enabled])
+  @@index([projectId, enabled])
+  @@index([createdBy])
+}
+
+model ComplianceViolation {
+  id              String              @id @default(cuid())
+  ruleId          String
+  projectId       String
+  prNumber        Int?
+  commitSha       String?
+  filePath        String?
+  lineNumber      Int?
+  severity        RuleSeverity
+  message         String              @db.Text
+  details         Json?               // Detailed violation info
+  status          ViolationStatus     @default(OPEN)
+  aiAnalysis      String?             @db.Text // AI-powered analysis
+  aiSuggestion    String?             @db.Text // AI-powered fix suggestion
+  resolvedBy      String?
+  resolvedAt      DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  rule            ComplianceRule      @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  resolver        User?               @relation(fields: [resolvedBy], references: [id], onDelete: SetNull)
+  
+  @@index([ruleId, status])
+  @@index([projectId, status])
+  @@index([prNumber, projectId])
+  @@index([severity, status])
+  @@index([createdAt(sort: Desc)])
+}
+
+model ComplianceAudit {
+  id              String              @id @default(cuid())
+  projectId       String
+  prNumber        Int?
+  commitSha       String?
+  triggeredBy     String
+  triggerType     AuditTriggerType    @default(PR_EVENT)
+  status          AuditStatus         @default(PENDING)
+  rulesChecked    Int                 @default(0)
+  violationsFound Int                 @default(0)
+  criticalCount   Int                 @default(0)
+  highCount       Int                 @default(0)
+  mediumCount     Int                 @default(0)
+  lowCount        Int                 @default(0)
+  aiInsights      String?             @db.Text // AI-powered overall analysis
+  overallScore    Float?              // Compliance score 0-100
+  duration        Int?                // Duration in milliseconds
+  metadata        Json?
+  createdAt       DateTime            @default(now())
+  completedAt     DateTime?
+  
+  User            User                @relation(fields: [triggeredBy], references: [id], onDelete: Cascade)
+  
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([prNumber, projectId])
+  @@index([status, createdAt(sort: Desc)])
+  @@index([triggeredBy])
+}
+
+enum ComplianceCategory {
+  SECURITY
+  CODE_QUALITY
+  PERFORMANCE
+  ACCESSIBILITY
+  DOCUMENTATION
+  TESTING
+  DEPENDENCIES
+  LICENSE
+  DATA_PRIVACY
+  CUSTOM
+}
+
+enum RuleSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RuleType {
+  CODE_QUALITY
+  SECURITY
+  PERFORMANCE
+  STYLE
+  DOCUMENTATION
+  TESTING
+  DEPENDENCY
+  CUSTOM
+}
+
+enum ViolationStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+  IGNORED
+  FALSE_POSITIVE
+}
+
+enum AuditTriggerType {
+  PR_EVENT
+  MANUAL
+  SCHEDULED
+  COMMIT_PUSH
+  DEPLOYMENT
+}
+
+enum AuditStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  CANCELLED
 }
