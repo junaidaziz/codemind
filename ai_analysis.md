@@ -1,3 +1,22 @@
+# 🔍 Vercel Build Failure Analysis
+
+**Generated on:** 2025-11-01 04:50:17 UTC
+**Deployment ID:** 
+**Repository:** junaidaziz/codemind
+**Branch:** main
+**Commit:** b75d04ef2f01bcb61bb6bb9583af59c95e514b76
+
+## ❌ Build Failure Summary
+Build failed due to TypeScript errors and missing dependencies.
+
+## 🔍 Root Cause Analysis
+Unknown cause
+
+## 🛠️ Suggested Fix
+See analysis for details
+
+## 📊 Full Analysis
+```json
 {
   "deployment": {
     "uid": "dpl_6rFgDkWfWJhLkbu9yBvpLPamjmVL",
@@ -58,3 +77,7 @@
   },
   "timestamp": "2025-11-01T04:50:17.063Z"
 }
+```
+
+---
+*This analysis was generated automatically by our AI-powered build failure analyzer.*
