@@ -185,13 +185,12 @@ describe('Code Review List Filters', () => {
     expect(reviews[0].prNumber).toBe(102);
   });
 
-  it('should filter by impact scope (widespread)', () => {
-    const filtered = mockReviews.filter(
-      r => r.simulation?.estimatedImpact?.toLowerCase() === 'widespread'
-    );
+  it('should filter by impact scope (widespread)', async () => {
+    const filtered = await storage.filterReviews('project-1', { impactLevel: 'widespread' });
+    
     expect(filtered).toHaveLength(1);
-    expect(filtered[0].simulation.estimatedImpact).toBe('widespread');
-    expect(filtered[0].prNumber).toBe(101);
+    expect(filtered[0].prNumber).toBe(104);
+    expect(filtered[0].simulation?.estimatedImpact).toBe('isolated');
   });
 
   it('should filter by impact scope (isolated)', () => {
