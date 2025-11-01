@@ -139,10 +139,10 @@ export default function CrossRepoLinksTab({ workspaceId }: CrossRepoLinksTabProp
       {/* Header with Actions */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <h3 className="text-lg font-semibold text-primary">
             Cross-Repository Links
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-secondary">
             Track relationships between issues and PRs across repositories
           </p>
         </div>
@@ -187,28 +187,28 @@ export default function CrossRepoLinksTab({ workspaceId }: CrossRepoLinksTabProp
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <div className="text-3xl mb-2">🔗</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Links</div>
-              <div className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+              <div className="text-sm text-secondary mb-1">Total Links</div>
+              <div className="text-2xl font-semibold text-primary">
                 {links.totalLinks}
               </div>
             </div>
             <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
               <div className="text-3xl mb-2">🔀</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Cross-Repo Links</div>
-              <div className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+              <div className="text-sm text-secondary mb-1">Cross-Repo Links</div>
+              <div className="text-2xl font-semibold text-primary">
                 {links.crossRepoLinks}
               </div>
             </div>
           </div>
 
           {/* Links List */}
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="p-6">
-              <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              <h4 className="text-lg font-semibold text-primary mb-4">
                 Recent Links ({links.recentLinks.length})
               </h4>
               {links.recentLinks.length === 0 ? (
-                <p className="text-center text-gray-600 dark:text-gray-400 py-8">
+                <p className="text-center text-secondary py-8">
                   No cross-repo links found. Create one to get started!
                 </p>
               ) : (
@@ -241,7 +241,7 @@ export default function CrossRepoLinksTab({ workspaceId }: CrossRepoLinksTabProp
                               {link.target.owner}/{link.target.repo}#{link.target.number}
                             </a>
                           </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                          <div className="text-sm text-secondary">
                             <div>Source: {link.source.title}</div>
                             <div>Target: {link.target.title}</div>
                           </div>
@@ -276,12 +276,12 @@ export default function CrossRepoLinksTab({ workspaceId }: CrossRepoLinksTabProp
       )}
 
       {!links && !loading && (
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+        <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
           <div className="text-6xl mb-6">🔀</div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+          <h3 className="text-xl font-semibold text-primary mb-4">
             No Cross-Repo Links Yet
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-secondary mb-6">
             Scan your workspace to discover relationships between issues and PRs across repositories.
           </p>
           <div className="flex items-center justify-center gap-3">
@@ -304,16 +304,16 @@ export default function CrossRepoLinksTab({ workspaceId }: CrossRepoLinksTabProp
       {/* Create Link Modal */}
       {showCreateLink && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="surface-card rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+              <h2 className="text-2xl font-bold text-primary mb-4">
                 Create Cross-Repo Link
               </h2>
               <form onSubmit={handleCreateLink}>
                 <div className="space-y-6">
                   {/* Source */}
                   <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Source (Issue/PR)</h3>
+                    <h3 className="font-semibold text-primary mb-3">Source (Issue/PR)</h3>
                     <div className="grid grid-cols-3 gap-3">
                       <input
                         type="text"
@@ -362,7 +362,7 @@ export default function CrossRepoLinksTab({ workspaceId }: CrossRepoLinksTabProp
 
                   {/* Target */}
                   <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Target (Issue/PR)</h3>
+                    <h3 className="font-semibold text-primary mb-3">Target (Issue/PR)</h3>
                     <div className="grid grid-cols-3 gap-3">
                       <input
                         type="text"
@@ -407,7 +407,7 @@ export default function CrossRepoLinksTab({ workspaceId }: CrossRepoLinksTabProp
                       setError(null);
                     }}
                     disabled={creating}
-                    className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
+                    className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-primary font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
                   >
                     Cancel
                   </button>

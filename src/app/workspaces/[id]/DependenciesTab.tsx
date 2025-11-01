@@ -96,8 +96,8 @@ export default function DependenciesTab({ workspaceId }: DependenciesTabProps) {
   return (
     <div className="space-y-6">
       {/* Graph Options */}
-      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+      <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h3 className="text-lg font-semibold text-primary mb-4">
           Dependency Graph Options
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -173,30 +173,30 @@ export default function DependenciesTab({ workspaceId }: DependenciesTabProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <div className="text-3xl mb-2">📦</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Dependencies</div>
-              <div className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+              <div className="text-sm text-secondary mb-1">Total Dependencies</div>
+              <div className="text-2xl font-semibold text-primary">
                 {graph.nodes.length}
               </div>
             </div>
             <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
               <div className="text-3xl mb-2">🔗</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Dependency Links</div>
-              <div className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+              <div className="text-sm text-secondary mb-1">Dependency Links</div>
+              <div className="text-2xl font-semibold text-primary">
                 {graph.edges.length}
               </div>
             </div>
             <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
               <div className="text-3xl mb-2">📁</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Repositories</div>
-              <div className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+              <div className="text-sm text-secondary mb-1">Repositories</div>
+              <div className="text-2xl font-semibold text-primary">
                 {graph.metadata.repositoryCount}
               </div>
             </div>
           </div>
 
           {/* Analysis Actions */}
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+          <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-primary mb-4">
               Run Analysis
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -239,8 +239,8 @@ export default function DependenciesTab({ workspaceId }: DependenciesTabProps) {
           )}
 
           {analysis && !analyzing && (
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-primary mb-4">
                 Analysis Results: {activeAnalysis}
               </h3>
               <pre className="bg-gray-100 dark:bg-gray-900 p-4 rounded-lg overflow-auto text-sm">
@@ -250,8 +250,8 @@ export default function DependenciesTab({ workspaceId }: DependenciesTabProps) {
           )}
 
           {/* Dependency List */}
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+          <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-primary mb-4">
               Dependencies ({graph.nodes.length})
             </h3>
             <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -261,10 +261,10 @@ export default function DependenciesTab({ workspaceId }: DependenciesTabProps) {
                   className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
                 >
                   <div className="flex-1">
-                    <div className="font-medium text-gray-900 dark:text-gray-100">
+                    <div className="font-medium text-primary">
                       {node.name}
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="text-sm text-secondary">
                       {node.version} • {node.type}
                       {node.repositoryName && ` • ${node.repositoryName}`}
                     </div>
@@ -289,12 +289,12 @@ export default function DependenciesTab({ workspaceId }: DependenciesTabProps) {
       )}
 
       {!graph && !loading && (
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+        <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
           <div className="text-6xl mb-6">🔗</div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+          <h3 className="text-xl font-semibold text-primary mb-4">
             No Dependency Graph Yet
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-secondary mb-6">
             Build a dependency graph to visualize and analyze dependencies across your repositories.
           </p>
           <button

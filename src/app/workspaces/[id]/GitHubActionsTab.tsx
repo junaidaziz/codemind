@@ -198,28 +198,28 @@ export default function GitHubActionsTab({ workspaceId }: GitHubActionsTabProps)
       {/* Header with Stats */}
       {summary && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Runs</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{summary.total_runs}</p>
+                <p className="text-sm text-secondary mb-1">Total Runs</p>
+                <p className="text-3xl font-bold text-primary">{summary.total_runs}</p>
               </div>
               <div className="text-4xl">🔄</div>
             </div>
           </div>
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Successful</p>
+                <p className="text-sm text-secondary mb-1">Successful</p>
                 <p className="text-3xl font-bold text-green-600 dark:text-green-400">{summary.successful_runs}</p>
               </div>
               <div className="text-4xl">✅</div>
             </div>
           </div>
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Failed</p>
+                <p className="text-sm text-secondary mb-1">Failed</p>
                 <p className="text-3xl font-bold text-red-600 dark:text-red-400">{summary.failed_runs}</p>
               </div>
               <div className="text-4xl">❌</div>
@@ -254,7 +254,7 @@ export default function GitHubActionsTab({ workspaceId }: GitHubActionsTabProps)
             className={`px-4 py-2 font-medium rounded-lg transition-colors ${
               filter === 'all'
                 ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600'
+                : 'bg-gray-200 dark:bg-gray-700 text-primary hover:bg-gray-300 dark:hover:bg-gray-600'
             }`}
           >
             All Runs
@@ -264,7 +264,7 @@ export default function GitHubActionsTab({ workspaceId }: GitHubActionsTabProps)
             className={`px-4 py-2 font-medium rounded-lg transition-colors ${
               filter === 'failed'
                 ? 'bg-red-600 text-white'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600'
+                : 'bg-gray-200 dark:bg-gray-700 text-primary hover:bg-gray-300 dark:hover:bg-gray-600'
             }`}
           >
             Failed Only
@@ -274,7 +274,7 @@ export default function GitHubActionsTab({ workspaceId }: GitHubActionsTabProps)
             className={`px-4 py-2 font-medium rounded-lg transition-colors ${
               filter === 'success'
                 ? 'bg-green-600 text-white'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600'
+                : 'bg-gray-200 dark:bg-gray-700 text-primary hover:bg-gray-300 dark:hover:bg-gray-600'
             }`}
           >
             Success Only
@@ -299,38 +299,38 @@ export default function GitHubActionsTab({ workspaceId }: GitHubActionsTabProps)
 
       {/* Health Metrics Modal */}
       {showHealthMetrics && healthMetrics && (
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Build Health Metrics</h3>
+            <h3 className="text-xl font-semibold text-primary">Build Health Metrics</h3>
             <button
               onClick={() => setShowHealthMetrics(false)}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+              className="text-secondary hover:text-gray-900 dark:hover:text-gray-100"
             >
               ✕
             </button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Success Rate</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <p className="text-sm text-secondary mb-1">Success Rate</p>
+              <p className="text-2xl font-bold text-primary">
                 {healthMetrics.success_rate?.toFixed(1)}%
               </p>
             </div>
             <div className="text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Avg Duration</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <p className="text-sm text-secondary mb-1">Avg Duration</p>
+              <p className="text-2xl font-bold text-primary">
                 {healthMetrics.average_duration ? `${Math.floor(healthMetrics.average_duration / 60)}m` : 'N/A'}
               </p>
             </div>
             <div className="text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Health Score</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <p className="text-sm text-secondary mb-1">Health Score</p>
+              <p className="text-2xl font-bold text-primary">
                 {healthMetrics.health_score?.toFixed(0)}/100
               </p>
             </div>
             <div className="text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Trend</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <p className="text-sm text-secondary mb-1">Trend</p>
+              <p className="text-2xl font-bold text-primary">
                 {healthMetrics.trend === 'improving' ? '📈' : healthMetrics.trend === 'declining' ? '📉' : '➡️'}
               </p>
             </div>
@@ -350,15 +350,15 @@ export default function GitHubActionsTab({ workspaceId }: GitHubActionsTabProps)
             .map((run) => (
               <div
                 key={run.id}
-                className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4"
+                className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{run.name}</h4>
+                      <h4 className="text-lg font-semibold text-primary">{run.name}</h4>
                       {getStatusBadge(run)}
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center gap-4 text-sm text-secondary">
                       <span>📁 {run.repository.full_name}</span>
                       <span>🌿 {run.head_branch}</span>
                       <span>⏰ {formatDate(run.created_at)}</span>
@@ -389,16 +389,16 @@ export default function GitHubActionsTab({ workspaceId }: GitHubActionsTabProps)
                 {/* AI Analysis Results */}
                 {selectedRun?.id === run.id && analysis && (
                   <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <h5 className="text-md font-semibold text-gray-900 dark:text-gray-100 mb-3">🤖 AI Analysis</h5>
+                    <h5 className="text-md font-semibold text-primary mb-3">🤖 AI Analysis</h5>
                     <div className="space-y-3">
                       <div>
                         <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Summary:</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{analysis.summary}</p>
+                        <p className="text-sm text-secondary">{analysis.summary}</p>
                       </div>
                       {analysis.root_cause && (
                         <div>
                           <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Root Cause:</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">{analysis.root_cause}</p>
+                          <p className="text-sm text-secondary">{analysis.root_cause}</p>
                         </div>
                       )}
                       {analysis.recommendations && analysis.recommendations.length > 0 && (
@@ -406,7 +406,7 @@ export default function GitHubActionsTab({ workspaceId }: GitHubActionsTabProps)
                           <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Recommendations:</p>
                           <ul className="list-disc list-inside space-y-1">
                             {analysis.recommendations.map((rec, idx) => (
-                              <li key={idx} className="text-sm text-gray-600 dark:text-gray-400">
+                              <li key={idx} className="text-sm text-secondary">
                                 {rec}
                               </li>
                             ))}
@@ -438,12 +438,12 @@ export default function GitHubActionsTab({ workspaceId }: GitHubActionsTabProps)
             ))}
         </div>
       ) : (
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+        <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
           <div className="text-6xl mb-6">🔄</div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+          <h3 className="text-xl font-semibold text-primary mb-4">
             No Workflow Runs Found
           </h3>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-secondary">
             {filter === 'failed'
               ? 'No failed workflow runs found. Great job!'
               : 'Add repositories with GitHub Actions workflows to see their status here.'}

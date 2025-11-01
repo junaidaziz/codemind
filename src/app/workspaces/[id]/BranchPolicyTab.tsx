@@ -191,37 +191,37 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
     <div className="space-y-6">
       {/* Header with Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Repositories</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{protections.length}</p>
+              <p className="text-sm text-secondary mb-1">Total Repositories</p>
+              <p className="text-3xl font-bold text-primary">{protections.length}</p>
             </div>
             <div className="text-4xl">📁</div>
           </div>
         </div>
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Protected</p>
+              <p className="text-sm text-secondary mb-1">Protected</p>
               <p className="text-3xl font-bold text-green-600 dark:text-green-400">{protectedCount}</p>
             </div>
             <div className="text-4xl">🛡️</div>
           </div>
         </div>
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Unprotected</p>
+              <p className="text-sm text-secondary mb-1">Unprotected</p>
               <p className="text-3xl font-bold text-red-600 dark:text-red-400">{unprotectedCount}</p>
             </div>
             <div className="text-4xl">⚠️</div>
           </div>
         </div>
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Compliance</p>
+              <p className="text-sm text-secondary mb-1">Compliance</p>
               <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{complianceScore.toFixed(0)}%</p>
             </div>
             <div className="text-4xl">📊</div>
@@ -249,7 +249,7 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
 
       {/* Actions Bar */}
       <div className="flex items-center justify-between gap-4">
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Branch Protection Status</h3>
+        <h3 className="text-xl font-semibold text-primary">Branch Protection Status</h3>
         <div className="flex items-center gap-2">
           <button
             onClick={handleDetectViolations}
@@ -283,12 +283,12 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
 
       {/* Compliance Report Modal */}
       {showReport && report && (
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">📋 Compliance Report</h3>
+            <h3 className="text-xl font-semibold text-primary">📋 Compliance Report</h3>
             <button
               onClick={() => setShowReport(false)}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+              className="text-secondary hover:text-gray-900 dark:hover:text-gray-100"
             >
               ✕
             </button>
@@ -297,19 +297,19 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
           {/* Report Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Repos</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{report.total_repos}</p>
+              <p className="text-sm text-secondary mb-1">Total Repos</p>
+              <p className="text-2xl font-bold text-primary">{report.total_repos}</p>
             </div>
             <div className="text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Protected</p>
+              <p className="text-sm text-secondary mb-1">Protected</p>
               <p className="text-2xl font-bold text-green-600 dark:text-green-400">{report.protected_repos}</p>
             </div>
             <div className="text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Unprotected</p>
+              <p className="text-sm text-secondary mb-1">Unprotected</p>
               <p className="text-2xl font-bold text-red-600 dark:text-red-400">{report.unprotected_repos}</p>
             </div>
             <div className="text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Compliance</p>
+              <p className="text-sm text-secondary mb-1">Compliance</p>
               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{report.compliance_score.toFixed(0)}%</p>
             </div>
           </div>
@@ -317,7 +317,7 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
           {/* Violations */}
           {report.violations.length > 0 && (
             <div className="mb-6">
-              <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Policy Violations</h4>
+              <h4 className="text-lg font-semibold text-primary mb-3">Policy Violations</h4>
               <div className="space-y-2">
                 {report.violations.map((violation, idx) => (
                   <div
@@ -326,7 +326,7 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-gray-100">
+                        <p className="font-medium text-primary">
                           {violation.repo} / {violation.branch}
                         </p>
                       </div>
@@ -335,7 +335,7 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
                     <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
                       <strong>Issue:</strong> {violation.issue}
                     </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-secondary">
                       <strong>Recommendation:</strong> {violation.recommendation}
                     </p>
                   </div>
@@ -347,7 +347,7 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
           {/* Recommendations */}
           {report.recommendations.length > 0 && (
             <div>
-              <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Recommendations</h4>
+              <h4 className="text-lg font-semibold text-primary mb-3">Recommendations</h4>
               <ul className="space-y-2">
                 {report.recommendations.map((rec, idx) => (
                   <li key={idx} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
@@ -363,9 +363,9 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
 
       {/* Policy Configuration Modal */}
       {showPolicyConfig && selectedRepo && (
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            <h3 className="text-xl font-semibold text-primary">
               Configure Protection: {selectedRepo.owner}/{selectedRepo.repo}
             </h3>
             <button
@@ -373,7 +373,7 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
                 setShowPolicyConfig(false);
                 setSelectedRepo(null);
               }}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+              className="text-secondary hover:text-gray-900 dark:hover:text-gray-100"
             >
               ✕
             </button>
@@ -390,7 +390,7 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
                 max="6"
                 value={policyConfig.required_approving_review_count}
                 onChange={(e) => setPolicyConfig({ ...policyConfig, required_approving_review_count: parseInt(e.target.value) })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-primary"
               />
             </div>
 
@@ -483,12 +483,12 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
           {protections.map((repo, idx) => (
             <div
               key={idx}
-              className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4"
+              className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4"
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <h4 className="text-lg font-semibold text-primary">
                       {repo.owner}/{repo.repo}
                     </h4>
                     <span className={`px-2 py-1 text-xs font-medium rounded ${
@@ -499,9 +499,9 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
                       {repo.protected ? '🛡️ Protected' : '⚠️ Unprotected'}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Branch: {repo.branch}</p>
+                  <p className="text-sm text-secondary">Branch: {repo.branch}</p>
                   {repo.protected && repo.protection && (
-                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-600 dark:text-gray-400">
+                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-secondary">
                       {repo.protection.required_approving_review_count && (
                         <span>✓ {repo.protection.required_approving_review_count} review(s) required</span>
                       )}
@@ -531,12 +531,12 @@ export default function BranchPolicyTab({ workspaceId }: BranchPolicyTabProps) {
           ))}
         </div>
       ) : (
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+        <div className="surface-card rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
           <div className="text-6xl mb-6">🛡️</div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+          <h3 className="text-xl font-semibold text-primary mb-4">
             No Repositories Found
           </h3>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-secondary">
             Add repositories to this workspace to manage their branch protection policies.
           </p>
         </div>
