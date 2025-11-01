@@ -1,3 +1,22 @@
+# 🔍 Vercel Build Failure Analysis
+
+**Generated on:** 2025-11-01 13:22:45 UTC
+**Deployment ID:** 
+**Repository:** junaidaziz/codemind
+**Branch:** main
+**Commit:** a7750fc96eb1fdf352864680a6dd646f73f2a3fa
+
+## ❌ Build Failure Summary
+Build failed due to missing dependencies and a prerendering error.
+
+## 🔍 Root Cause Analysis
+Unknown cause
+
+## 🛠️ Suggested Fix
+See analysis for details
+
+## 📊 Full Analysis
+```json
 {
   "deployment": {
     "uid": "dpl_85eD8jViEBdYmTm7o5jQkZ8VaxpD",
@@ -58,3 +77,7 @@
   },
   "timestamp": "2025-11-01T13:22:45.877Z"
 }
+```
+
+---
+*This analysis was generated automatically by our AI-powered build failure analyzer.*
