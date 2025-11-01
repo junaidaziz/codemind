@@ -502,6 +502,7 @@ model Organization {
   OrganizationInvite OrganizationInvite[]
   OrganizationMember OrganizationMember[]
   Project            Project[]
+  CostBudget         CostBudget[]
 
   @@index([ownerId])
 }
@@ -540,40 +541,43 @@ model OrganizationMember {
 }
 
 model Project {
-  id                String              @id
-  name              String
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime
-  defaultBranch     String              @default("main")
-  githubUrl         String
-  lastIndexedAt     DateTime?
-  ownerId           String
-  status            String              @default("idle")
-  visibility        String              @default("public")
-  lastFullScanAt    DateTime?
-  organizationId    String?
-  ActivityLog       ActivityLog[]
-  ActivityEvent     ActivityEvent[]
-  AgentFeedback     AgentFeedback[]
-  AgentMemory       AgentMemory[]
-  AutoFixConfig     AutoFixConfig?
-  AutoFixMetrics    AutoFixMetrics[]
-  AutoFixSession    AutoFixSession[]
-  ChatSession       ChatSession[]
-  CodeChunk         CodeChunk[]
-  Commit            Commit[]
-  Contributor       Contributor[]
-  DeveloperInsights DeveloperInsights[]
-  FeedbackAnalytics FeedbackAnalytics[]
-  Issue             Issue[]
-  Organization      Organization?       @relation(fields: [organizationId], references: [id])
-  User              User                @relation(fields: [ownerId], references: [id])
-  ProjectConfig     ProjectConfig?
-  ProjectFile       ProjectFile[]
-  PullRequest       PullRequest[]
-  TimeTracking      TimeTracking[]
-  ToolExecution     ToolExecution[]
-  AIModelUsage      AIModelUsage[]
+  id                        String                      @id
+  name                      String
+  createdAt                 DateTime                    @default(now())
+  updatedAt                 DateTime
+  defaultBranch             String                      @default("main")
+  githubUrl                 String
+  lastIndexedAt             DateTime?
+  ownerId                   String
+  status                    String                      @default("idle")
+  visibility                String                      @default("public")
+  lastFullScanAt            DateTime?
+  organizationId            String?
+  ActivityLog               ActivityLog[]
+  ActivityEvent             ActivityEvent[]
+  AgentFeedback             AgentFeedback[]
+  AgentMemory               AgentMemory[]
+  AutoFixConfig             AutoFixConfig?
+  AutoFixMetrics            AutoFixMetrics[]
+  AutoFixSession            AutoFixSession[]
+  ChatSession               ChatSession[]
+  CodeChunk                 CodeChunk[]
+  Commit                    Commit[]
+  Contributor               Contributor[]
+  DeveloperInsights         DeveloperInsights[]
+  FeedbackAnalytics         FeedbackAnalytics[]
+  Issue                     Issue[]
+  Organization              Organization?               @relation(fields: [organizationId], references: [id])
+  User                      User                        @relation(fields: [ownerId], references: [id])
+  ProjectConfig             ProjectConfig?
+  ProjectFile               ProjectFile[]
+  PullRequest               PullRequest[]
+  TimeTracking              TimeTracking[]
+  ToolExecution             ToolExecution[]
+  AIModelUsage              AIModelUsage[]
+  CostBudget                CostBudget[]
+  PerformanceMetric         PerformanceMetric[]
+  AutoScalingRecommendation AutoScalingRecommendation[]
 
   @@index([organizationId])
 }
@@ -731,26 +735,26 @@ model ToolExecution {
 }
 
 model User {
-  id                                                    String               @id
-  email                                                 String?              @unique
+  id                                                    String                @id
+  email                                                 String?               @unique
   name                                                  String?
-  createdAt                                             DateTime             @default(now())
+  createdAt                                             DateTime              @default(now())
   image                                                 String?
-  role                                                  String               @default("user")
+  role                                                  String                @default("user")
   ActivityLog                                           ActivityLog[]
   ActivityEvent                                         ActivityEvent[]
   AgentFeedback                                         AgentFeedback[]
   AgentMemory                                           AgentMemory[]
   AutoFixMetrics                                        AutoFixMetrics[]
-  AutoFixSession_AutoFixSession_approvedByToUser        AutoFixSession[]     @relation("AutoFixSession_approvedByToUser")
-  AutoFixSession_AutoFixSession_userIdToUser            AutoFixSession[]     @relation("AutoFixSession_userIdToUser")
+  AutoFixSession_AutoFixSession_approvedByToUser        AutoFixSession[]      @relation("AutoFixSession_approvedByToUser")
+  AutoFixSession_AutoFixSession_userIdToUser            AutoFixSession[]      @relation("AutoFixSession_userIdToUser")
   ChatSession                                           ChatSession[]
   DeveloperInsights                                     DeveloperInsights[]
   FeedbackAnalytics                                     FeedbackAnalytics[]
   Organization                                          Organization[]
   OrganizationInvite                                    OrganizationInvite[]
-  OrganizationMember_OrganizationMember_invitedByToUser OrganizationMember[] @relation("OrganizationMember_invitedByToUser")
-  OrganizationMember_OrganizationMember_userIdToUser    OrganizationMember[] @relation("OrganizationMember_userIdToUser")
+  OrganizationMember_OrganizationMember_invitedByToUser OrganizationMember[]  @relation("OrganizationMember_invitedByToUser")
+  OrganizationMember_OrganizationMember_userIdToUser    OrganizationMember[]  @relation("OrganizationMember_userIdToUser")
   Project                                               Project[]
   TimeTracking                                          TimeTracking[]
   ToolExecution                                         ToolExecution[]
@@ -759,13 +763,15 @@ model User {
   AuditLog                                              AuditLog[]
   ApiKey                                                ApiKey[]
   ProjectInvitation                                     ProjectInvitation[]
-  ProjectMember_userId                                  ProjectMember[]      @relation("ProjectMember_userId")
-  ProjectMember_addedBy                                 ProjectMember[]      @relation("ProjectMember_addedBy")
+  ProjectMember_userId                                  ProjectMember[]       @relation("ProjectMember_userId")
+  ProjectMember_addedBy                                 ProjectMember[]       @relation("ProjectMember_addedBy")
   accounts                                              Account[]
   sessions                                              Session[]
   ComplianceRule                                        ComplianceRule[]
   ComplianceViolation                                   ComplianceViolation[]
   ComplianceAudit                                       ComplianceAudit[]
+  CostBudget                                            CostBudget[]
+  PerformanceMetric                                     PerformanceMetric[]
 }
 
 model Account {
@@ -902,36 +908,36 @@ model ProjectMember {
 }
 
 model CodeReview {
-  id                 String                @id @default(cuid())
-  projectId          String
-  prNumber           Int
-  prTitle            String
-  prUrl              String
-  headBranch         String
-  baseBranch         String
-  authorLogin        String
-  status             CodeReviewStatus      @default(PENDING)
-  riskLevel          RiskLevel             @default(LOW)
-  riskScore          Float                 @default(0)
-  overallScore       Float                 @default(0)
-  approved           Boolean               @default(false)
-  requiresChanges    Boolean               @default(false)
-  filesAnalyzed      Int                   @default(0)
-  linesAdded         Int                   @default(0)
-  linesRemoved       Int                   @default(0)
-  summary            String?               @db.Text
+  id                       String              @id @default(cuid())
+  projectId                String
+  prNumber                 Int
+  prTitle                  String
+  prUrl                    String
+  headBranch               String
+  baseBranch               String
+  authorLogin              String
+  status                   CodeReviewStatus    @default(PENDING)
+  riskLevel                RiskLevel           @default(LOW)
+  riskScore                Float               @default(0)
+  overallScore             Float               @default(0)
+  approved                 Boolean             @default(false)
+  requiresChanges          Boolean             @default(false)
+  filesAnalyzed            Int                 @default(0)
+  linesAdded               Int                 @default(0)
+  linesRemoved             Int                 @default(0)
+  summary                  String?             @db.Text
   // Structured JSON fields (added after initial implementation that embedded these inside summary JSON)
-  simulation         Json?
+  simulation               Json?
   documentationSuggestions Json?
-  testingSuggestions Json?
-  aiSuggestions      String?               @db.Text
-  commitSha          String?
-  completedAt        DateTime?
-  createdAt          DateTime              @default(now())
-  updatedAt          DateTime              @updatedAt
-  CodeReviewComment  CodeReviewComment[]
-  CodeReviewRisk     CodeReviewRisk[]
-  CodeReviewImpact   CodeReviewImpact[]
+  testingSuggestions       Json?
+  aiSuggestions            String?             @db.Text
+  commitSha                String?
+  completedAt              DateTime?
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+  CodeReviewComment        CodeReviewComment[]
+  CodeReviewRisk           CodeReviewRisk[]
+  CodeReviewImpact         CodeReviewImpact[]
 
   @@unique([projectId, prNumber])
   @@index([projectId, createdAt(sort: Desc)])
@@ -940,20 +946,20 @@ model CodeReview {
 }
 
 model CodeReviewComment {
-  id             String             @id @default(cuid())
-  reviewId       String
-  filePath       String
-  lineNumber     Int?
-  severity       CommentSeverity    @default(INFO)
-  category       CommentCategory    @default(BEST_PRACTICES)
-  message        String             @db.Text
-  suggestion     String?            @db.Text
-  codeSnippet    String?            @db.Text
-  aiGenerated    Boolean            @default(false)
-  postedToGitHub Boolean            @default(false)
+  id              String          @id @default(cuid())
+  reviewId        String
+  filePath        String
+  lineNumber      Int?
+  severity        CommentSeverity @default(INFO)
+  category        CommentCategory @default(BEST_PRACTICES)
+  message         String          @db.Text
+  suggestion      String?         @db.Text
+  codeSnippet     String?         @db.Text
+  aiGenerated     Boolean         @default(false)
+  postedToGitHub  Boolean         @default(false)
   githubCommentId Int?
-  createdAt      DateTime           @default(now())
-  CodeReview     CodeReview         @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  createdAt       DateTime        @default(now())
+  CodeReview      CodeReview      @relation(fields: [reviewId], references: [id], onDelete: Cascade)
 
   @@index([reviewId])
   @@index([severity, category])
@@ -1168,23 +1174,23 @@ enum DeploymentStatus {
 }
 
 model Deployment {
-  id                String            @id @default(cuid())
+  id                String           @id @default(cuid())
   projectId         String
   commitSha         String?
   branch            String?
-  status            DeploymentStatus  @default(QUEUED)
-  url               String?           @db.Text
-  deploymentUrl     String?           @db.Text  // Vercel deployment URL
-  environment       String?           // production, preview, development
-  provider          String            @default("vercel")  // vercel, railway, etc.
-  buildDuration     Int?              // milliseconds
-  healthCheckResult Json?             // { status: 'healthy'|'unhealthy', checks: [...] }
-  errorMessage      String?           @db.Text
-  metadata          Json?             // Additional provider-specific data
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  status            DeploymentStatus @default(QUEUED)
+  url               String?          @db.Text
+  deploymentUrl     String?          @db.Text // Vercel deployment URL
+  environment       String? // production, preview, development
+  provider          String           @default("vercel") // vercel, railway, etc.
+  buildDuration     Int? // milliseconds
+  healthCheckResult Json? // { status: 'healthy'|'unhealthy', checks: [...] }
+  errorMessage      String?          @db.Text
+  metadata          Json? // Additional provider-specific data
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
   deployedAt        DateTime?
-  
+
   @@index([projectId, createdAt(sort: Desc)])
   @@index([commitSha])
   @@index([status, createdAt(sort: Desc)])
@@ -1193,25 +1199,25 @@ model Deployment {
 // Compliance Foundation Models
 
 model ComplianceRule {
-  id              String              @id @default(cuid())
-  name            String
-  description     String              @db.Text
-  category        ComplianceCategory
-  severity        RuleSeverity        @default(MEDIUM)
-  ruleType        RuleType            @default(CODE_QUALITY)
-  enabled         Boolean             @default(true)
-  condition       Json                // Rule conditions (e.g., file patterns, code patterns, metrics)
-  action          Json?               // Actions to take when rule is violated
-  metadata        Json?               // Additional rule configuration
-  organizationId  String?
-  projectId       String?
-  createdBy       String
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  
-  violations      ComplianceViolation[]
-  User            User                @relation(fields: [createdBy], references: [id], onDelete: Cascade)
-  
+  id             String             @id @default(cuid())
+  name           String
+  description    String             @db.Text
+  category       ComplianceCategory
+  severity       RuleSeverity       @default(MEDIUM)
+  ruleType       RuleType           @default(CODE_QUALITY)
+  enabled        Boolean            @default(true)
+  condition      Json // Rule conditions (e.g., file patterns, code patterns, metrics)
+  action         Json? // Actions to take when rule is violated
+  metadata       Json? // Additional rule configuration
+  organizationId String?
+  projectId      String?
+  createdBy      String
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  violations ComplianceViolation[]
+  User       User                  @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
   @@index([category, enabled])
   @@index([organizationId, enabled])
   @@index([projectId, enabled])
@@ -1219,27 +1225,27 @@ model ComplianceRule {
 }
 
 model ComplianceViolation {
-  id              String              @id @default(cuid())
-  ruleId          String
-  projectId       String
-  prNumber        Int?
-  commitSha       String?
-  filePath        String?
-  lineNumber      Int?
-  severity        RuleSeverity
-  message         String              @db.Text
-  details         Json?               // Detailed violation info
-  status          ViolationStatus     @default(OPEN)
-  aiAnalysis      String?             @db.Text // AI-powered analysis
-  aiSuggestion    String?             @db.Text // AI-powered fix suggestion
-  resolvedBy      String?
-  resolvedAt      DateTime?
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  
-  rule            ComplianceRule      @relation(fields: [ruleId], references: [id], onDelete: Cascade)
-  resolver        User?               @relation(fields: [resolvedBy], references: [id], onDelete: SetNull)
-  
+  id           String          @id @default(cuid())
+  ruleId       String
+  projectId    String
+  prNumber     Int?
+  commitSha    String?
+  filePath     String?
+  lineNumber   Int?
+  severity     RuleSeverity
+  message      String          @db.Text
+  details      Json? // Detailed violation info
+  status       ViolationStatus @default(OPEN)
+  aiAnalysis   String?         @db.Text // AI-powered analysis
+  aiSuggestion String?         @db.Text // AI-powered fix suggestion
+  resolvedBy   String?
+  resolvedAt   DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  rule     ComplianceRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  resolver User?          @relation(fields: [resolvedBy], references: [id], onDelete: SetNull)
+
   @@index([ruleId, status])
   @@index([projectId, status])
   @@index([prNumber, projectId])
@@ -1248,28 +1254,28 @@ model ComplianceViolation {
 }
 
 model ComplianceAudit {
-  id              String              @id @default(cuid())
+  id              String           @id @default(cuid())
   projectId       String
   prNumber        Int?
   commitSha       String?
   triggeredBy     String
-  triggerType     AuditTriggerType    @default(PR_EVENT)
-  status          AuditStatus         @default(PENDING)
-  rulesChecked    Int                 @default(0)
-  violationsFound Int                 @default(0)
-  criticalCount   Int                 @default(0)
-  highCount       Int                 @default(0)
-  mediumCount     Int                 @default(0)
-  lowCount        Int                 @default(0)
-  aiInsights      String?             @db.Text // AI-powered overall analysis
-  overallScore    Float?              // Compliance score 0-100
-  duration        Int?                // Duration in milliseconds
+  triggerType     AuditTriggerType @default(PR_EVENT)
+  status          AuditStatus      @default(PENDING)
+  rulesChecked    Int              @default(0)
+  violationsFound Int              @default(0)
+  criticalCount   Int              @default(0)
+  highCount       Int              @default(0)
+  mediumCount     Int              @default(0)
+  lowCount        Int              @default(0)
+  aiInsights      String?          @db.Text // AI-powered overall analysis
+  overallScore    Float? // Compliance score 0-100
+  duration        Int? // Duration in milliseconds
   metadata        Json?
-  createdAt       DateTime            @default(now())
+  createdAt       DateTime         @default(now())
   completedAt     DateTime?
-  
-  User            User                @relation(fields: [triggeredBy], references: [id], onDelete: Cascade)
-  
+
+  User User @relation(fields: [triggeredBy], references: [id], onDelete: Cascade)
+
   @@index([projectId, createdAt(sort: Desc)])
   @@index([prNumber, projectId])
   @@index([status, createdAt(sort: Desc)])
@@ -1329,4 +1335,82 @@ enum AuditStatus {
   COMPLETED
   FAILED
   CANCELLED
+}
+
+// Cost and Performance Models
+
+model CostBudget {
+  id                String    @id @default(cuid())
+  projectId         String?
+  organizationId    String?
+  userId            String?
+  budgetType        String    @default("monthly") // "daily", "weekly", "monthly", "yearly", "total"
+  limitUsd          Float
+  currentSpendUsd   Float     @default(0)
+  warningThreshold  Float     @default(0.8) // Alert when 80% of budget is used
+  criticalThreshold Float     @default(0.95) // Critical alert at 95%
+  period            String? // "2024-01", "2024-W01", etc. for time-based budgets
+  startDate         DateTime  @default(now())
+  endDate           DateTime?
+  isActive          Boolean   @default(true)
+  alertsEnabled     Boolean   @default(true)
+  lastAlertSent     DateTime?
+  lastAlertType     String? // "warning", "critical", "exceeded"
+  metadata          Json? // Additional configuration
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  project      Project?      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, isActive])
+  @@index([organizationId, isActive])
+  @@index([userId, isActive])
+  @@index([budgetType, period])
+}
+
+model PerformanceMetric {
+  id         String   @id @default(cuid())
+  projectId  String?
+  userId     String?
+  metricType String // "api_latency", "db_query_time", "cache_hit_rate", "ai_response_time"
+  metricName String // Specific metric name
+  value      Float
+  unit       String   @default("ms") // "ms", "seconds", "percentage", "count"
+  endpoint   String? // API endpoint or operation name
+  operation  String? // Specific operation being measured
+  durationMs Int?
+  metadata   Json? // Additional context
+  timestamp  DateTime @default(now())
+
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, metricType, timestamp(sort: Desc)])
+  @@index([metricType, timestamp(sort: Desc)])
+  @@index([endpoint, timestamp(sort: Desc)])
+}
+
+model AutoScalingRecommendation {
+  id                 String    @id @default(cuid())
+  projectId          String
+  recommendationType String // "scale_up", "scale_down", "optimize_cache", "reduce_model_usage"
+  priority           String    @default("medium") // "low", "medium", "high", "critical"
+  title              String
+  description        String    @db.Text
+  currentMetrics     Json // Current performance/cost metrics
+  recommendation     Json // Recommended actions
+  estimatedSavings   Float? // Estimated cost savings (USD)
+  estimatedImpact    String? // Impact description
+  implemented        Boolean   @default(false)
+  implementedAt      DateTime?
+  dismissedAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, implemented, createdAt(sort: Desc)])
+  @@index([priority, createdAt(sort: Desc)])
 }
