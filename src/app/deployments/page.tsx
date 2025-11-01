@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 interface Deployment {
@@ -62,7 +62,7 @@ function riskColor(risk: string) {
   }
 }
 
-export default function DeploymentsPage() {
+function DeploymentsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [deployments, setDeployments] = useState<Deployment[]>([]);
@@ -234,5 +234,18 @@ export default function DeploymentsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function DeploymentsPage() {
+  return (
+    <Suspense fallback={
+      <div className="p-6">
+        <h1 className="text-2xl font-semibold mb-6">Deployments</h1>
+        <div className="text-center py-8 text-gray-500">Loading deployments...</div>
+      </div>
+    }>
+      <DeploymentsContent />
+    </Suspense>
   );
 }

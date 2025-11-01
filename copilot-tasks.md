@@ -1,6 +1,6 @@
 # 🤖 CodeMind — Active Roadmap
 
-> **Last Updated:** October 31, 2025  
+> **Last Updated:** November 1, 2025  
 > **Goal:** Build the best AI-powered code review and CI/CD automation platform.
 
 ---
@@ -11,6 +11,7 @@
 ✅ **Feature #10 – CI/CD & DevOps Integration** (COMPLETE)
 ✅ **Slack/Discord Notifications** (COMPLETE)
 ✅ **Parallel File Analysis Worker Pool** (COMPLETE)
+✅ **Configurable Rule Weights** (COMPLETE)
 
 ---
 
@@ -18,12 +19,12 @@
 
 ### **High-Impact Enhancements**
 
-1. **Configurable Rule Weights** - ⏱️ 1-2 days 
-   - User-defined rule severity adjustments
-   - Per-project rule configuration
-   - UI for rule management (/settings/rules)
-   - Export/import rule presets
-   - Default profiles (strict, balanced, lenient)
+1. **Rule Weights Settings UI** - ⏱️ 1-2 days 
+   - UI for rule management (/settings/code-review)
+   - Preset selector (strict, balanced, lenient)
+   - Weight adjustment sliders with live preview
+   - Export/import rule configurations
+   - Per-project rule customization
 
 ### **Secondary Features (Backlog)**
 

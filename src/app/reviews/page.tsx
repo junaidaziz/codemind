@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 interface ReviewRow {
@@ -40,7 +40,7 @@ function impactColor(scope?: string) {
   }
 }
 
-export default function ReviewsPage() {
+function ReviewsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
@@ -174,5 +174,18 @@ export default function ReviewsPage() {
         </table>
       )}
     </div>
+  );
+}
+
+export default function ReviewsPage() {
+  return (
+    <Suspense fallback={
+      <div className="p-6">
+        <h1 className="text-2xl font-semibold mb-6">Code Reviews</h1>
+        <div className="text-center py-8 text-gray-500">Loading reviews...</div>
+      </div>
+    }>
+      <ReviewsContent />
+    </Suspense>
   );
 }
